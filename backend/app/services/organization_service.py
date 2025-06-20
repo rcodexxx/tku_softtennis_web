@@ -2,7 +2,9 @@
 from sqlalchemy.exc import IntegrityError
 
 from ..extensions import db
-from ..models import Organization  # 假設您的 Organization 模型在 models/__init__.py 或直接導入
+from ..models import (
+    Organization,  # 假設您的 Organization 模型在 models/__init__.py 或直接導入
+)
 from ..tools.exceptions import AppException  # 假設您有自訂的 AppException
 
 

@@ -3,7 +3,7 @@ from sqlalchemy.exc import IntegrityError
 
 from ..extensions import db
 from ..models import User
-from ..tools.exceptions import UserNotFoundError, UserAlreadyExistsError, AppException
+from ..tools.exceptions import AppException, UserAlreadyExistsError, UserNotFoundError
 
 
 class ProfileService:

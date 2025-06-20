@@ -1,10 +1,12 @@
 # backend/app/schemas/profile_schemas.py
-from marshmallow import Schema, fields, validate, pre_load
+from marshmallow import Schema, fields, pre_load, validate
 from marshmallow_enum import EnumField
 
-from .member_schemas import MemberSchema  # 我們可以重用 MemberSchema 來顯示巢狀的隊員資料
 from ..models.enums.bio_enums import GenderEnum
 from ..models.enums.match_enums import MatchPositionEnum
+from .member_schemas import (
+    MemberSchema,  # 我們可以重用 MemberSchema 來顯示巢狀的隊員資料
+)
 
 
 class ProfileUpdateSchema(Schema):

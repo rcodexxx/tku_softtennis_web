@@ -70,7 +70,7 @@
                         {{ formatDisplayScore(safeGet(topThree[1], 'official_rank_score', 0)) }}
                       </div>
                     </div>
-                    <div class="match-count" v-if="getWinRate(topThree[1])">{{ getWinRate(topThree[1]) }} %</div>
+                    <div v-if="getWinRate(topThree[1])" class="match-count">{{ getWinRate(topThree[1]) }} %</div>
                   </div>
                   <div class="podium-base podium-base-2"></div>
                 </div>
@@ -99,7 +99,7 @@
                         {{ formatDisplayScore(safeGet(topThree[0], 'official_rank_score', 0)) }}
                       </div>
                     </div>
-                    <div class="match-count" v-if="getWinRate(topThree[0])">{{ getWinRate(topThree[0]) }} %</div>
+                    <div v-if="getWinRate(topThree[0])" class="match-count">{{ getWinRate(topThree[0]) }} %</div>
                   </div>
                   <div class="podium-base podium-base-1"></div>
                 </div>
@@ -127,7 +127,7 @@
                         {{ formatDisplayScore(safeGet(topThree[2], 'official_rank_score', 0)) }}
                       </div>
                     </div>
-                    <div class="match-count" v-if="getWinRate(topThree[2])">{{ getWinRate(topThree[2]) }} %</div>
+                    <div v-if="getWinRate(topThree[2])" class="match-count">{{ getWinRate(topThree[2]) }} %</div>
                   </div>
                   <div class="podium-base podium-base-3"></div>
                 </div>
@@ -152,7 +152,7 @@
                   </div>
                   <div class="player-info-mobile">
                     <div class="player-name-mobile">{{ getPlayerDisplayName(member) }}</div>
-                    <div class="player-org-mobile" v-if="member.organization_name">
+                    <div v-if="member.organization_name" class="player-org-mobile">
                       {{ member.organization_name }}
                     </div>
                   </div>
@@ -252,7 +252,7 @@
                     </div>
                     <div class="player-info-mobile">
                       <div class="player-name-mobile">{{ getPlayerDisplayName(member) }}</div>
-                      <div class="player-org-mobile" v-if="member.organization_name">
+                      <div v-if="member.organization_name" class="player-org-mobile">
                         {{ member.organization_name }}
                       </div>
                     </div>

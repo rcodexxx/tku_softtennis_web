@@ -1,7 +1,7 @@
 # backend/run.py
 import os
 
-from app import create_app, db
+from app import create_app
 
 # 從環境變數讀取設定名稱，預設為 'development'
 # FLASK_CONFIG 會在 .env 或 docker-compose.yml 中設定

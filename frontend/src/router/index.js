@@ -1,4 +1,4 @@
-// src/router/index.js
+// src/router/index.js - 添加裁判模式路由
 import { createRouter, createWebHistory } from 'vue-router'
 
 // 導入您的所有視圖組件
@@ -12,7 +12,8 @@ import EditMemberView from '@/views/team/EditMemberView.vue'
 import AddMatchRecordView from '../views/match/AddMatchRecordView.vue'
 import MatchManagementView from '@/views/match/MatchManagementView.vue'
 import EditMatchRecordView from '../views/match/EditMatchRecordView.vue'
-import DetailLeaderboardView from '@/views/DetailLeaderboardView.vue' // 🔧 新增編輯比賽頁面
+import DetailLeaderboardView from '@/views/DetailLeaderboardView.vue'
+import RefereeModeView from '../views/match/RefereeModeView.vue' // 🎾 新增裁判模式
 
 const routes = [
   {
@@ -62,6 +63,28 @@ const routes = [
     component: MatchManagementView,
     meta: { requiresAuth: true }
   },
+  // 🎾 新增裁判模式路由
+  // {
+  //   path: '/referee-mode',
+  //   name: 'RefereeMode',
+  //   component: RefereeModeView,
+  //   meta: {
+  //     requiresAuth: true,
+  //     mobileOptimized: true
+  //   },
+  //   beforeEnter: (to, from, next) => {
+  //     // 檢查裝置支援 - 僅在非開發環境檢查
+  //     if (import.meta.env.PROD) {
+  //       const isDesktop = window.innerWidth > 1024 && !('ontouchstart' in window)
+  //       if (isDesktop) {
+  //         alert('裁判模式專為行動裝置設計，請使用手機或平板訪問')
+  //         next({ name: 'Leaderboard' })
+  //         return
+  //       }
+  //     }
+  //     next()
+  //   }
+  // },
   // --- 管理相關路由 ---
   {
     path: '/management',

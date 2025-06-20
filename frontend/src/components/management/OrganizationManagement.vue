@@ -36,11 +36,7 @@
     <!-- 空狀態提示 -->
     <div v-if="!loading && filteredOrganizations.length === 0" class="mt-3">
       <n-empty
-        :description="
-          props.searchTermProp
-            ? `找不到符合 '${props.searchTermProp}' 的組織。`
-            : '目前沒有組織資料。'
-        "
+        :description="props.searchTermProp ? `找不到符合 '${props.searchTermProp}' 的組織。` : '目前沒有組織資料。'"
       />
     </div>
 
@@ -69,11 +65,7 @@
         </n-grid>
 
         <n-form-item label="組織描述" path="description">
-          <n-input
-            v-model:value="currentOrg.description"
-            type="textarea"
-            placeholder="關於組織的簡介 (選填)"
-          />
+          <n-input v-model:value="currentOrg.description" type="textarea" placeholder="關於組織的簡介 (選填)" />
         </n-form-item>
 
         <n-divider title-placement="left" class="section-divider">聯絡資訊</n-divider>
@@ -236,8 +228,7 @@
                 },
                 { icon: () => h(NIcon, { component: DeleteIcon }) }
               ),
-            default: () =>
-              row.members_count > 0 ? `組織尚有 ${row.members_count} 位成員，無法刪除` : '刪除組織'
+            default: () => (row.members_count > 0 ? `組織尚有 ${row.members_count} 位成員，無法刪除` : '刪除組織')
           })
         ])
       }

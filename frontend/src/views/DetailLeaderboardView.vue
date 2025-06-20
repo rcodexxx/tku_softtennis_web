@@ -4,7 +4,7 @@
       <!-- 頁面標題和導航 -->
       <div class="page-header">
         <div class="header-nav">
-          <n-button quaternary @click="goBack" class="back-button">
+          <n-button quaternary class="back-button" @click="goBack">
             <template #icon>
               <n-icon :component="ArrowLeftIcon" />
             </template>
@@ -34,8 +34,8 @@
                 :min="0"
                 :max="100"
                 placeholder="最少場次"
-                @update:value="fetchLeaderboard"
                 style="width: 120px"
+                @update:value="fetchLeaderboard"
               >
                 <template #prefix>🎾</template>
               </n-input-number>
@@ -43,14 +43,14 @@
 
             <!-- 右側操作控制 -->
             <n-space align="center">
-              <n-button @click="fetchLeaderboard" :loading="loading" secondary>
+              <n-button :loading="loading" secondary @click="fetchLeaderboard">
                 <template #icon>
                   <n-icon :component="RefreshIcon" />
                 </template>
                 重新整理
               </n-button>
 
-              <n-button @click="exportData" :disabled="leaderboardData.length === 0" secondary>
+              <n-button :disabled="leaderboardData.length === 0" secondary @click="exportData">
                 <template #icon>
                   <n-icon :component="DownloadIcon" />
                 </template>

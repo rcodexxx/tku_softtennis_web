@@ -1,17 +1,21 @@
 # backend/app/api/organization_routes.py
-from flask import jsonify, request, current_app
+from flask import current_app, jsonify, request
 from flask_jwt_extended import jwt_required
 from marshmallow import ValidationError as MarshmallowValidationError
 
-from . import api_bp  # 您的 API 藍圖
-from ..schemas.organization_schemas import OrganizationSchema, OrganizationCreateSchema, OrganizationUpdateSchema
+from ..schemas.organization_schemas import (
+    OrganizationCreateSchema,
+    OrganizationSchema,
+    OrganizationUpdateSchema,
+)
 from ..services.organization_service import (
-    OrganizationService,
-    OrganizationNotFoundError,
-    OrganizationInUseError,
     OrganizationAlreadyExistsError,
+    OrganizationInUseError,
+    OrganizationNotFoundError,
+    OrganizationService,
 )
 from ..tools.exceptions import AppException
+from . import api_bp  # 您的 API 藍圖
 
 # 實例化 Schemas 以便在路由中使用
 org_schema = OrganizationSchema()

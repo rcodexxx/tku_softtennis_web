@@ -3,7 +3,13 @@
     <n-message-provider>
       <n-notification-provider>
         <n-dialog-provider>
-          <n-layout style="height: 100vh" :native-scrollbar="false">
+          <!-- 🎾 裁判模式全屏檢測 -->
+          <div v-if="route.name === 'RefereeMode'" style="width: 100vw; height: 100vh; background: #667eea">
+            <router-view />
+          </div>
+
+          <!-- 原有佈局 - 完全保持不變 -->
+          <n-layout v-else style="height: 100vh" :native-scrollbar="false">
             <n-layout-header bordered class="app-header">
               <div class="navbar-content">
                 <!-- 桌面版 LOGO -->
@@ -11,7 +17,7 @@
 
                 <!-- 移動版選單觸發器 -->
                 <div v-if="isMobile" class="mobile-nav-trigger">
-                  <n-button text @click="showMobileDrawer = true" class="mobile-menu-btn">
+                  <n-button text class="mobile-menu-btn" @click="showMobileDrawer = true">
                     <n-icon size="28" color="#333">
                       <MenuIcon />
                     </n-icon>
@@ -31,6 +37,22 @@
                 <!-- 用戶操作區域 -->
                 <div class="user-actions-area">
                   <template v-if="authStore.isAuthenticated">
+                    <!-- 🎾 裁判模式按鈕 - 只在行動設備顯示 -->
+<!--                    <n-button-->
+<!--                      v-if="isMobileDevice"-->
+<!--                      type="primary"-->
+<!--                      circle-->
+<!--                      title="裁判模式"-->
+<!--                      style="-->
+<!--                        background: linear-gradient(135deg, #10b981 0%, #059669 100%);-->
+<!--                        border: none;-->
+<!--                        margin-right: 0.5rem;-->
+<!--                        font-size: 1.1rem;-->
+<!--                      "-->
+<!--                      @click="goToRefereeMode"-->
+<!--                      >⚔️-->
+<!--                    </n-button>-->
+
                     <n-dropdown
                       trigger="hover"
                       :options="userDropdownOptions"
@@ -53,24 +75,13 @@
                   </template>
                   <template v-else>
                     <n-space align="center" :wrap="false" :size="isMobile ? 'small' : 'medium'">
-                      <!--                      <router-link v-slot="{ navigate }" :to="{ name: 'Register' }">-->
-                      <!--                        <n-button-->
-                      <!--                          :size="isMobile ? 'small' : 'medium'"-->
-                      <!--                          ghost-->
-                      <!--                          round-->
-                      <!--                          @click="navigate"-->
-                      <!--                          class="register-btn"-->
-                      <!--                        >-->
-                      <!--                          快速註冊-->
-                      <!--                        </n-button>-->
-                      <!--                      </router-link>-->
                       <router-link v-slot="{ navigate }" :to="{ name: 'Login' }">
                         <n-button
                           type="primary"
                           :size="isMobile ? 'small' : 'medium'"
                           round
-                          @click="navigate"
                           class="login-btn"
+                          @click="navigate"
                         >
                           登入
                         </n-button>
@@ -110,13 +121,46 @@
                 TKU Soft Tennis Web
               </router-link>
 
+              <!-- 🎾 移動版裁判模式區塊 -->
+<!--              <div-->
+<!--                v-if="authStore.isAuthenticated"-->
+<!--                style="-->
+<!--                  margin: 1rem 0;-->
+<!--                  padding: 1rem;-->
+<!--                  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));-->
+<!--                  border-radius: 8px;-->
+<!--                  border: 1px solid rgba(16, 185, 129, 0.2);-->
+<!--                  display: flex;-->
+<!--                  justify-content: center;-->
+<!--                "-->
+<!--              >-->
+<!--                <div-->
+<!--                  style="-->
+<!--                    font-weight: 600;-->
+<!--                    color: #059669;-->
+<!--                    margin-bottom: 0.75rem;-->
+<!--                    text-align: center;-->
+<!--                    font-size: 1.1rem;-->
+<!--                  "-->
+<!--                ></div>-->
+<!--                <n-button-->
+<!--                  type="primary"-->
+<!--                  size="large"-->
+<!--                  block-->
+<!--                  style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; height: 48px"-->
+<!--                  @click="goToRefereeMode"-->
+<!--                >-->
+<!--                  裁判模式-->
+<!--                </n-button>-->
+<!--              </div>-->
+
               <!-- 移動版選單項目 -->
               <n-menu
                 v-model:value="activeMenuKey"
                 mode="vertical"
                 :options="mobileMenuOptions"
-                @update:value="handleMobileMenuSelect"
                 class="mobile-nav-menu"
+                @update:value="handleMobileMenuSelect"
               />
 
               <!-- 移動版用戶資訊 -->
@@ -144,13 +188,13 @@
                     <n-button
                       block
                       ghost
+                      class="mobile-action-btn"
                       @click="
                         () => {
                           navigate()
                           handleMobileMenuClick()
                         }
                       "
-                      class="mobile-action-btn"
                     >
                       <template #icon>
                         <n-icon :component="SettingsIcon" />
@@ -158,7 +202,7 @@
                       編輯個人資料
                     </n-button>
                   </router-link>
-                  <n-button block type="error" ghost @click="handleLogout" class="mobile-action-btn">
+                  <n-button block type="error" ghost class="mobile-action-btn" @click="handleLogout">
                     <template #icon>
                       <n-icon :component="LogoutIcon" />
                     </template>
@@ -172,31 +216,31 @@
                 <n-divider />
                 <n-space vertical :size="8">
                   <router-link v-slot="{ navigate }" :to="{ name: 'Register' }">
-                    <n-button
-                      block
-                      ghost
-                      @click="
-                        () => {
-                          navigate()
-                          handleMobileMenuClick()
-                        }
-                      "
-                      class="mobile-action-btn"
-                    >
-                      快速註冊
-                    </n-button>
+                    <!--                    <n-button-->
+                    <!--                      block-->
+                    <!--                      ghost-->
+                    <!--                      @click="-->
+                    <!--                        () => {-->
+                    <!--                          navigate()-->
+                    <!--                          handleMobileMenuClick()-->
+                    <!--                        }-->
+                    <!--                      "-->
+                    <!--                      class="mobile-action-btn"-->
+                    <!--                    >-->
+                    <!--                      快速註冊-->
+                    <!--                    </n-button>-->
                   </router-link>
                   <router-link v-slot="{ navigate }" :to="{ name: 'Login' }">
                     <n-button
                       block
                       type="primary"
+                      class="mobile-action-btn"
                       @click="
                         () => {
                           navigate()
                           handleMobileMenuClick()
                         }
                       "
-                      class="mobile-action-btn"
                     >
                       登入
                     </n-button>
@@ -249,7 +293,7 @@
     PersonCircleOutline as PersonCircleOutlineIcon,
     PodiumOutline as HomeIcon,
     SettingsOutline as SettingsIcon
-  } from '@vicons/ionicons5'
+  } from '@vicons/ionicons5' // 修復後的主題配置
 
   // 修復後的主題配置
   const themeOverrides = {
@@ -309,6 +353,9 @@
   const activeMenuKey = ref(route.name)
   const isInitializing = ref(true)
 
+  // 🎾 設備檢測
+  const isMobileDevice = ref(false)
+
   // 響應式設計 - 調整斷點
   const { width } = useWindowSize()
   const isMobile = computed(() => width.value < MOBILE_BREAKPOINT)
@@ -343,6 +390,29 @@
     coach: '教練',
     member: '隊員',
     guset: '訪客'
+  }
+
+  // 🎾 檢查設備類型
+  const checkDeviceType = () => {
+    const userAgent = navigator.userAgent.toLowerCase()
+    const isMobile = /mobile|android|iphone|ipad|tablet/.test(userAgent)
+    const hasTouch = 'ontouchstart' in window
+    const isSmallScreen = window.innerWidth <= 1024
+
+    isMobileDevice.value = isMobile || (hasTouch && isSmallScreen)
+  }
+
+  // 🎾 前往裁判模式
+  const goToRefereeMode = () => {
+    if (!authStore.isAuthenticated) {
+      router.push({ name: 'Login' })
+      return
+    }
+
+    // 關閉移動選單
+    showMobileDrawer.value = false
+
+    router.push({ name: 'RefereeMode' })
   }
 
   // Watch route changes
@@ -414,12 +484,12 @@
   const mobileMenuOptions = computed(() =>
     [
       {
-        label: '排行榜',
+        label: '校內排行榜',
         key: 'Leaderboard',
         icon: renderIcon(HomeIcon)
       },
       {
-        label: '排行榜(完整)',
+        label: '詳細數據',
         key: 'DetailLeaderboard',
         icon: renderIcon(HomeIcon),
         show: hasManagementAccess.value
@@ -508,6 +578,10 @@
   // Lifecycle
   onMounted(async () => {
     try {
+      // 🎾 檢查設備類型
+      checkDeviceType()
+      window.addEventListener('resize', checkDeviceType)
+
       if (authStore.accessToken && !authStore.user) {
         await authStore.fetchCurrentUser()
       }
@@ -518,6 +592,7 @@
   })
 </script>
 
+<!-- 🔧 保持原有樣式完全不變 -->
 <style scoped>
   /* === 主要樣式改進 === */
   .mobile-menu-btn {

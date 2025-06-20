@@ -7,14 +7,14 @@ from ..models.enums.user_enums import UserRoleEnum
 from ..models.member import Member
 from ..models.user import User
 from ..tools.exceptions import (
-    UserAlreadyExistsError,
-    InvalidCredentialsError,
-    UserInactiveError,
-    IncorrectPasswordError,
-    PasswordPolicyError,
-    UserNotFoundError,
-    TokenRefreshError,
     AppException,
+    IncorrectPasswordError,
+    InvalidCredentialsError,
+    PasswordPolicyError,
+    TokenRefreshError,
+    UserAlreadyExistsError,
+    UserInactiveError,
+    UserNotFoundError,
 )
 
 
@@ -60,11 +60,11 @@ class AuthService:
 
             db.session.commit()
 
-        except IntegrityError as e:
+        except IntegrityError:
             db.session.rollback()
             # 雖然前面檢查過 username，但 email 也可能是 unique 的 (儘管現在是 None)
             # 或者其他資料庫層級的約束衝突
-            raise UserAlreadyExistsError(message=f"註冊失敗，該手機號碼可能已被使用或發生資料庫衝突。")
+            raise UserAlreadyExistsError(message="註冊失敗，該手機號碼可能已被使用或發生資料庫衝突。")
         except Exception as e:
             db.session.rollback()
             raise AppException(message=f"註冊過程中發生未預期的錯誤: {str(e)}")

@@ -5,14 +5,7 @@
       <n-spin size="large" />
     </div>
     <!-- 錯誤狀態 -->
-    <n-alert
-      v-else-if="fetchError"
-      title="載入錯誤"
-      type="error"
-      closable
-      class="mb-4"
-      @close="fetchError = null"
-    >
+    <n-alert v-else-if="fetchError" title="載入錯誤" type="error" closable class="mb-4" @close="fetchError = null">
       {{ fetchError }}
     </n-alert>
 
@@ -52,16 +45,8 @@
             <n-form-item-gi :span="12" :md="6" label="真實姓名" path="name">
               <n-input v-model:value="formData.name" placeholder="成員的真實姓名" />
             </n-form-item-gi>
-            <n-form-item-gi
-              :span="12"
-              :md="6"
-              label="顯示名稱/綽號 (用於使用者設定)"
-              path="display_name"
-            >
-              <n-input
-                v-model:value="formData.display_name"
-                placeholder="排行榜或登入時顯示的名稱"
-              />
+            <n-form-item-gi :span="12" :md="6" label="顯示名稱/綽號 (用於使用者設定)" path="display_name">
+              <n-input v-model:value="formData.display_name" placeholder="排行榜或登入時顯示的名稱" />
             </n-form-item-gi>
 
             <!-- 帳號資訊 -->
@@ -75,11 +60,7 @@
               <n-input v-model:value="formData.email" placeholder="example@example.com (可選)" />
             </n-form-item-gi>
             <n-form-item-gi :span="12" :md="6" label="使用者角色*" path="role">
-              <n-select
-                v-model:value="formData.role"
-                :options="roleOptions"
-                placeholder="選擇角色"
-              />
+              <n-select v-model:value="formData.role" :options="roleOptions" placeholder="選擇角色" />
             </n-form-item-gi>
 
             <!-- 球員詳細資料 -->
@@ -90,20 +71,10 @@
               <n-input v-model:value="formData.student_id" placeholder="選填" />
             </n-form-item-gi>
             <n-form-item-gi :span="12" :md="6" label="性別" path="gender">
-              <n-select
-                v-model:value="formData.gender"
-                :options="genderOptions"
-                placeholder="選擇性別"
-                clearable
-              />
+              <n-select v-model:value="formData.gender" :options="genderOptions" placeholder="選擇性別" clearable />
             </n-form-item-gi>
             <n-form-item-gi :span="12" :md="6" label="習慣位置" path="position">
-              <n-select
-                v-model:value="formData.position"
-                :options="positionOptions"
-                placeholder="選擇位置"
-                clearable
-              />
+              <n-select v-model:value="formData.position" :options="positionOptions" placeholder="選擇位置" clearable />
             </n-form-item-gi>
             <n-form-item-gi :span="12" :md="6" label="所屬組織" path="organization_id">
               <n-select
@@ -117,38 +88,18 @@
 
             <!-- 分數 (唯讀) -->
             <n-form-item-gi :span="12" :md="6" label="μ (目前分數)">
-              <n-input-number
-                v-model:value="formData.mu"
-                :step="0.1"
-                style="width: 100%"
-                disabled
-              />
+              <n-input-number v-model:value="formData.mu" :step="0.1" style="width: 100%" disabled />
             </n-form-item-gi>
             <n-form-item-gi :span="12" :md="6" label="σ (分數標準差)">
-              <n-input-number
-                v-model:value="formData.sigma"
-                :step="0.001"
-                style="width: 100%"
-                disabled
-              />
+              <n-input-number v-model:value="formData.sigma" :step="0.001" style="width: 100%" disabled />
             </n-form-item-gi>
 
             <!-- 隊籍日期與狀態 -->
             <n-form-item-gi :span="12" :md="6" label="入隊日期" path="joined_date_ts">
-              <n-date-picker
-                v-model:value="formData.joined_date_ts"
-                type="date"
-                clearable
-                style="width: 100%"
-              />
+              <n-date-picker v-model:value="formData.joined_date_ts" type="date" clearable style="width: 100%" />
             </n-form-item-gi>
             <n-form-item-gi :span="12" :md="6" label="離隊日期" path="leaved_date_ts">
-              <n-date-picker
-                v-model:value="formData.leaved_date_ts"
-                type="date"
-                clearable
-                style="width: 100%"
-              />
+              <n-date-picker v-model:value="formData.leaved_date_ts" type="date" clearable style="width: 100%" />
             </n-form-item-gi>
             <n-form-item-gi :span="12" :md="6" label="成員活躍狀態">
               <div class="switch-with-label">

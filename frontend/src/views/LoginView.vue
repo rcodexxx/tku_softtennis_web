@@ -113,7 +113,7 @@
     useMessage
   } from 'naive-ui'
   import { KeyOutline as LockIcon, PhonePortraitOutline as PhoneIcon } from '@vicons/ionicons5'
-  import '@/assets/css/login.css'
+  import '@/assets/css/page/login.css'
 
   const authStore = useAuthStore()
   const router = useRouter()

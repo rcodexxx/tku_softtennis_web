@@ -6,7 +6,7 @@ from datetime import datetime  # 保留，因為 inject_current_time 使用了�
 
 import jwt
 from dotenv import load_dotenv
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify, request
 from flask_jwt_extended import JWTManager
 from werkzeug.exceptions import HTTPException
 
@@ -121,7 +121,6 @@ def create_app(config_name: str = None):
         return response
 
     # 5. 註冊藍圖 (Blueprints)
-    from .api import api_bp  # 確保在 create_app 內部導入，避免循環依賴問題
 
     app.register_blueprint(api_bp, url_prefix="/api")
     app.logger.info("Registered API blueprint at /api")
@@ -195,13 +194,13 @@ def create_app(config_name: str = None):
     @app.shell_context_processor
     def make_shell_context():
         # 導入所有模型，方便在 flask shell 中使用
-        from .models.user import User
-        from .models.member import Member
-        from .models.organization import Organization
-        from .models.racket import Racket
         from .models.match import Match
         from .models.match_record import MatchRecord  # 您原有的比賽記錄模型
+        from .models.member import Member
+        from .models.organization import Organization
         from .models.player_stats import PlayerStats  # 詳細統計模型
+        from .models.racket import Racket
+        from .models.user import User
 
         # 根據您最終的模型結構調整此處的導入
         models_to_import = {
@@ -223,13 +222,13 @@ def create_app(config_name: str = None):
         # 這裡的導入順序通常不影響 Alembic，只要它們都被執行到即可
         # 建議與 shell_context_processor 中的模型列表保持一致
         app.logger.debug("Registering models with SQLAlchemy for Alembic...")
-        from .models.user import User
-        from .models.member import Member
-        from .models.organization import Organization
-        from .models.racket import Racket
         from .models.match import Match
         from .models.match_record import MatchRecord
+        from .models.member import Member
+        from .models.organization import Organization
         from .models.player_stats import PlayerStats
+        from .models.racket import Racket
+        from .models.user import User
 
         # ... 確保所有您實際使用的模型都已導入 ...
         app.logger.debug("Models registered.")
