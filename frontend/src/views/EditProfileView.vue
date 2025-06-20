@@ -8,14 +8,7 @@
     <div v-if="loading" class="text-center my-5">
       <n-spin size="large" />
     </div>
-    <n-alert
-      v-if="fetchError"
-      title="載入錯誤"
-      type="error"
-      closable
-      class="mb-4"
-      @close="fetchError = null"
-    >
+    <n-alert v-if="fetchError" title="載入錯誤" type="error" closable class="mb-4" @close="fetchError = null">
       {{ fetchError }}
     </n-alert>
 
@@ -54,17 +47,10 @@
               <n-input :value="profileData.username" readonly disabled />
             </n-form-item>
             <n-form-item label="電子郵件" path="email">
-              <n-input
-                v-model:value="editableProfile.email"
-                placeholder="example@example.com"
-                clearable
-              />
+              <n-input v-model:value="editableProfile.email" placeholder="example@example.com" clearable />
             </n-form-item>
             <n-form-item label="顯示暱稱" path="display_name">
-              <n-input
-                v-model:value="editableProfile.display_name"
-                placeholder="您希望在網站上顯示的名稱"
-              />
+              <n-input v-model:value="editableProfile.display_name" placeholder="您希望在網站上顯示的名稱" />
             </n-form-item>
 
             <!-- 球員資料區塊 (僅當有關聯的 member_profile 時顯示) -->
@@ -116,10 +102,7 @@
 
       <n-gi>
         <!-- 密碼修改組件可以保持不變 -->
-        <ChangePasswordForm
-          class="form-section-card"
-          @password-changed-status="handlePasswordChangedStatusMessage"
-        />
+        <ChangePasswordForm class="form-section-card" @password-changed-status="handlePasswordChangedStatusMessage" />
       </n-gi>
     </n-grid>
 
@@ -411,9 +394,7 @@
   .n-input.n-input--readonly :deep(input) {
     color: var(--n-text-color-base) !important;
     cursor: default !important;
-    background-color: var(
-      --n-color-disabled
-    ) !important; /* 使用disabled背景色使其看起來不可編輯但仍清晰 */
+    background-color: var(--n-color-disabled) !important; /* 使用disabled背景色使其看起來不可編輯但仍清晰 */
     border-color: var(--n-border-color) !important; /* 保持與普通輸入框相似的邊框 */
     opacity: 1 !important; /* 確保文字清晰 */
   }

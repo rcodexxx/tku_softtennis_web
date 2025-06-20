@@ -1,28 +1,28 @@
 # backend/app/api/auth_routes.py
 from flask import current_app, jsonify, request
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from marshmallow import ValidationError as MarshmallowValidationError
 
-from . import api_bp
 from ..schemas.auth_schemas import (
+    AccessTokenResponseSchema,
     LoginRequestSchema,
     PasswordChangeRequestSchema,
-    TokenResponseSchema,
-    AccessTokenResponseSchema,
     QuickRegisterSchema,
+    TokenResponseSchema,
 )
 from ..schemas.member_schemas import MemberCreateSchema, MemberSchema
 from ..services.auth_service import AuthService
 from ..tools.exceptions import (
     AppException,
-    UserAlreadyExistsError,
-    InvalidCredentialsError,
-    UserInactiveError,
     IncorrectPasswordError,
+    InvalidCredentialsError,
     PasswordPolicyError,
-    UserNotFoundError,
     TokenRefreshError,
+    UserAlreadyExistsError,
+    UserInactiveError,
+    UserNotFoundError,
 )
+from . import api_bp
 
 # 實例化 Schemas 以便在路由中使用
 quick_register_schema = QuickRegisterSchema()

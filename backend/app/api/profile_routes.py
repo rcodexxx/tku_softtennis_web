@@ -1,12 +1,12 @@
 # backend/app/api/profile_routes.py
-from flask import jsonify, request, current_app
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask import current_app, jsonify, request
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from marshmallow import ValidationError as MarshmallowValidationError
 
-from . import api_bp  # 假設您的 Blueprint 叫做 api_bp
 from ..schemas.profile_schemas import ProfileUpdateSchema, UserProfileResponseSchema
 from ..services.profile_service import ProfileService
-from ..tools.exceptions import AppException, UserNotFoundError, UserAlreadyExistsError
+from ..tools.exceptions import AppException, UserAlreadyExistsError, UserNotFoundError
+from . import api_bp  # 假設您的 Blueprint 叫做 api_bp
 
 # 實例化 Schemas
 profile_update_schema = ProfileUpdateSchema()

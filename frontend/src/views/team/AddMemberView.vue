@@ -17,14 +17,7 @@
         label-placement="top"
         @submit.prevent="handleAddMember"
       >
-        <n-alert
-          v-if="submitMessage"
-          title="新增失敗"
-          type="error"
-          closable
-          class="mb-4"
-          @close="clearSubmitMessage"
-        >
+        <n-alert v-if="submitMessage" title="新增失敗" type="error" closable class="mb-4" @close="clearSubmitMessage">
           <span style="white-space: pre-wrap">{{ submitMessage }}</span>
         </n-alert>
 
@@ -33,10 +26,7 @@
             <n-input v-model:value="formData.name" placeholder="請輸入成員的真實姓名" />
           </n-form-item-gi>
           <n-form-item-gi :span="12" label="顯示名稱/綽號" path="display_name">
-            <n-input
-              v-model:value="formData.display_name"
-              placeholder="排行榜上顯示的名稱 (預設同真實姓名)"
-            />
+            <n-input v-model:value="formData.display_name" placeholder="排行榜上顯示的名稱 (預設同真實姓名)" />
           </n-form-item-gi>
 
           <n-gi :span="12">
@@ -67,20 +57,10 @@
             <n-input v-model:value="formData.student_id" placeholder="選填" />
           </n-form-item-gi>
           <n-form-item-gi :span="12" :md="6" label="性別" path="gender">
-            <n-select
-              v-model:value="formData.gender"
-              :options="genderOptions"
-              placeholder="選擇性別"
-              clearable
-            />
+            <n-select v-model:value="formData.gender" :options="genderOptions" placeholder="選擇性別" clearable />
           </n-form-item-gi>
           <n-form-item-gi :span="12" :md="6" label="習慣位置" path="position">
-            <n-select
-              v-model:value="formData.position"
-              :options="positionOptions"
-              placeholder="選擇位置"
-              clearable
-            />
+            <n-select v-model:value="formData.position" :options="positionOptions" placeholder="選擇位置" clearable />
           </n-form-item-gi>
           <n-form-item-gi :span="12" :md="6" label="所屬組織" path="organization_id">
             <n-select
@@ -92,12 +72,7 @@
             />
           </n-form-item-gi>
           <n-form-item-gi :span="12" :md="6" label="入隊日期" path="joined_date_ts">
-            <n-date-picker
-              v-model:value="formData.joined_date_ts"
-              type="date"
-              clearable
-              style="width: 100%"
-            />
+            <n-date-picker v-model:value="formData.joined_date_ts" type="date" clearable style="width: 100%" />
           </n-form-item-gi>
           <n-form-item-gi :span="12" :md="6" label="活躍狀態">
             <div class="switch-with-label">
@@ -274,8 +249,7 @@
       } catch (err) {
         const errorData = err.response?.data
         if (errorData?.details) {
-          submitMessage.value =
-            '新增失敗，請檢查以下欄位：\n' + Object.values(errorData.details).flat().join('\n')
+          submitMessage.value = '新增失敗，請檢查以下欄位：\n' + Object.values(errorData.details).flat().join('\n')
         } else {
           submitMessage.value = errorData?.message || '新增成員時發生未預期錯誤。'
         }

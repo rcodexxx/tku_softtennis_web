@@ -25,8 +25,8 @@
                   v-if="!modelValue.player1_id"
                   dashed
                   block
-                  @click="openPlayerSelector('player1_id')"
                   class="select-player-btn"
+                  @click="openPlayerSelector('player1_id')"
                 >
                   <template #icon>
                     <n-icon :component="AddIcon" />
@@ -52,7 +52,7 @@
                         {{ getPlayerOrganization(modelValue.player1_id) }}
                       </div>
                     </div>
-                    <n-button size="small" quaternary circle @click.stop="clearPlayer('player1_id')" class="remove-btn">
+                    <n-button size="small" quaternary circle class="remove-btn" @click.stop="clearPlayer('player1_id')">
                       <n-icon :component="CloseIcon" />
                     </n-button>
                   </div>
@@ -66,8 +66,8 @@
                   v-if="!modelValue.player2_id"
                   dashed
                   block
-                  @click="openPlayerSelector('player2_id')"
                   class="select-player-btn"
+                  @click="openPlayerSelector('player2_id')"
                 >
                   <template #icon>
                     <n-icon :component="AddIcon" />
@@ -93,7 +93,7 @@
                         {{ getPlayerOrganization(modelValue.player2_id) }}
                       </div>
                     </div>
-                    <n-button size="small" quaternary circle @click.stop="clearPlayer('player2_id')" class="remove-btn">
+                    <n-button size="small" quaternary circle class="remove-btn" @click.stop="clearPlayer('player2_id')">
                       <n-icon :component="CloseIcon" />
                     </n-button>
                   </div>
@@ -123,8 +123,8 @@
                   v-if="!modelValue.player3_id"
                   dashed
                   block
-                  @click="openPlayerSelector('player3_id')"
                   class="select-player-btn"
+                  @click="openPlayerSelector('player3_id')"
                 >
                   <template #icon>
                     <n-icon :component="AddIcon" />
@@ -150,7 +150,7 @@
                         {{ getPlayerOrganization(modelValue.player3_id) }}
                       </div>
                     </div>
-                    <n-button size="small" quaternary circle @click.stop="clearPlayer('player3_id')" class="remove-btn">
+                    <n-button size="small" quaternary circle class="remove-btn" @click.stop="clearPlayer('player3_id')">
                       <n-icon :component="CloseIcon" />
                     </n-button>
                   </div>
@@ -164,8 +164,8 @@
                   v-if="!modelValue.player4_id"
                   dashed
                   block
-                  @click="openPlayerSelector('player4_id')"
                   class="select-player-btn"
+                  @click="openPlayerSelector('player4_id')"
                 >
                   <template #icon>
                     <n-icon :component="AddIcon" />
@@ -191,7 +191,7 @@
                         {{ getPlayerOrganization(modelValue.player4_id) }}
                       </div>
                     </div>
-                    <n-button size="small" quaternary circle @click.stop="clearPlayer('player4_id')" class="remove-btn">
+                    <n-button size="small" quaternary circle class="remove-btn" @click.stop="clearPlayer('player4_id')">
                       <n-icon :component="CloseIcon" />
                     </n-button>
                   </div>
@@ -212,22 +212,22 @@
             <div class="team-label-simple">隊伍 A</div>
             <div class="score-buttons">
               <n-button
-                @click="adjustScore('a_games', -1)"
                 :disabled="modelValue.a_games <= 0"
                 circle
                 size="small"
                 type="error"
                 ghost
+                @click="adjustScore('a_games', -1)"
               >
                 <n-icon :component="MinusIcon" />
               </n-button>
               <n-button
-                @click="adjustScore('a_games', 1)"
                 :disabled="modelValue.a_games >= scoreInputMax"
                 circle
                 size="small"
                 type="primary"
                 ghost
+                @click="adjustScore('a_games', 1)"
               >
                 <n-icon :component="AddIcon" />
               </n-button>
@@ -246,22 +246,22 @@
             <div class="team-label-simple">隊伍 B</div>
             <div class="score-buttons">
               <n-button
-                @click="adjustScore('b_games', -1)"
                 :disabled="modelValue.b_games <= 0"
                 circle
                 size="small"
                 type="error"
                 ghost
+                @click="adjustScore('b_games', -1)"
               >
                 <n-icon :component="MinusIcon" />
               </n-button>
               <n-button
-                @click="adjustScore('b_games', 1)"
                 :disabled="modelValue.b_games >= scoreInputMax"
                 circle
                 size="small"
                 type="primary"
                 ghost
+                @click="adjustScore('b_games', 1)"
               >
                 <n-icon :component="AddIcon" />
               </n-button>
@@ -442,13 +442,13 @@
 
                 <!-- 操作按鈕 -->
                 <div class="form-actions">
-                  <n-button @click="cancelGuestCreation" size="large" class="cancel-btn"> 取消 </n-button>
+                  <n-button size="large" class="cancel-btn" @click="cancelGuestCreation"> 取消 </n-button>
                   <n-button
                     type="primary"
-                    @click="createAndSelectGuest"
                     :loading="creatingGuest"
                     size="large"
                     class="create-btn"
+                    @click="createAndSelectGuest"
                   >
                     <template #icon>
                       <n-icon :component="AddIcon" />
@@ -1202,7 +1202,7 @@
 </script>
 
 <style scoped>
-  @import '@/assets/css/match-player-selector.css';
+  @import '@/assets/css/components/match-player-selector.css';
 
   /* 外部分數控制樣式 - 簡化版 */
   .external-score-control {

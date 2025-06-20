@@ -6,9 +6,6 @@ import router from './router'
 import naive from 'naive-ui'
 import { useAuthStore } from '@/stores/authStore.js'
 
-import 'vfonts/Lato.css'
-import 'vfonts/FiraCode.css'
-
 const app = createApp(App)
 const pinia = createPinia()
 

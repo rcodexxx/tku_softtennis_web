@@ -1,0 +1,807 @@
+/* referee-mode.css - 修正版本 */
+
+/* ===== 核心變數 ===== */
+:root {
+  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --team-a-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --team-b-gradient: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --court-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+/* ===== 主容器 ===== */
+.referee-mode-container {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--primary-gradient);
+  position: relative;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.referee-mode-container.landscape-mode {
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+}
+
+/* ===== 橫屏提示 ===== */
+.orientation-hint-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(15px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.hint-content {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: 2rem;
+  text-align: center;
+  max-width: 300px;
+  box-shadow: var(--court-shadow);
+}
+
+.rotate-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  animation: rotate-hint 2s ease-in-out infinite;
+}
+
+@keyframes rotate-hint {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(90deg);
+  }
+}
+
+/* ===== Phase 1: 比賽設定 ===== */
+.referee-arena-setup {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.expanded-arena-container {
+  width: 95%;
+  max-width: 800px;
+  height: 90%;
+  background: var(--glass-bg);
+  backdrop-filter: blur(15px);
+  border-radius: 24px;
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--court-shadow);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.match-config-controller {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--team-a-gradient);
+  border: 3px solid var(--glass-border);
+  z-index: 10;
+}
+
+.config-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.config-text {
+  font-size: 0.6rem;
+  color: white;
+  text-align: center;
+  font-weight: 600;
+}
+
+.setup-flow-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.setup-step {
+  width: 100%;
+  text-align: center;
+}
+
+.step-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 2rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* 比賽類型選擇 */
+.type-selection-cards {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.match-type-card {
+  width: 150px;
+  height: 120px;
+  background: var(--glass-bg);
+  border: 2px solid var(--glass-border);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(15px);
+}
+
+.match-type-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.match-type-card.active {
+  background: var(--team-a-gradient);
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 12px 30px rgba(16, 185, 129, 0.3);
+}
+
+.type-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.type-text {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+}
+
+/* 賽制選擇 */
+.format-selection {
+  margin-top: 1rem;
+}
+
+.format-title {
+  font-size: 1.2rem;
+  color: white;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+/* 發球權選擇 */
+.serve-selection {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3rem;
+  margin-top: 2rem;
+}
+
+.serve-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  padding: 1rem;
+  border-radius: 16px;
+  transition: all 0.3s ease;
+  background: var(--glass-bg);
+  border: 2px solid transparent;
+}
+
+.serve-option:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.serve-option.selected {
+  background: var(--team-a-gradient);
+  border-color: var(--glass-border);
+  transform: translateY(-4px) scale(1.05);
+}
+
+.serve-option.team-b.selected {
+  background: var(--team-b-gradient);
+}
+
+.serve-ball {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 20%, #e9ecef 60%, #dee2e6 100%);
+  border-radius: 50%;
+  position: relative;
+  box-shadow:
+    inset -8px -8px 15px rgba(0, 0, 0, 0.12),
+    inset 8px 8px 15px rgba(255, 255, 255, 1),
+    0 8px 25px rgba(0, 0, 0, 0.2);
+  margin-bottom: 1rem;
+}
+
+.ball-core {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.serve-text {
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.vs-divider {
+  font-size: 2rem;
+  font-weight: 900;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* 進度指示器 */
+.setup-progress-indicator {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.progress-step {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.progress-step.active {
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
+  transform: scale(1.1);
+}
+
+/* 導航按鈕 */
+.setup-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: rgba(0, 0, 0, 0.1);
+  border-top: 1px solid var(--glass-border);
+}
+
+/* ===== Phase 2: 實時計分 ===== */
+.referee-arena-live {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.live-arena-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--primary-gradient);
+  position: relative;
+  padding: 1rem;
+}
+
+.live-battle-container {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  grid-template-rows: 1fr;
+  gap: 1rem;
+}
+
+/* 隊伍計分區域 */
+.live-team-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.team-card-live {
+  width: 100%;
+  max-width: 280px;
+  height: 100%;
+  background: var(--glass-bg);
+  backdrop-filter: blur(15px);
+  border-radius: 20px;
+  border: 1px solid var(--glass-border);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+  padding: 1rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.team-card-live.is-serving {
+  border-color: #fbbf24;
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
+}
+
+.team-card-live.is-winning {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2));
+}
+
+.team-card-live.celebrating {
+  animation: score-celebration 1s ease-out;
+}
+
+.team-a .team-card-live {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));
+}
+
+.team-b .team-card-live {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(29, 78, 216, 0.1));
+}
+
+/* 球員信息 */
+.team-players-live {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.team-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.players-avatars {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.player-avatar-live {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.player-name-tiny {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  max-width: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 分數顯示 */
+.score-display-massive {
+  font-size: clamp(4rem, 15vw, 8rem);
+  font-weight: 900;
+  color: white;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  line-height: 1;
+  margin: 1rem 0;
+  transition: all 0.3s ease;
+}
+
+/* 計分控制按鈕 */
+.score-controls-live {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+.score-btn-massive {
+  min-height: 80px;
+  border-radius: 20px;
+  font-weight: 700;
+  border: none;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(15px);
+}
+
+.score-btn-massive.add-score {
+  background: var(--team-a-gradient);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.score-btn-massive.undo-score {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3);
+}
+
+.team-b .score-btn-massive.add-score {
+  background: var(--team-b-gradient);
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.score-btn-massive:active {
+  transform: scale(0.95);
+}
+
+.score-btn-massive:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-content-live {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.btn-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.btn-text {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+/* 中央戰況區 */
+.battle-center-zone {
+  width: 150px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+  padding: 1rem 0.5rem;
+}
+
+/* 發球指示器 */
+.serving-indicator-live {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.tennis-ball-animated {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 20%, #e9ecef 60%, #dee2e6 100%);
+  border-radius: 50%;
+  position: relative;
+  margin: 0 auto 1rem;
+  transition: all 0.3s ease;
+  box-shadow:
+    inset -8px -8px 15px rgba(0, 0, 0, 0.12),
+    inset 8px 8px 15px rgba(255, 255, 255, 1),
+    0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.tennis-ball-animated.serve-a {
+  transform: translateX(-20px);
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+}
+
+.tennis-ball-animated.serve-b {
+  transform: translateX(20px);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+}
+
+.serve-text-live {
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* 比賽狀態 */
+.match-status-live {
+  background: var(--glass-bg);
+  backdrop-filter: blur(15px);
+  border-radius: 16px;
+  padding: 1rem;
+  margin: 1rem 0;
+  border: 1px solid var(--glass-border);
+}
+
+.status-display {
+  text-align: center;
+}
+
+.current-score {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 0.5rem;
+}
+
+.match-format {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 0.25rem;
+}
+
+/* 緊急控制 */
+.emergency-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.emergency-btn {
+  min-height: 50px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.emergency-btn.pause {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+/* ===== Phase 3: 比賽結果 ===== */
+.referee-arena-result {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.victory-arena-container {
+  width: 100%;
+  height: 100%;
+  background: var(--primary-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  animation: victory-arena 3s ease-in-out;
+}
+
+.celebration-arena {
+  text-align: center;
+  background: var(--glass-bg);
+  backdrop-filter: blur(15px);
+  border-radius: 24px;
+  padding: 3rem 2rem;
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--court-shadow);
+  max-width: 600px;
+  width: 100%;
+}
+
+/* 勝利展示 */
+.winner-showcase {
+  margin-bottom: 3rem;
+}
+
+.victory-crown {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  animation: crown-bounce 2s ease-in-out infinite;
+}
+
+.winner-team-name {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: white;
+  margin-bottom: 1rem;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.final-score {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #fbbf24;
+  margin-bottom: 1.5rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.victory-text {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* 結果操作按鈕 */
+.result-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ===== 動畫定義 ===== */
+@keyframes score-celebration {
+  0% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.15);
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    box-shadow: 0 0 30px rgba(251, 191, 36, 0.6);
+  }
+  50% {
+    transform: scale(1.1) rotate(2deg);
+  }
+  75% {
+    transform: scale(1.05) rotate(-1deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes victory-arena {
+  0% {
+    background: var(--primary-gradient);
+  }
+  25% {
+    background: linear-gradient(135deg, #10b981, #059669);
+    transform: scale(1.02);
+  }
+  50% {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    transform: scale(1);
+  }
+  75% {
+    background: linear-gradient(135deg, #e11d48, #be185d);
+    transform: scale(1.01);
+  }
+  100% {
+    background: var(--primary-gradient);
+    transform: scale(1);
+  }
+}
+
+@keyframes crown-bounce {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(5deg);
+  }
+}
+
+/* ===== 響應式設計 ===== */
+
+/* 手機橫屏 */
+@media screen and (orientation: landscape) and (max-height: 500px) {
+  .step-title {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+  }
+
+  .match-type-card {
+    width: 120px;
+    height: 100px;
+  }
+
+  .type-icon {
+    font-size: 1.5rem;
+  }
+
+  .score-display-massive {
+    font-size: clamp(3rem, 12vw, 5rem);
+  }
+
+  .score-btn-massive {
+    min-height: 60px;
+  }
+
+  .battle-center-zone {
+    width: 120px;
+  }
+
+  .tennis-ball-animated {
+    width: 60px;
+    height: 60px;
+  }
+
+  .match-config-controller {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+/* 平板橫屏 */
+@media screen and (orientation: landscape) and (min-height: 500px) {
+  .live-battle-container {
+    padding: 2rem;
+    gap: 2rem;
+  }
+
+  .battle-center-zone {
+    width: 200px;
+  }
+
+  .tennis-ball-animated {
+    width: 100px;
+    height: 100px;
+  }
+
+  .score-btn-massive {
+    min-height: 100px;
+  }
+
+  .match-config-controller {
+    width: 100px;
+    height: 100px;
+  }
+}
+
+/* 觸控優化 */
+@media (max-width: 767px) {
+  .score-btn-massive,
+  .match-type-card,
+  .serve-option,
+  .emergency-btn {
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
+
+  .score-btn-massive:active,
+  .match-type-card:active,
+  .serve-option:active {
+    transform: scale(0.98) !important;
+  }
+}
+
+/* 減少動畫偏好設定 */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* 高對比度模式 */
+@media (prefers-contrast: high) {
+  .team-card-live,
+  .match-type-card,
+  .serve-option {
+    border-width: 3px;
+  }
+
+  .tennis-ball-animated {
+    border: 3px solid currentColor;
+  }
+}
