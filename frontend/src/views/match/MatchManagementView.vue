@@ -241,6 +241,7 @@
 <script setup>
   import { computed, h, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
   import { useRouter } from 'vue-router'
+  import { useAuthStore } from '@/stores/authStore.js'
   import {
     NAlert,
     NBadge,
@@ -275,7 +276,8 @@
     RefreshOutline as RefreshIcon,
     SearchOutline as SearchIcon,
     TrashBinOutline as DeleteIcon,
-    TrophyOutline as EmptyIcon
+    TrophyOutline as EmptyIcon,
+    EyeOutline as EyeIcon // 🔧 新增查看圖標
   } from '@vicons/ionicons5'
   import apiClient from '@/services/apiClient.js'
   import { format } from 'date-fns'
@@ -284,6 +286,7 @@
   const router = useRouter()
   const dialog = useDialog()
   const message = useMessage()
+  const authStore = useAuthStore() // 🔧 新增 authStore 實例
 
   // 基本狀態
   const loading = ref(true)
@@ -333,6 +336,11 @@
     { label: '勝利', value: 'win' },
     { label: '失敗', value: 'loss' }
   ]
+
+  // 🔧 新增權限檢查計算屬性
+  const hasManagementAccess = computed(
+    () => authStore.isAuthenticated && (authStore.isCadre || authStore.isAdmin || authStore.isCoach)
+  )
 
   // 輔助函數
   const getMatchTypeDisplay = value => matchTypeOptions.find(opt => opt.value === value)?.label || value
@@ -494,7 +502,7 @@
     }
   }))
 
-  // 表格欄位定義
+  // 🔧 修改表格欄位定義 - 重點修改操作欄
   const tableColumns = computed(() => [
     {
       title: '比賽日期',
@@ -596,43 +604,76 @@
       render: row => getMatchFormatDisplay(row.match_format)
     },
     {
-      title: '操作',
+      title: '詳細數據', // 🔧 修改標題
       key: 'actions',
-      width: 120,
+      width: 140, // 🔧 調整寬度以容納新按鈕
       align: 'center',
       fixed: 'right',
       render: row => {
-        return h('div', { class: 'action-buttons' }, [
+        const buttons = []
+
+        // 🔧 查看詳細數據按鈕 - 所有登入用戶都可以看
+        buttons.push(
           h(NTooltip, null, {
             trigger: () =>
               h(
                 NButton,
                 {
                   size: 'small',
-                  circle: true,
-                  onClick: () => editMatchRecord(row.id),
-                  class: 'action-btn edit-btn'
+                  type: 'info',
+                  onClick: () => viewMatchDetail(row.id),
+                  class: 'action-btn view-btn'
                 },
-                { icon: () => h(NIcon, { component: EditIcon }) }
-              ),
-            default: () => '編輯'
-          }),
-          h(NTooltip, null, {
-            trigger: () =>
-              h(
-                NButton,
                 {
-                  size: 'small',
-                  circle: true,
-                  type: 'error',
-                  onClick: () => confirmDeleteMatch(row),
-                  class: 'action-btn delete-btn'
-                },
-                { icon: () => h(NIcon, { component: DeleteIcon }) }
+                  icon: () => h(NIcon, { component: EyeIcon }),
+                }
               ),
-            default: () => '刪除'
+            default: () => '查看詳細數據'
           })
-        ])
+        )
+
+        // 🔧 編輯按鈕 - 只有幹部以上可見
+        if (hasManagementAccess.value) {
+          buttons.push(
+            h(NTooltip, null, {
+              trigger: () =>
+                h(
+                  NButton,
+                  {
+                    size: 'small',
+                    circle: true,
+                    onClick: () => editMatchRecord(row.id),
+                    class: 'action-btn edit-btn',
+                    style: { marginLeft: '4px' }
+                  },
+                  { icon: () => h(NIcon, { component: EditIcon }) }
+                ),
+              default: () => '編輯'
+            })
+          )
+
+          // 🔧 刪除按鈕 - 只有幹部以上可見
+          buttons.push(
+            h(NTooltip, null, {
+              trigger: () =>
+                h(
+                  NButton,
+                  {
+                    size: 'small',
+                    circle: true,
+                    type: 'error',
+                    onClick: () => confirmDeleteMatch(row),
+                    class: 'action-btn delete-btn',
+                    style: { marginLeft: '4px' }
+                  },
+                  { icon: () => h(NIcon, { component: DeleteIcon }) }
+                ),
+              default: () => '刪除'
+            })
+          )
+        }
+
+        return h('div', { class: 'action-buttons' }, buttons)
       }
     }
   ])
@@ -856,6 +897,12 @@
     router.push({ name: 'RecordMatch' })
   }
 
+  // 🔧 新增查看詳細數據的方法
+  const viewMatchDetail = (recordId) => {
+    router.push({ name: 'ViewMatch', params: { id: recordId } })
+  }
+
+  // 🔧 現有的編輯方法
   const editMatchRecord = recordId => {
     router.push({ name: 'EditMatch', params: { id: recordId } })
   }
@@ -1060,8 +1107,10 @@
 
   .action-buttons {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.25rem; /* 🔧 調整間距以容納更多按鈕 */
     justify-content: center;
+    align-items: center;
+    flex-wrap: wrap; /* 🔧 允許換行 */
   }
 
   .action-btn {
@@ -1071,6 +1120,17 @@
   .action-btn:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  /* 🔧 新增查看按鈕的樣式 */
+  .view-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+  }
+
+  .view-btn:hover {
+    background: linear-gradient(135deg, #5a67d8 0%, #6b4c93 100%);
   }
 
   /* === 空狀態 === */
@@ -1099,6 +1159,12 @@
       flex-direction: column;
       align-items: flex-start;
       gap: 0.75rem;
+    }
+
+    /* 🔧 移動端操作按鈕優化 */
+    .action-buttons {
+      flex-direction: column;
+      gap: 0.25rem;
     }
   }
 

@@ -38,20 +38,20 @@
                 <div class="user-actions-area">
                   <template v-if="authStore.isAuthenticated">
                     <!-- 🎾 裁判模式按鈕 - 只在行動設備顯示 -->
-<!--                    <n-button-->
-<!--                      v-if="isMobileDevice"-->
-<!--                      type="primary"-->
-<!--                      circle-->
-<!--                      title="裁判模式"-->
-<!--                      style="-->
-<!--                        background: linear-gradient(135deg, #10b981 0%, #059669 100%);-->
-<!--                        border: none;-->
-<!--                        margin-right: 0.5rem;-->
-<!--                        font-size: 1.1rem;-->
-<!--                      "-->
-<!--                      @click="goToRefereeMode"-->
-<!--                      >⚔️-->
-<!--                    </n-button>-->
+                    <!--                    <n-button-->
+                    <!--                      v-if="isMobileDevice"-->
+                    <!--                      type="primary"-->
+                    <!--                      circle-->
+                    <!--                      title="裁判模式"-->
+                    <!--                      style="-->
+                    <!--                        background: linear-gradient(135deg, #10b981 0%, #059669 100%);-->
+                    <!--                        border: none;-->
+                    <!--                        margin-right: 0.5rem;-->
+                    <!--                        font-size: 1.1rem;-->
+                    <!--                      "-->
+                    <!--                      @click="goToRefereeMode"-->
+                    <!--                      >⚔️-->
+                    <!--                    </n-button>-->
 
                     <n-dropdown
                       trigger="hover"
@@ -97,7 +97,7 @@
               <n-spin :show="isInitializing" description="載入中...">
                 <router-view v-slot="{ Component }">
                   <transition name="fade" mode="out-in">
-                    <component :is="Component" />
+                    <component :is="Component" :key="$route.fullPath"/>
                   </transition>
                 </router-view>
               </n-spin>
@@ -122,37 +122,37 @@
               </router-link>
 
               <!-- 🎾 移動版裁判模式區塊 -->
-<!--              <div-->
-<!--                v-if="authStore.isAuthenticated"-->
-<!--                style="-->
-<!--                  margin: 1rem 0;-->
-<!--                  padding: 1rem;-->
-<!--                  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));-->
-<!--                  border-radius: 8px;-->
-<!--                  border: 1px solid rgba(16, 185, 129, 0.2);-->
-<!--                  display: flex;-->
-<!--                  justify-content: center;-->
-<!--                "-->
-<!--              >-->
-<!--                <div-->
-<!--                  style="-->
-<!--                    font-weight: 600;-->
-<!--                    color: #059669;-->
-<!--                    margin-bottom: 0.75rem;-->
-<!--                    text-align: center;-->
-<!--                    font-size: 1.1rem;-->
-<!--                  "-->
-<!--                ></div>-->
-<!--                <n-button-->
-<!--                  type="primary"-->
-<!--                  size="large"-->
-<!--                  block-->
-<!--                  style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; height: 48px"-->
-<!--                  @click="goToRefereeMode"-->
-<!--                >-->
-<!--                  裁判模式-->
-<!--                </n-button>-->
-<!--              </div>-->
+              <!--              <div-->
+              <!--                v-if="authStore.isAuthenticated"-->
+              <!--                style="-->
+              <!--                  margin: 1rem 0;-->
+              <!--                  padding: 1rem;-->
+              <!--                  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));-->
+              <!--                  border-radius: 8px;-->
+              <!--                  border: 1px solid rgba(16, 185, 129, 0.2);-->
+              <!--                  display: flex;-->
+              <!--                  justify-content: center;-->
+              <!--                "-->
+              <!--              >-->
+              <!--                <div-->
+              <!--                  style="-->
+              <!--                    font-weight: 600;-->
+              <!--                    color: #059669;-->
+              <!--                    margin-bottom: 0.75rem;-->
+              <!--                    text-align: center;-->
+              <!--                    font-size: 1.1rem;-->
+              <!--                  "-->
+              <!--                ></div>-->
+              <!--                <n-button-->
+              <!--                  type="primary"-->
+              <!--                  size="large"-->
+              <!--                  block-->
+              <!--                  style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; height: 48px"-->
+              <!--                  @click="goToRefereeMode"-->
+              <!--                >-->
+              <!--                  裁判模式-->
+              <!--                </n-button>-->
+              <!--              </div>-->
 
               <!-- 移動版選單項目 -->
               <n-menu

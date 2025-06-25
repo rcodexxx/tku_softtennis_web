@@ -1,11 +1,16 @@
-<!-- MatchPlayerSelector.vue - 強健的錯誤處理版本 -->
+<!-- MatchPlayerSelector.vue - 完整只讀支持版本 -->
 <template>
-  <div class="match-player-selector">
-    <!-- 動態網球場視覺化 - 核心保留 -->
+  <div class="match-player-selector" :class="{ 'readonly-mode': disabled }">
+    <!-- 動態網球場視覺化 -->
     <div class="arena-container">
       <div :class="courtClasses" :data-changing="isChangingCourt">
         <!-- 時間控制器 -->
-        <div v-if="modelValue.time_slot" :class="timeControllerClasses" @click="toggleTimeSlot">
+        <div
+          v-if="modelValue.time_slot"
+          :class="timeControllerClasses"
+          :style="disabled ? 'pointer-events: none; opacity: 0.6;' : ''"
+          @click="disabled ? null : toggleTimeSlot"
+        >
           <span class="time-icon">{{ currentTimeSlot.icon }}</span>
         </div>
 
@@ -13,7 +18,7 @@
         <div class="team-vs-container">
           <!-- 隊伍 A -->
           <div class="team-section">
-            <div class="team-card" :class="{ 'has-players': hasTeamAPlayers, 'winner-glow': isTeamAWinner }">
+            <div class="team-card" :class="{ 'has-players': hasTeamAPlayers }">
               <div class="team-header">
                 <h3 class="team-title">隊伍 A</h3>
               </div>
@@ -26,6 +31,7 @@
                   dashed
                   block
                   class="select-player-btn"
+                  :disabled="disabled"
                   @click="openPlayerSelector('player1_id')"
                 >
                   <template #icon>
@@ -35,7 +41,12 @@
                     <div>選擇球員</div>
                   </div>
                 </n-button>
-                <div v-else class="selected-player" @click="openPlayerSelector('player1_id')">
+                <div
+                  v-else
+                  class="selected-player"
+                  :class="{ 'readonly-player': disabled }"
+                  @click="disabled ? null : openPlayerSelector('player1_id')"
+                >
                   <div class="player-card-compact">
                     <n-avatar
                       :size="32"
@@ -52,7 +63,14 @@
                         {{ getPlayerOrganization(modelValue.player1_id) }}
                       </div>
                     </div>
-                    <n-button size="small" quaternary circle class="remove-btn" @click.stop="clearPlayer('player1_id')">
+                    <n-button
+                      v-if="!disabled"
+                      size="small"
+                      quaternary
+                      circle
+                      class="remove-btn"
+                      @click.stop="clearPlayer('player1_id')"
+                    >
                       <n-icon :component="CloseIcon" />
                     </n-button>
                   </div>
@@ -67,6 +85,7 @@
                   dashed
                   block
                   class="select-player-btn"
+                  :disabled="disabled"
                   @click="openPlayerSelector('player2_id')"
                 >
                   <template #icon>
@@ -76,7 +95,12 @@
                     <div>選擇球員</div>
                   </div>
                 </n-button>
-                <div v-else class="selected-player" @click="openPlayerSelector('player2_id')">
+                <div
+                  v-else
+                  class="selected-player"
+                  :class="{ 'readonly-player': disabled }"
+                  @click="disabled ? null : openPlayerSelector('player2_id')"
+                >
                   <div class="player-card-compact">
                     <n-avatar
                       :size="32"
@@ -93,7 +117,14 @@
                         {{ getPlayerOrganization(modelValue.player2_id) }}
                       </div>
                     </div>
-                    <n-button size="small" quaternary circle class="remove-btn" @click.stop="clearPlayer('player2_id')">
+                    <n-button
+                      v-if="!disabled"
+                      size="small"
+                      quaternary
+                      circle
+                      class="remove-btn"
+                      @click.stop="clearPlayer('player2_id')"
+                    >
                       <n-icon :component="CloseIcon" />
                     </n-button>
                   </div>
@@ -111,7 +142,7 @@
 
           <!-- 隊伍 B -->
           <div class="team-section">
-            <div class="team-card" :class="{ 'has-players': hasTeamBPlayers, 'winner-glow': isTeamBWinner }">
+            <div class="team-card" :class="{ 'has-players': hasTeamBPlayers }">
               <div class="team-header">
                 <h3 class="team-title">隊伍 B</h3>
               </div>
@@ -124,6 +155,7 @@
                   dashed
                   block
                   class="select-player-btn"
+                  :disabled="disabled"
                   @click="openPlayerSelector('player3_id')"
                 >
                   <template #icon>
@@ -133,7 +165,12 @@
                     <div>選擇球員</div>
                   </div>
                 </n-button>
-                <div v-else class="selected-player" @click="openPlayerSelector('player3_id')">
+                <div
+                  v-else
+                  class="selected-player"
+                  :class="{ 'readonly-player': disabled }"
+                  @click="disabled ? null : openPlayerSelector('player3_id')"
+                >
                   <div class="player-card-compact">
                     <n-avatar
                       :size="32"
@@ -150,7 +187,14 @@
                         {{ getPlayerOrganization(modelValue.player3_id) }}
                       </div>
                     </div>
-                    <n-button size="small" quaternary circle class="remove-btn" @click.stop="clearPlayer('player3_id')">
+                    <n-button
+                      v-if="!disabled"
+                      size="small"
+                      quaternary
+                      circle
+                      class="remove-btn"
+                      @click.stop="clearPlayer('player3_id')"
+                    >
                       <n-icon :component="CloseIcon" />
                     </n-button>
                   </div>
@@ -165,6 +209,7 @@
                   dashed
                   block
                   class="select-player-btn"
+                  :disabled="disabled"
                   @click="openPlayerSelector('player4_id')"
                 >
                   <template #icon>
@@ -174,7 +219,12 @@
                     <div>選擇球員</div>
                   </div>
                 </n-button>
-                <div v-else class="selected-player" @click="openPlayerSelector('player4_id')">
+                <div
+                  v-else
+                  class="selected-player"
+                  :class="{ 'readonly-player': disabled }"
+                  @click="disabled ? null : openPlayerSelector('player4_id')"
+                >
                   <div class="player-card-compact">
                     <n-avatar
                       :size="32"
@@ -191,7 +241,14 @@
                         {{ getPlayerOrganization(modelValue.player4_id) }}
                       </div>
                     </div>
-                    <n-button size="small" quaternary circle class="remove-btn" @click.stop="clearPlayer('player4_id')">
+                    <n-button
+                      v-if="!disabled"
+                      size="small"
+                      quaternary
+                      circle
+                      class="remove-btn"
+                      @click.stop="clearPlayer('player4_id')"
+                    >
                       <n-icon :component="CloseIcon" />
                     </n-button>
                   </div>
@@ -201,84 +258,6 @@
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- 比賽分數控制區域 - 簡化為 A:B 格式 -->
-    <div class="external-score-control">
-      <n-card title="比賽分數" size="small" :bordered="false">
-        <div class="simplified-score-container">
-          <!-- 隊伍A控制 -->
-          <div class="team-score-control">
-            <div class="team-label-simple">隊伍 A</div>
-            <div class="score-buttons">
-              <n-button
-                :disabled="modelValue.a_games <= 0"
-                circle
-                size="small"
-                type="error"
-                ghost
-                @click="adjustScore('a_games', -1)"
-              >
-                <n-icon :component="MinusIcon" />
-              </n-button>
-              <n-button
-                :disabled="modelValue.a_games >= scoreInputMax"
-                circle
-                size="small"
-                type="primary"
-                ghost
-                @click="adjustScore('a_games', 1)"
-              >
-                <n-icon :component="AddIcon" />
-              </n-button>
-            </div>
-          </div>
-
-          <!-- 分數顯示 -->
-          <div class="score-display-simple">
-            <span class="score-team-a" :class="{ winner: isTeamAWinner }">{{ modelValue.a_games || 0 }}</span>
-            <span class="score-separator">:</span>
-            <span class="score-team-b" :class="{ winner: isTeamBWinner }">{{ modelValue.b_games || 0 }}</span>
-          </div>
-
-          <!-- 隊伍B控制 -->
-          <div class="team-score-control">
-            <div class="team-label-simple">隊伍 B</div>
-            <div class="score-buttons">
-              <n-button
-                :disabled="modelValue.b_games <= 0"
-                circle
-                size="small"
-                type="error"
-                ghost
-                @click="adjustScore('b_games', -1)"
-              >
-                <n-icon :component="MinusIcon" />
-              </n-button>
-              <n-button
-                :disabled="modelValue.b_games >= scoreInputMax"
-                circle
-                size="small"
-                type="primary"
-                ghost
-                @click="adjustScore('b_games', 1)"
-              >
-                <n-icon :component="AddIcon" />
-              </n-button>
-            </div>
-          </div>
-        </div>
-
-        <!-- 獲勝提示 -->
-        <div v-if="isTeamAWinner || isTeamBWinner" class="winner-alert">
-          <n-alert type="success" :show-icon="false">
-            <template #header>
-              <n-icon :component="WinIcon" style="margin-right: 0.5rem" />
-              {{ isTeamAWinner ? '隊伍 A 獲勝！' : '隊伍 B 獲勝！' }}
-            </template>
-          </n-alert>
-        </div>
-      </n-card>
     </div>
 
     <!-- 球員選擇模態框 - 完整訪客功能 -->
@@ -552,15 +531,13 @@
 <script setup>
   import { computed, onMounted, ref, watch, nextTick } from 'vue'
   import { useMessage } from 'naive-ui'
-  import apiClient from '@/services/apiClient'
+  import apiClient from '@/services/apiClient.js'
 
   // Icons
   import {
     AddOutline as AddIcon,
-    CheckmarkCircleOutline as WinIcon,
     CheckmarkOutline as CheckIcon,
     CloseOutline as CloseIcon,
-    RemoveOutline as MinusIcon,
     SearchOutline as SearchIcon
   } from '@vicons/ionicons5'
 
@@ -569,11 +546,15 @@
     modelValue: {
       type: Object,
       required: true
+    },
+    disabled: {
+      type: Boolean,
+      default: false
     }
   })
 
   // Emits
-  const emit = defineEmits(['update:modelValue'])
+  const emit = defineEmits(['update:modelValue', 'player-changed'])
 
   // State
   const message = useMessage()
@@ -630,36 +611,13 @@
     }
   }
 
-  // Computed properties
-  const scoreInputMax = computed(() => {
-    const formatMap = {
-      games_5: 3,
-      games_7: 4,
-      games_9: 5
-    }
-    return formatMap[props.modelValue.match_format] || 3
-  })
-
+  // 計算屬性
   const hasTeamAPlayers = computed(() => {
     return props.modelValue.player1_id && (props.modelValue.match_type === 'singles' || props.modelValue.player2_id)
   })
 
   const hasTeamBPlayers = computed(() => {
     return props.modelValue.player3_id && (props.modelValue.match_type === 'singles' || props.modelValue.player4_id)
-  })
-
-  const isTeamAWinner = computed(() => {
-    const aGames = props.modelValue.a_games
-    const bGames = props.modelValue.b_games
-    const maxGames = scoreInputMax.value
-    return aGames === maxGames && aGames > bGames
-  })
-
-  const isTeamBWinner = computed(() => {
-    const aGames = props.modelValue.a_games
-    const bGames = props.modelValue.b_games
-    const maxGames = scoreInputMax.value
-    return bGames === maxGames && bGames > aGames
   })
 
   const currentTimeSlot = computed(() => {
@@ -724,28 +682,34 @@
 
   // Methods
   const updateData = (field, value) => {
-    emit('update:modelValue', {
+    const updatedValue = {
       ...props.modelValue,
       [field]: value
-    })
-  }
+    }
 
-  const adjustScore = (field, delta) => {
-    const currentValue = props.modelValue[field] || 0
-    const newValue = currentValue + delta
-    if (newValue >= 0 && newValue <= scoreInputMax.value) {
-      updateData(field, newValue)
+    emit('update:modelValue', updatedValue)
+
+    if (field.includes('player') && field.includes('_id')) {
+      emit('player-changed', { field, playerId: value, allPlayers: getAllSelectedPlayers() })
     }
   }
 
-  // 最強健的球員查找方法 - 直接遍歷而非預建映射表
+  const getAllSelectedPlayers = () => {
+    return {
+      player1_id: props.modelValue.player1_id,
+      player2_id: props.modelValue.player2_id,
+      player3_id: props.modelValue.player3_id,
+      player4_id: props.modelValue.player4_id
+    }
+  }
+
+  // 最強健的球員查找方法
   const findPlayerById = playerId => {
     if (!playerId) return null
 
     const playerIdStr = String(playerId)
     let foundPlayer = null
 
-    // 直接遍歷當前的球員列表
     for (const player of allActiveMembers.value) {
       if (String(player.id) === playerIdStr) {
         foundPlayer = player
@@ -753,7 +717,6 @@
       }
     }
 
-    // 如果沒找到，僅輸出簡要錯誤信息
     if (!foundPlayer && playerId) {
       console.warn(`找不到球員 ID: ${playerId}`)
     }
@@ -805,10 +768,18 @@
   }
 
   const clearPlayer = field => {
+    // 🔧 添加 disabled 檢查
+    if (props.disabled) {
+      return
+    }
     updateData(field, null)
   }
 
   const openPlayerSelector = field => {
+    // 🔧 添加 disabled 檢查
+    if (props.disabled) {
+      return
+    }
     currentSelectingField.value = field
     modalSearchTerm.value = ''
     showPlayerSelector.value = true
@@ -826,6 +797,10 @@
   }
 
   const toggleTimeSlot = () => {
+    // 🔧 添加 disabled 檢查
+    if (props.disabled) {
+      return
+    }
     const current = props.modelValue.time_slot
     const next = timeSlotConfig[current]?.next || 'morning'
     updateData('time_slot', next)
@@ -848,13 +823,6 @@
       }))
     } catch (error) {
       console.error('載入訪客身份選項失敗:', error)
-      // 提供備用選項
-      guestRoleOptions.value = [
-        { value: 'teammate', label: '隊友 - 外出比賽的合作夥伴' },
-        { value: 'opponent', label: '對手 - 記錄比賽的對戰對手' },
-        { value: 'substitute', label: '替補 - 臨時替補球員' },
-        { value: 'neutral', label: '中性 - 身份未明確' }
-      ]
     }
   }
 
@@ -865,8 +833,6 @@
         params: { limit: 50 }
       })
       myGuestsList.value = response.data.guests || []
-
-      // 每次載入訪客後，確保同步到主球員列表
       syncGuestsToMainList()
     } catch (error) {
       console.error('載入我的訪客失敗:', error)
@@ -876,7 +842,6 @@
     }
   }
 
-  // 確保所有訪客都同步到主球員列表的方法
   const syncGuestsToMainList = () => {
     let addedCount = 0
     myGuestsList.value.forEach(guest => {
@@ -892,7 +857,6 @@
     }
   }
 
-  // 🔧 最強健的創建訪客方法 - 添加重試機制和詳細錯誤處理
   const createAndSelectGuest = async () => {
     try {
       await guestFormRef.value?.validate()
@@ -906,7 +870,6 @@
 
       const apiMember = response.data.member
 
-      // 確保訪客對象有所有必需的屬性
       const newGuest = {
         id: apiMember.id,
         name: apiMember.name || guestForm.value.name,
@@ -918,7 +881,6 @@
         usage_count: apiMember.usage_count || 0,
         last_used_at: apiMember.last_used_at || null,
         created_at: apiMember.created_at || new Date().toISOString(),
-        // 確保其他可能需要的屬性也存在
         mu: apiMember.mu || 25.0,
         sigma: apiMember.sigma || 8.333,
         score: apiMember.score || 0,
@@ -935,14 +897,11 @@
         notes: apiMember.notes || null
       }
 
-      // 強制添加到兩個列表的頭部
       allActiveMembers.value.unshift(newGuest)
       myGuestsList.value.unshift(newGuest)
 
-      // 強制觸發Vue的響應性更新
       await nextTick()
 
-      // 驗證是否成功添加
       const verifyInMainList = allActiveMembers.value.some(p => String(p.id) === String(newGuest.id))
 
       if (!verifyInMainList) {
@@ -950,12 +909,10 @@
         allActiveMembers.value = [newGuest, ...allActiveMembers.value]
       }
 
-      // 自動選擇新創建的訪客
       if (currentSelectingField.value) {
         updateData(currentSelectingField.value, newGuest.id)
         await nextTick()
 
-        // 驗證選擇結果
         const verifyName = getPlayerName(newGuest.id)
         if (verifyName === '未知球員') {
           console.error('訪客選擇失敗，嘗試同步修復')
@@ -963,7 +920,6 @@
         }
       }
 
-      // 重置並關閉
       resetGuestForm()
       showPlayerSelector.value = false
       currentSelectingField.value = null
@@ -984,7 +940,6 @@
       return
     }
 
-    // 確保歷史訪客也存在於主球員列表中
     const guest = myGuestsList.value.find(g => String(g.id) === String(guestId))
     if (guest) {
       const existsInMainList = allActiveMembers.value.some(p => String(p.id) === String(guestId))
@@ -992,7 +947,6 @@
         allActiveMembers.value.unshift(guest)
       }
 
-      // 更新使用記錄
       guest.usage_count = (guest.usage_count || 0) + 1
       guest.last_used_at = new Date().toISOString()
     }
@@ -1034,7 +988,6 @@
         }
       })
 
-      // 處理不同可能的響應結構
       let membersData = response.data
       if (response.data.members) {
         membersData = response.data.members
@@ -1051,7 +1004,6 @@
 
       allActiveMembers.value = membersData
 
-      // 構建組織選項
       const organizations = new Set()
       membersData.forEach(member => {
         if (member.organization) {
@@ -1073,7 +1025,6 @@
     }
   }
 
-  // 添加日期同步方法
   const formatTimestampToDate = timestamp => {
     if (!timestamp) return null
     const date = new Date(timestamp)
@@ -1099,11 +1050,9 @@
         return
       }
 
-      // 檢查球員是否已存在
       const existsInMainList = allActiveMembers.value.some(p => String(p.id) === String(player.id))
 
       if (!existsInMainList) {
-        // 確保球員對象有所有必需的屬性
         const completePlayer = {
           id: player.id,
           name: player.name || '未知球員',
@@ -1132,9 +1081,8 @@
         }
 
         allActiveMembers.value.unshift(completePlayer)
-        console.log(`添加球員到列表: ${completePlayer.name} (ID: ${completePlayer.id})`)
+        // console.log(`添加球員到列表: ${completePlayer.name} (ID: ${completePlayer.id})`)
 
-        // 如果是訪客，也添加到訪客列表
         if (completePlayer.is_guest) {
           const existsInGuestList = myGuestsList.value.some(g => String(g.id) === String(completePlayer.id))
           if (!existsInGuestList) {
@@ -1144,12 +1092,26 @@
       }
     })
 
-    console.log(`當前球員列表大小: ${allActiveMembers.value.length}`)
+    // console.log(`當前球員列表大小: ${allActiveMembers.value.length}`)
   }
 
-  // 🔧 暴露方法給父組件使用
+  // 暴露方法給父組件使用
   defineExpose({
-    addPlayersToList
+    addPlayersToList,
+    getPlayerName,
+    getPlayerOrganization,
+    getAllSelectedPlayers,
+    getTeamDisplayName: side => {
+      if (side === 'A') {
+        const player1 = getPlayerName(props.modelValue.player1_id)
+        const player2 = props.modelValue.match_type === 'doubles' ? getPlayerName(props.modelValue.player2_id) : ''
+        return player2 && player2 !== '未知球員' ? `${player1} / ${player2}` : player1
+      } else {
+        const player3 = getPlayerName(props.modelValue.player3_id)
+        const player4 = props.modelValue.match_type === 'doubles' ? getPlayerName(props.modelValue.player4_id) : ''
+        return player4 && player4 !== '未知球員' ? `${player3} / ${player4}` : player3
+      }
+    }
   })
 
   // Watchers
@@ -1164,20 +1126,16 @@
     if (show) {
       await loadMyGuests()
       await loadGuestRoleOptions()
-
-      // 每次打開球員選擇器時，確保所有訪客都已同步
       syncGuestsToMainList()
     }
   })
 
-  // 重置頁籤當模態框關閉時
   watch(showPlayerSelector, show => {
     if (!show) {
       playerSelectorTab.value = 'existing'
     }
   })
 
-  // 監聽日期時間戳變化，自動同步到字符串日期
   watch(
     () => props.modelValue.match_date_ts,
     newTimestamp => {
@@ -1189,83 +1147,99 @@
     { immediate: true }
   )
 
+  watch(
+    [
+      () => props.modelValue.player1_id,
+      () => props.modelValue.player2_id,
+      () => props.modelValue.player3_id,
+      () => props.modelValue.player4_id
+    ],
+    async (newPlayerIds, oldPlayerIds) => {
+      const newIds = newPlayerIds.filter((id, index) => id !== oldPlayerIds?.[index] && id !== null)
+
+      if (newIds.length > 0) {
+        await loadMatchPlayers(newIds)
+      }
+    },
+    { deep: true }
+  )
+
   // Lifecycle
   onMounted(async () => {
     await fetchActiveMembers()
     syncDateFields()
 
-    // 初始化時也同步一次，確保所有已存在的訪客都在列表中
     setTimeout(() => {
       syncGuestsToMainList()
-    }, 1000) // 延遲一秒，確保所有初始化完成
+    }, 1000)
   })
+
+  const loadMatchPlayers = async playerIds => {
+    try {
+      const validPlayerIds = playerIds.filter(id => id !== null && id !== undefined)
+
+      if (validPlayerIds.length === 0) {
+        return
+      }
+
+      // console.log('載入比賽相關球員:', validPlayerIds)
+
+      const playerPromises = validPlayerIds.map(async playerId => {
+        try {
+          const response = await apiClient.get(`/members/${playerId}`)
+          return response.data.member || response.data
+        } catch (error) {
+          console.warn(`無法載入球員 ${playerId}:`, error)
+          return null
+        }
+      })
+
+      const players = await Promise.all(playerPromises)
+      const validPlayers = players.filter(player => player !== null)
+
+      if (validPlayers.length > 0) {
+        addPlayersToList(validPlayers)
+      }
+    } catch (error) {
+      console.error('載入比賽球員失敗:', error)
+    }
+  }
 </script>
 
 <style scoped>
-  @import '@/assets/css/components/match-player-selector.css';
+  @import '@/assets/css/components/match/match-player-selector.css';
 
-  /* 外部分數控制樣式 - 簡化版 */
-  .external-score-control {
-    margin: 2rem 0;
+  /* 🔧 只讀模式樣式 */
+  .match-player-selector.readonly-mode {
+    opacity: 0.8;
+    pointer-events: auto; /* 保持基本的滾動和查看功能 */
   }
 
-  .simplified-score-container {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    gap: 1.5rem;
-    align-items: center;
-    margin-bottom: 1rem;
+  .readonly-player {
+    cursor: default !important;
+    pointer-events: none;
   }
 
-  .team-score-control {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.75rem;
+  .readonly-mode .select-player-btn[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
   }
 
-  .team-label-simple {
-    font-weight: 600;
-    color: #374151;
-    font-size: 0.9rem;
+  .readonly-mode .remove-btn {
+    display: none; /* 只讀模式下隱藏移除按鈕 */
   }
 
-  .score-buttons {
-    display: flex;
-    gap: 0.5rem;
+  /* 禁用狀態的視覺反饋 */
+  .readonly-mode .player-card-compact {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 0.75rem;
   }
 
-  .score-display-simple {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: #1f2937;
-    justify-content: center;
-  }
-
-  .score-team-a,
-  .score-team-b {
-    min-width: 1.2em;
-    text-align: center;
-    transition: all 0.3s ease;
-  }
-
-  .score-team-a.winner,
-  .score-team-b.winner {
-    color: #059669;
-    text-shadow: 0 0 10px rgba(5, 150, 105, 0.3);
-    transform: scale(1.1);
-  }
-
-  .score-separator {
-    color: #6b7280;
-    font-weight: 400;
-  }
-
-  .winner-alert {
-    margin-top: 1rem;
+  .readonly-mode .selected-player:hover {
+    transform: none; /* 禁用懸停動畫 */
   }
 
   /* 模態框樣式優化 */
@@ -1584,38 +1558,12 @@
     height: 100%;
   }
 
-  /* 訪客相關樣式 */
-  .selected-guest {
-    background-color: #f0fdf4;
-    border: 1px solid #10b981;
-  }
-
   .player-card.guest {
-    border-left: 4px solid #f59e0b;
-  }
-
-  .player-card-btn.guest {
     border-left: 4px solid #f59e0b;
   }
 
   /* 響應式優化 */
   @media (max-width: 768px) {
-    .simplified-score-container {
-      grid-template-columns: 1fr;
-      grid-template-rows: auto auto auto;
-      gap: 1rem;
-      text-align: center;
-    }
-
-    .score-display-simple {
-      order: 2;
-      font-size: 2.2rem;
-    }
-
-    .team-label-simple {
-      font-size: 0.85rem;
-    }
-
     .modern-guest-form {
       padding: 1rem;
     }
@@ -1637,14 +1585,6 @@
   }
 
   @media (max-width: 480px) {
-    .score-display-simple {
-      font-size: 2rem;
-    }
-
-    .team-label-simple {
-      font-size: 0.8rem;
-    }
-
     .player-card-inner {
       padding: 0.8rem;
     }

@@ -399,7 +399,7 @@
 
   // 只顯示有比賽記錄的球員
   const activePlayersData = computed(() => {
-    const MIN_MATCHES = 1
+    const MIN_MATCHES = 5
 
     const filtered = leaderboardData.value.filter(member => {
       const matchCount = getMatchCount(member)

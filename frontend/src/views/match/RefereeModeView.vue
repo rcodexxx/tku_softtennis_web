@@ -254,7 +254,7 @@
   import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
   import { useRouter } from 'vue-router'
   import { useMessage } from 'naive-ui'
-  import MatchPlayerSelector from '@/components/MatchPlayerSelector.vue'
+  import MatchPlayerSelector from '@/components/match/MatchPlayerSelector.vue'
   import apiClient from '@/services/apiClient'
 
   const router = useRouter()

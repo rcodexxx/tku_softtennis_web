@@ -1,7 +1,8 @@
-// src/router/index.js - 添加裁判模式路由
+// src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore.js'
 
-// 導入您的所有視圖組件
+// 導入組件
 import LeaderboardView from '../views/LeaderboardView.vue'
 import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
@@ -9,11 +10,11 @@ import EditProfileView from '../views/EditProfileView.vue'
 import ManagementCenterView from '@/views/team/ManagementCenterView.vue'
 import AddMemberView from '../views/team/AddMemberView.vue'
 import EditMemberView from '@/views/team/EditMemberView.vue'
-import AddMatchRecordView from '../views/match/AddMatchRecordView.vue'
 import MatchManagementView from '@/views/match/MatchManagementView.vue'
-import EditMatchRecordView from '../views/match/EditMatchRecordView.vue'
 import DetailLeaderboardView from '@/views/DetailLeaderboardView.vue'
-import RefereeModeView from '../views/match/RefereeModeView.vue' // 🎾 新增裁判模式
+
+// 🔧 新的統一比賽記錄組件
+import MatchRecordFormView from '@/views/match/MatchRecordFormView.vue'
 
 const routes = [
   {
@@ -44,72 +45,124 @@ const routes = [
     component: EditProfileView,
     meta: { requiresAuth: true }
   },
+
+  // === 🔧 新的統一比賽記錄路由 ===
   {
     path: '/match-records/create',
     name: 'RecordMatch',
-    component: AddMatchRecordView,
+    component: MatchRecordFormView,
+    props: { mode: 'add' },
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/match-records/view/:id',
+    name: 'ViewMatch',
+    component: MatchRecordFormView,
+    props: route => ({
+      mode: 'view',
+      matchId: route.params.id
+    }),
     meta: { requiresAuth: true }
   },
   {
     path: '/match-records/edit/:id',
     name: 'EditMatch',
-    component: EditMatchRecordView,
-    props: true,
-    meta: { requiresAuth: true }
+    component: MatchRecordFormView,
+    props: route => ({
+      mode: 'edit',
+      matchId: route.params.id
+    }),
+    meta: {
+      requiresAuth: true,
+      requiresManagement: true // 🔧 只有幹部以上可以編輯
+    }
   },
+
+  // === 比賽管理路由 ===
   {
     path: '/matches/management',
     name: 'MatchManagement',
     component: MatchManagementView,
     meta: { requiresAuth: true }
   },
-  // 🎾 新增裁判模式路由
-  // {
-  //   path: '/referee-mode',
-  //   name: 'RefereeMode',
-  //   component: RefereeModeView,
-  //   meta: {
-  //     requiresAuth: true,
-  //     mobileOptimized: true
-  //   },
-  //   beforeEnter: (to, from, next) => {
-  //     // 檢查裝置支援 - 僅在非開發環境檢查
-  //     if (import.meta.env.PROD) {
-  //       const isDesktop = window.innerWidth > 1024 && !('ontouchstart' in window)
-  //       if (isDesktop) {
-  //         alert('裁判模式專為行動裝置設計，請使用手機或平板訪問')
-  //         next({ name: 'Leaderboard' })
-  //         return
-  //       }
-  //     }
-  //     next()
-  //   }
-  // },
-  // --- 管理相關路由 ---
+
+  // === 團隊管理相關路由 ===
   {
     path: '/management',
     name: 'ManagementCenter',
     component: ManagementCenterView,
-    meta: { requiresAuth: true }
+    meta: {
+      requiresAuth: true,
+      requiresManagement: true
+    }
   },
   {
     path: '/members/add',
     name: 'AddMember',
     component: AddMemberView,
-    meta: { requiresAuth: true }
+    meta: {
+      requiresAuth: true,
+      requiresManagement: true
+    }
   },
   {
     path: '/members/edit/:id',
     name: 'EditMember',
     component: EditMemberView,
     props: true,
-    meta: { requiresAuth: true }
+    meta: {
+      requiresAuth: true,
+      requiresManagement: true
+    }
   }
 ]
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes
+})
+
+// 🔧 路由守衛 - 權限檢查
+router.beforeEach(async (to, from, next) => {
+  const authStore = useAuthStore()
+
+  // 檢查是否需要登入
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    next({
+      name: 'Login',
+      query: { redirect: to.fullPath }
+    })
+    return
+  }
+
+  // 檢查是否需要管理權限
+  if (to.meta.requiresManagement) {
+    if (!authStore.isAuthenticated) {
+      next({
+        name: 'Login',
+        query: { redirect: to.fullPath }
+      })
+      return
+    }
+
+    // 🔧 檢查管理權限：幹部、教練、管理員
+    if (!authStore.isCadre && !authStore.isAdmin && !authStore.isCoach) {
+      // 沒有管理權限，顯示錯誤訊息並重定向到比賽管理頁面
+      next({
+        name: 'MatchManagement',
+        query: { error: 'insufficient_permissions' }
+      })
+      return
+    }
+  }
+
+  // 訪客專用頁面檢查
+  if (to.meta.guestOnly && authStore.isAuthenticated) {
+    next({ name: 'Leaderboard' })
+    return
+  }
+
+  next()
 })
 
 export default router
