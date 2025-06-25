@@ -208,8 +208,6 @@
         :bottom-bordered="true"
         :single-line="false"
         size="medium"
-        flex-height
-        style="min-height: 400px"
         :scroll-x="1200"
         :row-key="row => row.id"
         striped

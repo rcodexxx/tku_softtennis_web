@@ -354,11 +354,11 @@
   // 獲取經驗等級圖標
   const getExperienceIcon = experienceLevel => {
     const iconMap = {
-      新芽: '🌱', // 新芽
-      葉子: '🌿', // 葉子
-      樹: '🌳', // 樹
-      閃爍星: '💫', // 閃爍星
-      星星: '⭐' // 星星
+      新手: '🌱', // 新芽
+      初級: '🌿', // 葉子
+      中級: '🌳', // 樹
+      高級: '💫', // 閃爍星
+      資深: '⭐' // 星星
     }
     return iconMap[experienceLevel] || '🌱'
   }
