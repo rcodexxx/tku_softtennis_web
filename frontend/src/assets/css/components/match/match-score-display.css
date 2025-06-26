@@ -152,7 +152,8 @@
 }
 
 @keyframes bounce {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
@@ -621,49 +622,49 @@
     font-size: 0.75rem;
   }
 
-.stats-container {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 12px;
-  margin-top: 1rem;
-}
-
-.stat-card {
-  text-align: center;
-  padding: 16px;
-  background: #f9fafb;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.stat-value {
-  font-size: 24px;
-  font-weight: bold;
-  color: #1890ff;
-  margin-bottom: 4px;
-}
-
-.stat-label {
-  font-size: 14px;
-  color: #666;
-  font-weight: 500;
-}
-
-.serve-stat {
-  background: linear-gradient(135deg, #e0f2fe, #b3e5fc);
-}
-
-/* 響應式 */
-@media (max-width: 768px) {
   .stats-container {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+    margin-top: 1rem;
   }
-}
+
+  .stat-card {
+    text-align: center;
+    padding: 16px;
+    background: #f9fafb;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .stat-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: #1890ff;
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    font-size: 14px;
+    color: #666;
+    font-weight: 500;
+  }
+
+  .serve-stat {
+    background: linear-gradient(135deg, #e0f2fe, #b3e5fc);
+  }
+
+  /* 響應式 */
+  @media (max-width: 768px) {
+    .stats-container {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+  }
 }

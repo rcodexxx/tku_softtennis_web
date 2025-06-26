@@ -37,22 +37,6 @@
                 <!-- 用戶操作區域 -->
                 <div class="user-actions-area">
                   <template v-if="authStore.isAuthenticated">
-                    <!-- 🎾 裁判模式按鈕 - 只在行動設備顯示 -->
-                    <!--                    <n-button-->
-                    <!--                      v-if="isMobileDevice"-->
-                    <!--                      type="primary"-->
-                    <!--                      circle-->
-                    <!--                      title="裁判模式"-->
-                    <!--                      style="-->
-                    <!--                        background: linear-gradient(135deg, #10b981 0%, #059669 100%);-->
-                    <!--                        border: none;-->
-                    <!--                        margin-right: 0.5rem;-->
-                    <!--                        font-size: 1.1rem;-->
-                    <!--                      "-->
-                    <!--                      @click="goToRefereeMode"-->
-                    <!--                      >⚔️-->
-                    <!--                    </n-button>-->
-
                     <n-dropdown
                       trigger="hover"
                       :options="userDropdownOptions"
@@ -60,14 +44,11 @@
                       @select="handleUserDropdownSelect"
                     >
                       <n-button quaternary class="user-display-button">
-                        <template #icon>
-                          <n-icon :component="PersonCircleOutlineIcon" color="#333" />
-                        </template>
+                        <div class="user-avatar-container">
+                          <BaseIdenticon :user="authStore.user" :size="40" />
+                        </div>
                         <span class="user-name">{{ authStore.userDisplayName }}</span>
-                        <small v-if="authStore.userRole && !isMobile" class="user-role-display">
-                          {{ getRoleDisplay(authStore.userRole) }}
-                        </small>
-                        <n-icon size="14" class="dropdown-arrow-icon" color="#666">
+                        <n-icon size="18" class="dropdown-arrow-icon" color="#666">
                           <ChevronDownIcon />
                         </n-icon>
                       </n-button>
@@ -97,7 +78,7 @@
               <n-spin :show="isInitializing" description="載入中...">
                 <router-view v-slot="{ Component }">
                   <transition name="fade" mode="out-in">
-                    <component :is="Component" :key="$route.fullPath"/>
+                    <component :is="Component" :key="$route.fullPath" />
                   </transition>
                 </router-view>
               </n-spin>
@@ -121,39 +102,6 @@
                 TKU Soft Tennis Web
               </router-link>
 
-              <!-- 🎾 移動版裁判模式區塊 -->
-              <!--              <div-->
-              <!--                v-if="authStore.isAuthenticated"-->
-              <!--                style="-->
-              <!--                  margin: 1rem 0;-->
-              <!--                  padding: 1rem;-->
-              <!--                  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));-->
-              <!--                  border-radius: 8px;-->
-              <!--                  border: 1px solid rgba(16, 185, 129, 0.2);-->
-              <!--                  display: flex;-->
-              <!--                  justify-content: center;-->
-              <!--                "-->
-              <!--              >-->
-              <!--                <div-->
-              <!--                  style="-->
-              <!--                    font-weight: 600;-->
-              <!--                    color: #059669;-->
-              <!--                    margin-bottom: 0.75rem;-->
-              <!--                    text-align: center;-->
-              <!--                    font-size: 1.1rem;-->
-              <!--                  "-->
-              <!--                ></div>-->
-              <!--                <n-button-->
-              <!--                  type="primary"-->
-              <!--                  size="large"-->
-              <!--                  block-->
-              <!--                  style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; height: 48px"-->
-              <!--                  @click="goToRefereeMode"-->
-              <!--                >-->
-              <!--                  裁判模式-->
-              <!--                </n-button>-->
-              <!--              </div>-->
-
               <!-- 移動版選單項目 -->
               <n-menu
                 v-model:value="activeMenuKey"
@@ -167,19 +115,11 @@
               <div v-if="authStore.isAuthenticated" class="mobile-user-info">
                 <n-divider />
                 <div class="mobile-user-profile">
-                  <n-avatar
-                    round
-                    :size="40"
-                    :style="{
-                      backgroundColor: '#e53e3e',
-                      color: '#fff'
-                    }"
-                  >
-                    {{ getUserInitial }}
-                  </n-avatar>
+                  <div class="mobile-avatar-container">
+                    <svg ref="mobileAvatarSvg" width="40" height="40" class="identicon-svg" data-jdenticon-value=""/>
+                  </div>
                   <div class="mobile-user-details">
                     <div class="mobile-user-name">{{ authStore.userDisplayName }}</div>
-                    <div class="mobile-user-role">{{ getRoleDisplay(authStore.userRole) }}</div>
                   </div>
                 </div>
 
@@ -199,7 +139,7 @@
                       <template #icon>
                         <n-icon :component="SettingsIcon" />
                       </template>
-                      編輯個人資料
+                      個人主控台
                     </n-button>
                   </router-link>
                   <n-button block type="error" ghost class="mobile-action-btn" @click="handleLogout">
@@ -215,21 +155,6 @@
               <div v-else class="mobile-guest-actions">
                 <n-divider />
                 <n-space vertical :size="8">
-                  <router-link v-slot="{ navigate }" :to="{ name: 'Register' }">
-                    <!--                    <n-button-->
-                    <!--                      block-->
-                    <!--                      ghost-->
-                    <!--                      @click="-->
-                    <!--                        () => {-->
-                    <!--                          navigate()-->
-                    <!--                          handleMobileMenuClick()-->
-                    <!--                        }-->
-                    <!--                      "-->
-                    <!--                      class="mobile-action-btn"-->
-                    <!--                    >-->
-                    <!--                      快速註冊-->
-                    <!--                    </n-button>-->
-                  </router-link>
                   <router-link v-slot="{ navigate }" :to="{ name: 'Login' }">
                     <n-button
                       block
@@ -258,12 +183,12 @@
 <script setup>
   import { computed, h, onMounted, ref, watch } from 'vue'
   import { RouterLink, useRoute, useRouter } from 'vue-router'
-  import { useAuthStore } from './stores/authStore'
+  import { useAuthStore } from './stores/auth'
   import { useWindowSize } from '@vueuse/core'
+  import BaseIdenticon from '@/components/base/BaseIdenticon.vue'
   import '@/assets/css/main.css'
   import {
     dateZhTW,
-    NAvatar,
     NButton,
     NConfigProvider,
     NDialogProvider,
@@ -290,10 +215,9 @@
     LogOutOutline as LogoutIcon,
     MenuOutline as MenuIcon,
     PeopleOutline as TeamManagementIcon,
-    PersonCircleOutline as PersonCircleOutlineIcon,
     PodiumOutline as HomeIcon,
     SettingsOutline as SettingsIcon
-  } from '@vicons/ionicons5' // 修復後的主題配置
+  } from '@vicons/ionicons5'
 
   // 修復後的主題配置
   const themeOverrides = {
@@ -369,12 +293,6 @@
 
   // 當前年份
   const currentYear = computed(() => new Date().getFullYear())
-
-  // 用戶頭像首字母
-  const getUserInitial = computed(() => {
-    const name = authStore.userDisplayName
-    return name ? name.charAt(0).toUpperCase() : 'U'
-  })
 
   // 權限管理
   const hasManagementAccess = computed(
@@ -524,7 +442,7 @@
             to: { name: 'EditProfile' },
             style: { color: 'inherit', textDecoration: 'none', display: 'block', width: '100%' }
           },
-          { default: () => '編輯個人資料' }
+          { default: () => '個人主控台' }
         ),
       key: 'edit-profile',
       icon: renderIcon(SettingsIcon)
@@ -585,6 +503,7 @@
       if (authStore.accessToken && !authStore.user) {
         await authStore.fetchCurrentUser()
       }
+
       activeMenuKey.value = route.name
     } finally {
       isInitializing.value = false
@@ -614,12 +533,14 @@
   .user-display-button {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
+    gap: 0.75rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 12px;
     transition: all 0.2s ease;
-    max-width: 200px;
+    max-width: 280px;
     color: #333 !important;
+    height: 56px;
+    font-size: 1rem;
   }
 
   .user-display-button:hover {
@@ -627,18 +548,39 @@
     color: #e60012 !important;
   }
 
+  .user-avatar-container {
+    margin-right: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+  }
+
+  .mobile-avatar-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .identicon-svg {
+    border-radius: 50%;
+    display: block;
+  }
+
   .user-name {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100px;
+    max-width: 140px;
     color: inherit;
-  }
-
-  .user-role-display {
-    color: #666;
-    font-size: 0.75rem;
-    white-space: nowrap;
+    font-size: 1rem;
+    font-weight: 500;
   }
 
   .dropdown-arrow-icon {
@@ -708,17 +650,15 @@
     }
 
     .user-display-button {
-      padding: 0.375rem 0.75rem;
-      max-width: 150px;
+      padding: 0.625rem 1rem;
+      max-width: 200px;
+      height: 52px;
+      font-size: 0.95rem;
     }
 
     .user-name {
-      max-width: 80px;
-      font-size: 0.9rem;
-    }
-
-    .user-role-display {
-      display: none; /* 平板版隱藏角色顯示 */
+      max-width: 100px;
+      font-size: 0.95rem;
     }
   }
 
@@ -765,12 +705,6 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-
-  .mobile-user-role {
-    font-size: 0.75rem;
-    color: #6b7280;
-    margin-top: 0.25rem;
   }
 
   .mobile-action-btn {
@@ -852,13 +786,15 @@
     }
 
     .user-display-button {
-      padding: 0.25rem 0.5rem;
-      max-width: 120px;
+      padding: 0.5rem 0.75rem;
+      max-width: 160px;
+      height: 48px;
+      font-size: 0.9rem;
     }
 
     .user-name {
-      max-width: 60px;
-      font-size: 0.875rem;
+      max-width: 80px;
+      font-size: 0.9rem;
     }
 
     .register-btn,

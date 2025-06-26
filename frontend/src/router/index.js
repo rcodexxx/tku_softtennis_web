@@ -1,17 +1,17 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
-import { useAuthStore } from '@/stores/authStore.js'
+import { useAuthStore } from '@/stores/auth.js'
 
 // 導入組件
-import LeaderboardView from '../views/LeaderboardView.vue'
+import LeaderboardView from '../views/leaderboard/LeaderboardView.vue'
 import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
-import EditProfileView from '../views/EditProfileView.vue'
+import Dashboard from '../views/Dashboard.vue'
 import ManagementCenterView from '@/views/team/ManagementCenterView.vue'
 import AddMemberView from '../views/team/AddMemberView.vue'
 import EditMemberView from '@/views/team/EditMemberView.vue'
 import MatchManagementView from '@/views/match/MatchManagementView.vue'
-import DetailLeaderboardView from '@/views/DetailLeaderboardView.vue'
+import DetailLeaderboardView from '@/views/leaderboard/DetailLeaderboardView.vue'
 
 // 🔧 新的統一比賽記錄組件
 import MatchRecordFormView from '@/views/match/MatchRecordFormView.vue'
@@ -42,7 +42,7 @@ const routes = [
   {
     path: '/profile/edit',
     name: 'EditProfile',
-    component: EditProfileView,
+    component: Dashboard,
     meta: { requiresAuth: true }
   },
 

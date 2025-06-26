@@ -239,7 +239,7 @@
 <script setup>
   import { computed, h, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
   import { useRouter } from 'vue-router'
-  import { useAuthStore } from '@/stores/authStore.js'
+  import { useAuthStore } from '@/stores/auth.js'
   import {
     NAlert,
     NBadge,
@@ -623,7 +623,7 @@
                   class: 'action-btn view-btn'
                 },
                 {
-                  icon: () => h(NIcon, { component: EyeIcon }),
+                  icon: () => h(NIcon, { component: EyeIcon })
                 }
               ),
             default: () => '查看詳細數據'
@@ -896,7 +896,7 @@
   }
 
   // 🔧 新增查看詳細數據的方法
-  const viewMatchDetail = (recordId) => {
+  const viewMatchDetail = recordId => {
     router.push({ name: 'ViewMatch', params: { id: recordId } })
   }
 

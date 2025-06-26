@@ -74,7 +74,7 @@
 
 <script setup>
   import { reactive, ref } from 'vue'
-  import { useAuthStore } from '@/stores/authStore'
+  import { useAuthStore } from '@/stores/auth.js'
   import { useRouter } from 'vue-router'
   import {
     NAlert,
