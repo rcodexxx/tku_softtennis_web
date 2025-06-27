@@ -116,7 +116,7 @@
                 <n-divider />
                 <div class="mobile-user-profile">
                   <div class="mobile-avatar-container">
-                    <svg ref="mobileAvatarSvg" width="40" height="40" class="identicon-svg" data-jdenticon-value=""/>
+                    <svg ref="mobileAvatarSvg" width="40" height="40" class="identicon-svg" data-jdenticon-value="" />
                   </div>
                   <div class="mobile-user-details">
                     <div class="mobile-user-name">{{ authStore.userDisplayName }}</div>
@@ -183,7 +183,7 @@
 <script setup>
   import { computed, h, onMounted, ref, watch } from 'vue'
   import { RouterLink, useRoute, useRouter } from 'vue-router'
-  import { useAuthStore } from './stores/auth'
+  import { useAuthStore } from './stores/authStore.js'
   import { useWindowSize } from '@vueuse/core'
   import BaseIdenticon from '@/components/base/BaseIdenticon.vue'
   import '@/assets/css/main.css'
@@ -385,13 +385,13 @@
         icon: renderIcon(RecordMatchIcon)
       },
       {
-        label: renderRouterLink('MatchManagement', '比賽管理'),
+        label: renderRouterLink('MatchManagement', '比賽管理中心'),
         key: 'MatchManagement',
         icon: renderIcon(MatchManagementIcon),
         show: hasManagementAccess.value
       },
       {
-        label: renderRouterLink('ManagementCenter', '團隊管理'),
+        label: renderRouterLink('ManagementCenter', '團隊管理中心'),
         key: 'ManagementCenter',
         icon: renderIcon(TeamManagementIcon),
         show: hasManagementAccess.value
@@ -418,13 +418,13 @@
         icon: renderIcon(RecordMatchIcon)
       },
       {
-        label: '比賽管理',
+        label: '比賽管理中心',
         key: 'MatchManagement',
         icon: renderIcon(MatchManagementIcon),
         show: hasManagementAccess.value
       },
       {
-        label: '團隊管理',
+        label: '團隊管理中心',
         key: 'ManagementCenter',
         icon: renderIcon(TeamManagementIcon),
         show: hasManagementAccess.value

@@ -76,7 +76,7 @@
             <div class="profile-content">
               <div class="avatar-section">
                 <div class="player-avatar-container">
-                          <BaseIdenticon :user="authStore.user" :size="80" />
+                  <BaseIdenticon :user="authStore.user" :size="80" />
                   <div v-if="!avatarLoaded" class="avatar-overlay">
                     <n-spin size="small" />
                   </div>
@@ -105,7 +105,7 @@
                   <div class="detail-icon">🏓</div>
                   <div class="detail-content">
                     <span class="detail-label">位置</span>
-                    <span class="detail-value">{{ getPositionLabel(profileData.member_profile?.position) }}</span>
+                    <span class="detail-value">{{ getPositionDisplay(profileData.member_profile?.position) }}</span>
                   </div>
                 </div>
 
@@ -113,7 +113,7 @@
                   <div class="detail-icon">👤</div>
                   <div class="detail-content">
                     <span class="detail-label">性別</span>
-                    <span class="detail-value">{{ getGenderLabel(profileData.member_profile?.gender) }}</span>
+                    <span class="detail-value">{{ getGenderDisplay(profileData.member_profile?.gender) }}</span>
                   </div>
                 </div>
 
@@ -143,42 +143,42 @@
           </n-card>
 
           <!-- Four Dimensions Radar -->
-          <n-card title="技能分析" class="radar-card">
-            <div class="radar-container">
-              <canvas ref="radarCanvas" width="300" height="300"></canvas>
-            </div>
-            <div class="dimensions-legend">
-              <div class="legend-item">
-                <div class="legend-color skill-1"></div>
-                <span>官方排名 ({{ formatScore(playerStats.official_rank_score || 0, 2) }})</span>
-                <span>潛在實力 ({{ formatScore(playerStats.potential_skill || 0, 2) }})</span>
-              </div>
-              <div class="legend-item">
-                <div class="legend-color skill-2"></div>
-                <span
-                  >潛在實力 ({{
-                    formatScore(profileData.member_profile?.potential_skill || playerStats.potential_skill)
-                  }})</span
-                >
-              </div>
-              <div class="legend-item">
-                <div class="legend-color skill-3"></div>
-                <span
-                  >穩定度 ({{
-                    profileData.member_profile?.consistency_rating || playerStats.consistency_rating || '--'
-                  }}%)</span
-                >
-              </div>
-              <div class="legend-item">
-                <div class="legend-color skill-4"></div>
-                <span
-                  >評分可信度 ({{
-                    profileData.member_profile?.rating_confidence || playerStats.rating_confidence || '--'
-                  }}%)</span
-                >
-              </div>
-            </div>
-          </n-card>
+          <!--          <n-card title="技能分析" class="radar-card">-->
+          <!--            <div class="radar-container">-->
+          <!--              <canvas ref="radarCanvas" width="300" height="300"></canvas>-->
+          <!--            </div>-->
+          <!--            <div class="dimensions-legend">-->
+          <!--              <div class="legend-item">-->
+          <!--                <div class="legend-color skill-1"></div>-->
+          <!--                <span>官方排名 ({{ formatScore(playerStats.official_rank_score || 0, 2) }})</span>-->
+          <!--                <span>潛在實力 ({{ formatScore(playerStats.potential_skill || 0, 2) }})</span>-->
+          <!--              </div>-->
+          <!--              <div class="legend-item">-->
+          <!--                <div class="legend-color skill-2"></div>-->
+          <!--                <span-->
+          <!--                  >潛在實力 ({{-->
+          <!--                    formatScore(profileData.member_profile?.potential_skill || playerStats.potential_skill)-->
+          <!--                  }})</span-->
+          <!--                >-->
+          <!--              </div>-->
+          <!--              <div class="legend-item">-->
+          <!--                <div class="legend-color skill-3"></div>-->
+          <!--                <span-->
+          <!--                  >穩定度 ({{-->
+          <!--                    profileData.member_profile?.consistency_rating || playerStats.consistency_rating || '&#45;&#45;'-->
+          <!--                  }}%)</span-->
+          <!--                >-->
+          <!--              </div>-->
+          <!--              <div class="legend-item">-->
+          <!--                <div class="legend-color skill-4"></div>-->
+          <!--                <span-->
+          <!--                  >評分可信度 ({{-->
+          <!--                    profileData.member_profile?.rating_confidence || playerStats.rating_confidence || '&#45;&#45;'-->
+          <!--                  }}%)</span-->
+          <!--                >-->
+          <!--              </div>-->
+          <!--            </div>-->
+          <!--          </n-card>-->
         </div>
 
         <!-- Right Column -->
@@ -243,7 +243,7 @@
 
             <div v-if="recentMatches.length > 0" class="matches-footer">
               <n-button text type="primary" @click="navigateToMatches"> 查看全部 → </n-button>
-<!--              <n-button type="primary" size="small" @click="navigateToRecordMatch"> 記錄比賽 </n-button>-->
+              <!--              <n-button type="primary" size="small" @click="navigateToRecordMatch"> 記錄比賽 </n-button>-->
             </div>
           </n-card>
 
@@ -361,10 +361,10 @@
 
 <script setup>
   import { onMounted, reactive, ref, nextTick } from 'vue'
-  import { useAuthStore } from '@/stores/auth.js'
+  import { useAuthStore } from '@/stores/authStore.js'
   import { useRouter } from 'vue-router'
   import apiClient from '@/services/apiClient'
-  import { leaderboardAPI } from '@/api/leaderboard'
+  import { useOptions } from '@/composables/useOptions'
   import {
     NAlert,
     NButton,
@@ -418,7 +418,17 @@
   const profileData = ref(null)
   const playerStats = ref({})
   const recentMatches = ref([])
-  const organizationOptions = ref([])
+
+  const {
+    genderOptions,
+    positionOptions,
+    organizationOptions,
+    loadOrganizationOptions,
+    getExperienceIcon,
+    getGenderDisplay,
+    getPositionDisplay,
+    isValidOption
+  } = useOptions()
 
   // 表單資料
   const editableProfile = reactive({
@@ -431,17 +441,6 @@
     organization_id: null
   })
 
-  // 選項
-  const genderOptions = [
-    { label: '男性', value: 'male' },
-    { label: '女性', value: 'female' }
-  ]
-  const positionOptions = [
-    { label: '後排', value: 'back' },
-    { label: '前排', value: 'front' },
-    { label: '皆可', value: 'versatile' }
-  ]
-
   // 表單驗證
   const profileFormRules = {
     email: [{ type: 'email', message: '請輸入有效的電子郵件格式', trigger: ['input', 'blur'] }],
@@ -449,122 +448,6 @@
   }
 
   // 方法
-  // 載入 jdenticon 庫
-  async function loadJdenticon() {
-    if (jdenticonLoaded.value || window.jdenticon) {
-      jdenticonLoaded.value = true
-      return true
-    }
-
-    try {
-      const script = document.createElement('script')
-      script.src = 'https://cdn.jsdelivr.net/npm/jdenticon@3.2.0/dist/jdenticon.min.js'
-      script.async = true
-
-      return new Promise((resolve, reject) => {
-        script.onload = () => {
-          jdenticonLoaded.value = true
-          console.log('✅ jdenticon 載入成功')
-          resolve(true)
-        }
-        script.onerror = () => {
-          console.error('❌ jdenticon 載入失敗')
-          reject(false)
-        }
-        document.head.appendChild(script)
-      })
-    } catch (error) {
-      console.error('載入 jdenticon 時發生錯誤:', error)
-      return false
-    }
-  }
-
-  function generateIdenticon(text) {
-    if (!avatarSvg.value || !text) {
-      console.warn('SVG元素或文字不存在，跳過identicon生成')
-      avatarLoaded.value = true
-      return
-    }
-
-    console.log('開始生成identicon for:', text)
-    avatarLoaded.value = false
-
-    // 如果 jdenticon 還沒載入，先載入它
-    if (!jdenticonLoaded.value || !window.jdenticon) {
-      loadJdenticon()
-        .then(() => {
-          generateIdenticonWithJdenticon(text)
-        })
-        .catch(() => {
-          // 如果載入失敗，使用fallback
-          generateFallbackIdenticon(text)
-        })
-    } else {
-      generateIdenticonWithJdenticon(text)
-    }
-  }
-
-  function generateIdenticonWithJdenticon(text) {
-    try {
-      if (!window.jdenticon || !avatarSvg.value) {
-        throw new Error('jdenticon 不可用')
-      }
-
-      // 使用 jdenticon 生成
-      avatarSvg.value.setAttribute('data-jdenticon-value', text)
-      window.jdenticon.updateSvg(avatarSvg.value, text)
-
-      console.log('✅ jdenticon Identicon生成完成')
-      avatarLoaded.value = true
-    } catch (error) {
-      console.error('❌ jdenticon 生成失敗:', error)
-      generateFallbackIdenticon(text)
-    }
-  }
-
-  function generateFallbackIdenticon(text) {
-    try {
-      if (!avatarSvg.value) return
-
-      // 簡單的 fallback - 生成基於文字的顏色圓形
-      let hash = 0
-      for (let i = 0; i < text.length; i++) {
-        const char = text.charCodeAt(i)
-        hash = (hash << 5) - hash + char
-        hash = hash & hash
-      }
-
-      const hue = Math.abs(hash) % 360
-      const saturation = 50 + (Math.abs(hash) % 30)
-      const lightness = 45 + (Math.abs(hash) % 20)
-      const bgColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`
-
-      // 生成簡單的 SVG
-      avatarSvg.value.innerHTML = `
-      <circle cx="40" cy="40" r="40" fill="${bgColor}"/>
-      <text x="40" y="45" text-anchor="middle" fill="white" font-size="24" font-weight="bold">
-        ${text.charAt(0).toUpperCase()}
-      </text>
-    `
-
-      console.log('✅ Fallback identicon 生成完成')
-      avatarLoaded.value = true
-    } catch (error) {
-      console.error('❌ Fallback identicon 生成失敗:', error)
-      avatarLoaded.value = true
-    }
-  }
-
-  function getExperienceIcon(experienceLevel) {
-    const iconMap = {
-      新手: '🌱', // 新芽
-      初級: '🌿', // 葉子
-      中級: '🌳', // 樹
-      高級: '💫', // 閃爍星
-      資深: '⭐' // 星星
-    }
-    return iconMap[experienceLevel] || '🌱'
-  }
 
   function getStatusClass() {
     const isActive = profileData.value?.member_profile?.is_active !== false
@@ -816,11 +699,13 @@
       editableProfile.name = data.member_profile.name || ''
       editableProfile.student_id = data.member_profile.student_id || ''
 
-      const validGender = genderOptions.some(opt => opt.value === data.member_profile.gender)
-      editableProfile.gender = validGender ? data.member_profile.gender : null
+      editableProfile.gender = isValidOption(genderOptions, data.member_profile.gender)
+        ? data.member_profile.gender
+        : null
 
-      const validPosition = positionOptions.some(opt => opt.value === data.member_profile.position)
-      editableProfile.position = validPosition ? data.member_profile.position : null
+      editableProfile.position = isValidOption(positionOptions, data.member_profile.position)
+        ? data.member_profile.position
+        : null
 
       editableProfile.organization_id =
         data.member_profile.organization?.id > 0 ? data.member_profile.organization.id : null
@@ -1127,18 +1012,6 @@
     }
   }
 
-  async function fetchOrganizationOptions() {
-    try {
-      const response = await apiClient.get('/organizations')
-      organizationOptions.value = response.data.map(org => ({
-        label: org.name,
-        value: org.id
-      }))
-    } catch (_error) {
-      message.error('載入組織列表失敗')
-    }
-  }
-
   const handleProfileUpdate = async () => {
     profileFormRef.value?.validate(async validationErrors => {
       if (!validationErrors) {
@@ -1186,10 +1059,10 @@
   }
 
   onMounted(() => {
-    avatarLoaded.value = false // 初始化頭像狀態
+    avatarLoaded.value = false
     if (authStore.isAuthenticated) {
       fetchProfileData()
-      fetchOrganizationOptions()
+      loadOrganizationOptions() // 使用 composable 的函數
     } else {
       router.push({ name: 'Login', query: { unauthorized: 'true' } })
     }
@@ -1197,5 +1070,5 @@
 </script>
 
 <style scoped>
-@import "@/assets/css/views/dashboard.css";
+  @import '@/assets/css/views/dashboard.css';
 </style>

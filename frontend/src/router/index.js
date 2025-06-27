@@ -1,16 +1,13 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
-import { useAuthStore } from '@/stores/auth.js'
+import { useAuthStore } from '@/stores/authStore.js'
 
 // 導入組件
 import LeaderboardView from '../views/leaderboard/LeaderboardView.vue'
 import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import Dashboard from '../views/Dashboard.vue'
-import ManagementCenterView from '@/views/team/ManagementCenterView.vue'
-import AddMemberView from '../views/team/AddMemberView.vue'
-import EditMemberView from '@/views/team/EditMemberView.vue'
-import MatchManagementView from '@/views/match/MatchManagementView.vue'
+import MatchManagementCenterView from '@/views/match/MatchManagementCenterView.vue'
 import DetailLeaderboardView from '@/views/leaderboard/DetailLeaderboardView.vue'
 
 // 🔧 新的統一比賽記錄組件
@@ -82,38 +79,38 @@ const routes = [
   {
     path: '/matches/management',
     name: 'MatchManagement',
-    component: MatchManagementView,
+    component: MatchManagementCenterView,
     meta: { requiresAuth: true }
   },
 
   // === 團隊管理相關路由 ===
+  // 管理中心
   {
     path: '/management',
     name: 'ManagementCenter',
-    component: ManagementCenterView,
-    meta: {
-      requiresAuth: true,
-      requiresManagement: true
-    }
+    component: () => import('@/views/team/TeamManagementCenterView.vue'),
+    meta: { requiresAuth: true, requiresRole: ['admin', 'cadre', 'coach'] }
   },
+
+  // 新增成員
   {
-    path: '/members/add',
+    path: '/management/members/add',
     name: 'AddMember',
-    component: AddMemberView,
-    meta: {
-      requiresAuth: true,
-      requiresManagement: true
-    }
+    component: () => import('@/views/team/MemberFormView.vue'),
+    props: { mode: 'add' }, // 通過 props 傳遞模式
+    meta: { requiresAuth: true, requiresRole: ['admin', 'cadre', 'coach'] }
   },
+
+  // 編輯成員
   {
-    path: '/members/edit/:id',
+    path: '/management/members/edit/:id',
     name: 'EditMember',
-    component: EditMemberView,
-    props: true,
-    meta: {
-      requiresAuth: true,
-      requiresManagement: true
-    }
+    component: () => import('@/views/team/MemberFormView.vue'),
+    props: route => ({
+      mode: 'edit',
+      id: route.params.id
+    }), // 動態 props
+    meta: { requiresAuth: true, requiresRole: ['admin', 'cadre', 'coach'] }
   }
 ]
 

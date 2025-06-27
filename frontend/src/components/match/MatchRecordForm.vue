@@ -246,8 +246,10 @@
   import { computed, ref, onMounted, nextTick } from 'vue'
   import { useRouter, useRoute } from 'vue-router'
   import { useMessage, useDialog } from 'naive-ui'
-  import { useAuthStore } from '@/stores/auth.js'
+  import { useAuthStore } from '@/stores/authStore.js'
+  import { usePermissions } from '@/composables/usePermissions'
   import apiClient from '@/services/apiClient'
+  import { useOptions } from '@/composables/useOptions'
 
   // 引入組件
   import MatchPlayerSelector from '@/components/match/MatchPlayerSelector.vue'
@@ -280,10 +282,9 @@
 
   // 3. 實例化 hooks
   const router = useRouter()
-  const route = useRoute()
   const message = useMessage()
   const dialog = useDialog()
-  const authStore = useAuthStore()
+  const { hasManagementAccess } = usePermissions()
 
   // 4. 狀態管理 (State)
   const loading = ref(false)
@@ -292,11 +293,20 @@
   const formRef = ref(null)
   const matchScoreDisplayRef = ref(null)
 
-  // 5. 計算屬性 - 權限和模式
-  const hasManagementAccess = computed(
-    () => authStore.isAuthenticated && (authStore.isCadre || authStore.isAdmin || authStore.isCoach)
-  )
+  const {
+    matchTypeOptions,
+    matchFormatOptions,
+    timeSlotOptions,
+    timeSlotOptionsWithIcon,
+    courtSurfaceOptions,
+    courtEnvironmentOptions,
+    getTimeSlotWithIcon,
+    getNextTimeSlot,
+    playerOptions,
+    loadPlayerOptions
+  } = useOptions()
 
+  // 5. 計算屬性 - 權限和模式
   const isReadonly = computed(() => props.mode === 'view')
 
   const pageTitle = computed(() => {
@@ -351,35 +361,6 @@
     game9_a_score: 0,
     game9_b_score: 0
   })
-
-  // 7. 選項數據 (Options Data)
-  const matchTypeOptions = [
-    { label: '單打', value: 'singles' },
-    { label: '雙打', value: 'doubles' }
-  ]
-
-  const matchFormatOptions = [
-    { label: '五局制', value: 'games_5' },
-    { label: '七局制', value: 'games_7' },
-    { label: '九局制', value: 'games_9' }
-  ]
-
-  const courtSurfaceOptions = [
-    { label: '硬地', value: 'hard_court' },
-    { label: '紅土', value: 'clay_court' },
-    { label: '草地', value: 'grass_court' }
-  ]
-
-  const courtEnvironmentOptions = [
-    { label: '室內', value: 'indoor' },
-    { label: '室外', value: 'outdoor' }
-  ]
-
-  const timeSlotOptions = [
-    { label: '早上', value: 'morning' },
-    { label: '下午', value: 'afternoon' },
-    { label: '晚上', value: 'evening' }
-  ]
 
   // 8. 計算屬性 (Computed Properties)
   const teamNames = computed(() => {
@@ -807,32 +788,6 @@
     await loadPlayerOptions()
     await loadMatchData()
   })
-
-  // 🔧 新增載入球員選項的方法
-  const loadPlayerOptions = async () => {
-    try {
-      const response = await apiClient.get('/members?all=true&sort_by=name&sort_order=asc')
-
-      let membersData = response.data
-      if (response.data?.members) {
-        membersData = response.data.members
-      } else if (response.data?.data) {
-        membersData = response.data.data
-      }
-
-      if (!Array.isArray(membersData)) {
-        console.warn('球員數據格式異常:', response.data)
-        membersData = []
-      }
-
-      console.log('載入球員選項:', membersData.length, '位球員')
-      // 這裡需要將球員數據傳遞給 MatchPlayerSelector 組件
-      // 或者通過 provide/inject 機制共享數據
-    } catch (error) {
-      console.error('載入球員選項失敗:', error)
-      message.warning('載入球員選項失敗，可能影響球員選擇功能')
-    }
-  }
 </script>
 
 <style scoped>

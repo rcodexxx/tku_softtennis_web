@@ -61,7 +61,7 @@ apiClient.interceptors.response.use(
       console.warn('⚠️ Access token potentially expired (401)')
 
       try {
-        const { useAuthStore } = await import('@/stores/auth.js')
+        const { useAuthStore } = await import('@/stores/authStore.js')
         const authStore = useAuthStore()
 
         const newAccessToken = await authStore.refreshTokenAction()
@@ -75,7 +75,7 @@ apiClient.interceptors.response.use(
         }
       } catch (storeError) {
         console.error('❌ Store interaction error:', storeError)
-        const { useAuthStore } = await import('@/stores/auth.js')
+        const { useAuthStore } = await import('@/stores/authStore.js')
         const authStore = useAuthStore()
         authStore.logoutAndRedirect()
         return Promise.reject(error)

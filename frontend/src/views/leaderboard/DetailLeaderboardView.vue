@@ -395,7 +395,7 @@
 <script setup>
   import { computed, onMounted, ref, watch } from 'vue'
   import { useRouter } from 'vue-router'
-  import { useAuthStore } from '@/stores/auth.js'
+  import { useAuthStore } from '@/stores/authStore.js'
   import apiClient from '@/services/apiClient.js'
   import {
     NAlert,

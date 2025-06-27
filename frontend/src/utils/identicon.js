@@ -209,16 +209,10 @@ export const getUserIdenticonText = (user, useRealName = true) => {
 
   if (useRealName) {
     // 優先使用真實姓名
-    return user.member_profile?.name ||
-           user.display_name ||
-           user.username ||
-           'User'
+    return user.member_profile?.name || user.display_name || user.username || 'User'
   } else {
     // 優先使用暱稱
-    return user.display_name ||
-           user.member_profile?.name ||
-           user.username ||
-           'User'
+    return user.display_name || user.member_profile?.name || user.username || 'User'
   }
 }
 

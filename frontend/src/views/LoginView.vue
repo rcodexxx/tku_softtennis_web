@@ -96,7 +96,7 @@
 
 <script setup>
   import { onMounted, reactive, ref } from 'vue'
-  import { useAuthStore } from '@/stores/auth.js' // 確保路徑正確
+  import { useAuthStore } from '@/stores/authStore.js' // 確保路徑正確
   import { useRoute, useRouter } from 'vue-router'
   import {
     NAlert,
