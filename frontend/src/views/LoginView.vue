@@ -96,7 +96,7 @@
 
 <script setup>
   import { onMounted, reactive, ref } from 'vue'
-  import { useAuthStore } from '@/stores/authStore' // 確保路徑正確
+  import { useAuthStore } from '@/stores/authStore.js' // 確保路徑正確
   import { useRoute, useRouter } from 'vue-router'
   import {
     NAlert,
@@ -113,7 +113,7 @@
     useMessage
   } from 'naive-ui'
   import { KeyOutline as LockIcon, PhonePortraitOutline as PhoneIcon } from '@vicons/ionicons5'
-  import '@/assets/css/page/login.css'
+  import '@/assets/css/views/login.css'
 
   const authStore = useAuthStore()
   const router = useRouter()
