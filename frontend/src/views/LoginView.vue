@@ -21,12 +21,14 @@
         label-placement="top"
         require-mark-placement="right-hanging"
         class="login-form"
+        autocomplete="on"
         @submit.prevent="handleLogin"
       >
         <n-form-item path="username" label="帳號 (手機號碼)">
           <n-input
             v-model:value="credentials.username"
             placeholder="請輸入手機號碼 (09開頭10位數字)"
+            autocomplete="username"
             size="large"
             clearable
             @keydown.enter.prevent="handleLogin"
@@ -43,6 +45,7 @@
             type="password"
             show-password-on="click"
             placeholder="請輸入密碼"
+            autocomplete="password"
             size="large"
             clearable
             @keydown.enter.prevent="handleLogin"
@@ -51,6 +54,10 @@
               <n-icon :component="LockIcon" />
             </template>
           </n-input>
+        </n-form-item>
+
+        <n-form-item :show-label="false">
+          <n-checkbox v-model:checked="rememberMe">記住帳號密碼</n-checkbox>
         </n-form-item>
 
         <n-alert
@@ -120,6 +127,8 @@
   const route = useRoute()
   const message = useMessage() // Naive UI message API
 
+
+  const rememberMe = ref(false)
   const formRef = ref(null) // Ref for NForm instance
   const credentials = reactive({
     username: '',
@@ -164,7 +173,7 @@
     formRef.value?.validate(async validationErrors => {
       if (!validationErrors) {
         // 表單驗證通過，執行登入
-        const success = await authStore.login(credentials)
+        const success = await authStore.login(credentials, rememberMe.value)
         if (success) {
           const redirectPath = route.query.redirect || '/'
           router.push(redirectPath)

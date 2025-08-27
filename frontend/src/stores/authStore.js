@@ -54,12 +54,17 @@ export const useAuthStore = defineStore('auth', () => {
   /**
    * 登入
    */
-  async function login(credentials) {
+  async function login(credentials, rememberMe= false) {
     status.loggingIn = true
     status.loginError = null
     try {
       const response = await apiClient.post('/auth/login', credentials)
       setAuthData(response.data)
+
+      if (rememberMe) {
+        localStorage.setItem('lastUsername', credentials.username)
+      }
+
       return true
     } catch (error) {
       status.loginError = error.response?.data?.message || '發生未知的登入錯誤。'
