@@ -5,10 +5,9 @@ Flask-Migrate==4.1.0
 Flask-JWT-Extended==4.7.4
 flask-cors==6.0.5
 
-# Database
+# Database（本地 SQLite，不需要額外驅動）
 SQLAlchemy==2.1.6
 alembic==1.20.1
-psycopg2-binary==2.9.13
 
 # Validation / serialization
 marshmallow==4.3.1
@@ -17,5 +16,4 @@ marshmallow==4.3.1
 trueskill==0.4.5
 
 # Runtime
-gunicorn==26.2.0
 python-dotenv==1.2.4

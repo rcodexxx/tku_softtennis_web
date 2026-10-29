@@ -1,3 +1,6 @@
 -r requirements.txt
 pytest==9.2.0
 ruff
+
+# 只有 scripts/pg_to_sqlite.py 從 PostgreSQL 匯入資料時需要
+psycopg2-binary==2.9.13
