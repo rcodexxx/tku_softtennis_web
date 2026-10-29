@@ -1,750 +1,323 @@
 <template>
-  <div class="member-form-page">
-    <!-- 載入狀態 -->
-    <div v-if="isLoading" class="loading-container">
-      <n-spin size="large">
-        <template #description>
-          <n-text depth="2">{{ mode === 'edit' ? '載入成員資料...' : '準備中...' }}</n-text>
-        </template>
-      </n-spin>
-    </div>
+  <div class="member-form">
+    <n-button quaternary class="back" @click="goBack">
+      <template #icon><n-icon :component="ArrowBackOutline" /></template>
+      返回團隊管理
+    </n-button>
+    <PageHeader :eyebrow="isEdit ? 'EDIT MEMBER' : 'NEW MEMBER'" :title="isEdit ? '編輯成員' : '新增成員'" />
 
-    <!-- 錯誤狀態 -->
-    <n-alert
-      v-else-if="fetchError"
-      title="載入失敗"
-      type="error"
-      closable
-      class="error-alert"
-      @close="fetchError = null"
-    >
-      {{ fetchError }}
-    </n-alert>
-
-    <!-- 主要內容 -->
-    <div v-else class="form-container">
-      <!-- 現代化頁面標題 -->
-      <div class="page-header">
-        <div class="header-content">
-          <n-button text class="back-button" :focusable="false" @click="goBack">
-            <template #icon>
-              <n-icon :component="ArrowBackIcon" />
-            </template>
-          </n-button>
-
-          <div class="title-section">
-            <h1 class="page-title">
-              {{ pageTitle }}
-              <!-- 訪客標籤 -->
-              <n-tag v-if="isGuestMember" type="warning" size="small" round class="guest-tag">
-                <template #icon>
-                  <n-icon :component="PersonIcon" />
-                </template>
-                訪客
-              </n-tag>
-            </h1>
-            <p class="page-subtitle">{{ pageSubtitle }}</p>
+    <n-spin :show="loading">
+      <n-form ref="formRef" :model="form" :rules="rules" label-placement="top" class="sections">
+        <section v-if="isEdit && member" class="card identity">
+          <AvatarUploader
+            :member-id="member.id"
+            :name="member.name"
+            :src="member.avatar_url"
+            :size="88"
+            @updated="member = $event"
+          />
+          <div>
+            <h2 class="identity-name">{{ member.name }}</h2>
+            <p class="identity-sub">點擊頭像可以上傳照片（JPG、PNG、WebP，3MB 以內）</p>
           </div>
-        </div>
-      </div>
+        </section>
 
-      <!-- 現代化表單卡片 -->
-      <n-card class="form-card" :bordered="false">
-        <n-form ref="formRef" :model="formData" :rules="formRules" label-placement="top" @submit.prevent="handleSubmit">
-          <!-- 錯誤提示 -->
-          <n-alert
-            v-if="submitMessage"
-            :title="submitStatus === 'success' ? '操作成功' : '操作失敗'"
-            :type="submitStatus"
-            closable
-            class="submit-alert"
-            @close="clearSubmitMessage"
-          >
-            {{ submitMessage }}
-          </n-alert>
+        <section class="card">
+          <h3 class="section-title">登入帳號</h3>
+          <n-grid :cols="2" :x-gap="16" responsive="screen" item-responsive>
+            <n-form-item-gi span="2 m:1" label="手機號碼（帳號）" path="username">
+              <n-input v-model:value="form.username" :disabled="isEdit" placeholder="09 開頭的 10 位數字" />
+            </n-form-item-gi>
+            <n-form-item-gi v-if="!isEdit" span="2 m:1" label="初始密碼" path="password">
+              <n-input
+                v-model:value="form.password"
+                type="password"
+                show-password-on="click"
+                placeholder="留空則與手機號碼相同"
+              />
+            </n-form-item-gi>
+            <n-form-item-gi span="2 m:1" label="顯示暱稱" path="display_name">
+              <n-input v-model:value="form.display_name" placeholder="留空則使用真實姓名" maxlength="50" />
+            </n-form-item-gi>
+            <n-form-item-gi span="2 m:1" label="電子郵件" path="email">
+              <n-input v-model:value="form.email" />
+            </n-form-item-gi>
+            <n-form-item-gi span="2 m:1" label="角色權限" path="role">
+              <n-select v-model:value="form.role" :options="roleOptions" :disabled="!authStore.isAdmin" />
+            </n-form-item-gi>
+            <n-form-item-gi span="2 m:1" label="帳號狀態">
+              <n-switch v-model:value="form.is_active">
+                <template #checked>啟用</template>
+                <template #unchecked>停用</template>
+              </n-switch>
+            </n-form-item-gi>
+          </n-grid>
+        </section>
 
-          <!-- 基本資訊區塊 -->
-          <div class="form-section">
-            <div class="section-header">
-              <n-icon :component="PersonCircleIcon" class="section-icon" />
-              <h3 class="section-title">基本資訊</h3>
-            </div>
+        <section class="card">
+          <h3 class="section-title">球員資料</h3>
+          <n-grid :cols="2" :x-gap="16" responsive="screen" item-responsive>
+            <n-form-item-gi span="2 m:1" label="真實姓名" path="name">
+              <n-input v-model:value="form.name" maxlength="80" />
+            </n-form-item-gi>
+            <n-form-item-gi span="2 m:1" label="學號" path="student_id">
+              <n-input v-model:value="form.student_id" maxlength="20" />
+            </n-form-item-gi>
+            <n-form-item-gi span="2 m:1" label="性別" path="gender">
+              <n-radio-group v-model:value="form.gender">
+                <n-radio-button v-for="option in genderOptions" :key="option.value" :value="option.value">
+                  {{ option.label }}
+                </n-radio-button>
+              </n-radio-group>
+            </n-form-item-gi>
+            <n-form-item-gi span="2 m:1" label="擅長位置" path="position">
+              <n-radio-group v-model:value="form.position">
+                <n-radio-button v-for="option in positionOptions" :key="option.value" :value="option.value">
+                  {{ option.label }}
+                </n-radio-button>
+              </n-radio-group>
+            </n-form-item-gi>
+          </n-grid>
+        </section>
 
-            <n-grid :x-gap="24" :y-gap="16" :cols="12" item-responsive>
-              <n-form-item-gi :span="12" :md="6" label="真實姓名" path="name">
-                <n-input v-model:value="formData.name" placeholder="請輸入成員的真實姓名" size="large" />
-              </n-form-item-gi>
+        <section class="card">
+          <h3 class="section-title">隊籍</h3>
+          <n-grid :cols="2" :x-gap="16" responsive="screen" item-responsive>
+            <n-form-item-gi span="2 m:1" label="所屬組織" path="organization_id">
+              <n-select
+                v-model:value="form.organization_id"
+                :options="organizationOptions"
+                :loading="organizationLoading"
+                clearable
+                filterable
+              />
+            </n-form-item-gi>
+            <n-form-item-gi span="2 m:1" label="入隊日期" path="joined_date_ts">
+              <n-date-picker v-model:value="form.joined_date_ts" type="date" clearable class="full" />
+            </n-form-item-gi>
+            <n-form-item-gi v-if="isEdit" span="2 m:1" label="離隊日期" path="leaved_date_ts">
+              <n-date-picker v-model:value="form.leaved_date_ts" type="date" clearable class="full" />
+            </n-form-item-gi>
+            <n-form-item-gi span="2" label="備註" path="notes">
+              <n-input v-model:value="form.notes" type="textarea" :rows="3" />
+            </n-form-item-gi>
+          </n-grid>
+        </section>
+      </n-form>
+    </n-spin>
 
-              <n-form-item-gi :span="12" :md="6" label="顯示名稱" path="display_name">
-                <n-input
-                  v-model:value="formData.display_name"
-                  placeholder="排行榜顯示名稱（預設同真實姓名）"
-                  size="large"
-                />
-              </n-form-item-gi>
-            </n-grid>
-          </div>
-
-          <!-- 帳號資訊區塊（非訪客才顯示） -->
-          <div v-if="!isGuestMember" class="form-section">
-            <div class="section-header">
-              <n-icon :component="KeyIcon" class="section-icon" />
-              <h3 class="section-title">登入帳號</h3>
-              <n-text depth="3" class="section-description">用於系統登入的帳號資訊</n-text>
-            </div>
-
-            <n-grid :x-gap="24" :y-gap="16" :cols="12" item-responsive>
-              <n-form-item-gi :span="12" :md="6" label="手機號碼" path="username">
-                <n-input v-model:value="formData.username" placeholder="09xxxxxxxx" size="large" />
-              </n-form-item-gi>
-
-              <n-form-item-gi v-if="mode === 'add'" :span="12" :md="6" label="初始密碼" path="password">
-                <n-input
-                  v-model:value="formData.password"
-                  type="password"
-                  placeholder="留空則使用手機號碼"
-                  show-password-on="click"
-                  size="large"
-                />
-              </n-form-item-gi>
-
-              <n-form-item-gi :span="12" :md="6" label="電子郵件" path="email">
-                <n-input v-model:value="formData.email" placeholder="example@example.com（選填）" size="large" />
-              </n-form-item-gi>
-
-              <n-form-item-gi :span="12" :md="6" label="角色權限" path="role">
-                <n-select
-                  v-model:value="formData.role"
-                  :options="filteredRoleOptions"
-                  placeholder="選擇角色"
-                  size="large"
-                />
-              </n-form-item-gi>
-            </n-grid>
-          </div>
-
-          <!-- 球員資料區塊 -->
-          <div class="form-section">
-            <div class="section-header">
-              <h3 class="section-title">球員資料</h3>
-            </div>
-
-            <n-grid :x-gap="24" :y-gap="16" :cols="12" item-responsive>
-              <n-form-item-gi :span="12" :md="6" label="學號" path="student_id">
-                <n-input v-model:value="formData.student_id" placeholder="學生證號碼（選填）" size="large" />
-              </n-form-item-gi>
-
-              <n-form-item-gi :span="12" :md="6" label="性別" path="gender">
-                <n-select
-                  v-model:value="formData.gender"
-                  :options="genderOptions"
-                  placeholder="選擇性別"
-                  clearable
-                  size="large"
-                />
-              </n-form-item-gi>
-
-              <n-form-item-gi :span="12" :md="6" label="慣用位置" path="position">
-                <n-select
-                  v-model:value="formData.position"
-                  :options="positionOptions"
-                  placeholder="前排/後排/皆可"
-                  clearable
-                  size="large"
-                />
-              </n-form-item-gi>
-
-              <n-form-item-gi :span="12" :md="6" label="所屬組織" path="organization_id">
-                <n-select
-                  v-model:value="formData.organization_id"
-                  :options="organizationOptions"
-                  placeholder="選擇組織單位"
-                  clearable
-                  filterable
-                  size="large"
-                />
-              </n-form-item-gi>
-
-              <n-form-item-gi :span="12" :md="6" label="入隊日期" path="joined_date_ts">
-                <n-date-picker
-                  v-model:value="formData.joined_date_ts"
-                  type="date"
-                  clearable
-                  size="large"
-                  style="width: 100%"
-                />
-              </n-form-item-gi>
-
-              <n-form-item-gi v-if="mode === 'edit'" :span="12" :md="6" label="離隊日期" path="leaved_date_ts">
-                <n-date-picker
-                  v-model:value="formData.leaved_date_ts"
-                  type="date"
-                  clearable
-                  size="large"
-                  style="width: 100%"
-                />
-              </n-form-item-gi>
-
-              <n-form-item-gi :span="12" :md="6" label="狀態">
-                <div class="status-toggle">
-                  <n-switch v-model:value="formData.is_active" size="large">
-                    <template #checked>現役</template>
-                    <template #unchecked>非現役</template>
-                  </n-switch>
-                </div>
-              </n-form-item-gi>
-
-              <n-form-item-gi :span="12" label="備註" path="notes">
-                <n-input
-                  v-model:value="formData.notes"
-                  type="textarea"
-                  placeholder="其他備註資訊（選填）"
-                  :autosize="{ minRows: 3, maxRows: 6 }"
-                  size="large"
-                />
-              </n-form-item-gi>
-            </n-grid>
-          </div>
-
-          <!-- 動作按鈕 -->
-          <div class="action-section">
-            <n-space justify="end" :size="16">
-              <n-button size="large" :disabled="submitting" @click="goBack"> 取消 </n-button>
-
-              <n-button type="primary" attr-type="submit" :loading="submitting" size="large" strong>
-                <template #icon>
-                  <n-icon :component="mode === 'add' ? AddIcon : SaveIcon" />
-                </template>
-                {{ submitButtonText }}
-              </n-button>
-            </n-space>
-          </div>
-        </n-form>
-      </n-card>
-    </div>
+    <footer class="footer">
+      <n-button size="large" @click="goBack">取消</n-button>
+      <n-button type="primary" size="large" :loading="saving" @click="save">{{
+        isEdit ? '儲存變更' : '建立成員'
+      }}</n-button>
+    </footer>
   </div>
 </template>
 
 <script setup>
-  import { computed, onMounted, reactive, ref, watch } from 'vue'
-
-  import { useOptions, useAsyncData } from '@/composables'
-  import {
-    NAlert,
-    NButton,
-    NCard,
-    NDatePicker,
-    NForm,
-    NFormItemGi,
-    NGi,
-    NGrid,
-    NIcon,
-    NInput,
-    NInputNumber,
-    NSelect,
-    NSpace,
-    NSpin,
-    NSwitch,
-    NTag,
-    NText,
-    useMessage
-  } from 'naive-ui'
-  import {
-    ArrowBackOutline as ArrowBackIcon,
-    PersonCircleOutline as PersonCircleIcon,
-    PersonOutline as PersonIcon,
-    KeyOutline as KeyIcon,
-    AddOutline as AddIcon,
-    SaveOutline as SaveIcon
-  } from '@vicons/ionicons5'
+  import { computed, onMounted, reactive, ref } from 'vue'
   import { useRouter } from 'vue-router'
+  import { useMessage } from 'naive-ui'
+  import { ArrowBackOutline } from '@vicons/ionicons5'
+  import { membersApi } from '@/api'
+  import AvatarUploader from '@/components/base/AvatarUploader.vue'
+  import PageHeader from '@/components/base/PageHeader.vue'
+  import { useOptions } from '@/composables/useOptions'
+  import { useAuthStore } from '@/stores/authStore'
+  import { dateToTimestamp, formatDate } from '@/utils/format'
 
-  // Props
   const props = defineProps({
-    mode: {
-      type: String,
-      default: 'add',
-      validator: value => ['add', 'edit'].includes(value)
-    },
-    id: {
-      type: [String, Number],
-      default: null
-    }
+    mode: { type: String, required: true, validator: value => ['add', 'edit'].includes(value) },
+    memberId: { type: Number, default: null }
   })
 
-  // Composables
   const router = useRouter()
   const message = useMessage()
+  const authStore = useAuthStore()
   const {
+    roleOptions: allRoles,
     genderOptions,
     positionOptions,
     organizationOptions,
-    loadOrganizationOptions,
-    getRoleOptionsForUser,
-    isValidOption
+    organizationLoading,
+    loadOrganizationOptions
   } = useOptions()
 
-  const { loading: submitting, createMember, updateMember, get: fetchData } = useAsyncData()
-
-  // State
+  const isEdit = computed(() => props.mode === 'edit')
+  const roleOptions = allRoles.filter(option => option.value !== 'guest')
+  const loading = ref(false)
+  const saving = ref(false)
   const formRef = ref(null)
-  const isLoading = ref(false)
-  const fetchError = ref(null)
-  const submitMessage = ref('')
-  const submitStatus = ref('')
-
-  const formData = reactive({
-    id: null,
-    name: '',
-    display_name: '',
+  const member = ref(null)
+  const form = reactive({
     username: '',
     password: '',
+    display_name: '',
     email: '',
     role: 'member',
+    is_active: true,
+    name: '',
     student_id: '',
     gender: null,
     position: null,
     organization_id: null,
-    is_active: true,
     joined_date_ts: null,
     leaved_date_ts: null,
-    notes: '',
-    mu: null,
-    sigma: null
+    notes: ''
   })
 
-  // Computed
-  const pageTitle = computed(() => {
-    if (props.mode === 'edit') {
-      return formData.name ? `編輯 ${formData.name}` : '編輯成員'
-    }
-    return '新增球隊成員'
-  })
-
-  const pageSubtitle = computed(() => {
-    if (props.mode === 'edit') {
-      return '修改成員的基本資料和權限設定'
-    }
-    return '建立新的球隊成員帳號和基本資料'
-  })
-
-  const isGuestMember = computed(() => formData.role === 'guest')
-
-  const filteredRoleOptions = computed(() => getRoleOptionsForUser('non-admin'))
-
-  const submitButtonText = computed(() => {
-    if (submitting.value) {
-      return props.mode === 'add' ? '新增中...' : '儲存中...'
-    }
-    return props.mode === 'add' ? '確認新增' : '確認更新'
-  })
-
-  // Form Rules
-  const formRules = computed(() => {
-    const baseRules = {
-      name: [{ required: true, message: '真實姓名為必填', trigger: ['blur', 'input'] }],
-      email: [{ type: 'email', message: '請輸入有效的電子郵件格式', trigger: ['blur', 'input'] }],
-      student_id: [
-        {
-          required: false,
-          trigger: ['blur', 'input'],
-          validator: (rule, value) => {
-            if (value && !/^\d{7,9}$/.test(value)) return new Error('學號必須是7到9位數字')
-            return true
-          }
-        }
-      ]
-    }
-
-    // 如果不是訪客，則需要手機號碼和角色驗證
-    if (!isGuestMember.value) {
-      baseRules.username = [
-        { required: true, message: '手機號碼為必填', trigger: ['blur', 'input'] },
-        { pattern: /^09\d{8}$/, message: '手機號碼格式不正確', trigger: ['blur', 'input'] }
-      ]
-      baseRules.role = [{ required: true, message: '角色為必填', trigger: ['change'] }]
-
-      if (props.mode === 'add') {
-        baseRules.password = [
-          {
-            required: false,
-            trigger: ['blur', 'input'],
-            validator: (rule, value) => {
-              if (value && value.length < 6) return new Error('密碼長度至少需要6位')
-              return true
-            }
-          }
-        ]
+  const rules = computed(() => ({
+    username: isEdit.value
+      ? []
+      : [
+          { required: true, message: '請輸入手機號碼', trigger: 'blur' },
+          { pattern: /^09\d{8}$/, message: '手機號碼格式不正確', trigger: 'blur' }
+        ],
+    password: [{ min: 6, message: '密碼至少需要 6 個字元', trigger: 'blur' }],
+    email: [{ type: 'email', message: 'Email 格式不正確', trigger: 'blur' }],
+    name: [{ required: true, message: '請輸入真實姓名', trigger: 'blur' }],
+    leaved_date_ts: [
+      {
+        validator: (_, value) => !value || !form.joined_date_ts || value > form.joined_date_ts,
+        message: '離隊日期必須晚於入隊日期',
+        trigger: 'change'
       }
+    ]
+  }))
+
+  const goBack = () => router.push({ name: 'ManagementCenter' })
+
+  const payload = () => {
+    const data = {
+      name: form.name,
+      student_id: form.student_id || null,
+      gender: form.gender,
+      position: form.position,
+      organization_id: form.organization_id,
+      joined_date: formatDate(form.joined_date_ts),
+      notes: form.notes || null,
+      display_name: form.display_name || form.name,
+      email: form.email || null,
+      role: form.role,
+      is_active: form.is_active
     }
-
-    return baseRules
-  })
-
-  // Watch role changes for guest handling
-  watch(
-    () => formData.role,
-    newRole => {
-      if (newRole === 'guest') {
-        // 清空帳號相關欄位
-        formData.username = ''
-        formData.password = ''
-        formData.email = ''
-      }
-    }
-  )
-
-  // Methods
-  const goBack = () => {
-    router.push({ name: 'ManagementCenter' })
+    if (isEdit.value) data.leaved_date = formatDate(form.leaved_date_ts)
+    else Object.assign(data, { username: form.username, password: form.password || null })
+    return data
   }
 
-  const populateForm = data => {
-    if (!data) return
-
-    formData.id = data.id
-    formData.name = data.name || ''
-    formData.student_id = data.student_id || ''
-    formData.gender = isValidOption(genderOptions, data.gender) ? data.gender : null
-    formData.position = isValidOption(positionOptions, data.position) ? data.position : null
-    formData.organization_id = data.organization_id || null
-    formData.mu = data.mu
-    formData.sigma = data.sigma
-    formData.notes = data.notes || ''
-    formData.joined_date_ts = data.joined_date ? new Date(data.joined_date).getTime() : null
-    formData.leaved_date_ts = data.leaved_date ? new Date(data.leaved_date).getTime() : null
-
-    if (data.user) {
-      formData.username = data.user.username || ''
-      formData.email = data.user.email || ''
-      formData.display_name = data.user.display_name || ''
-      formData.role = data.user.role || 'member'
-      formData.is_active = data.user.is_active ?? true
-    } else {
-      formData.username = ''
-      formData.email = ''
-      formData.display_name = ''
-      formData.role = 'guest' // 沒有 user 的話預設為訪客
-      formData.is_active = false
-    }
-  }
-
-  const fetchMemberData = async () => {
-    if (props.mode !== 'edit' || !props.id) return
-
-    isLoading.value = true
-    fetchError.value = null
-
+  const save = async () => {
     try {
-      const response = await fetchData(`/members/${props.id}`, {
-        showLoading: false,
-        showError: false
-      })
-      populateForm(response.data)
-    } catch (err) {
-      fetchError.value = err.response?.data?.message || '無法載入成員資料'
-    } finally {
-      isLoading.value = false
+      await formRef.value?.validate()
+    } catch {
+      return
     }
-  }
-
-  const formatDate = timestamp => {
-    if (!timestamp) return null
-    const date = new Date(timestamp)
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}`
-  }
-
-  const handleSubmit = () => {
-    formRef.value?.validate(async validationErrors => {
-      if (validationErrors) {
-        message.error('請檢查表單，修正錯誤後再提交')
-        return
-      }
-
-      try {
-        if (props.mode === 'add') {
-          await createMember(formData, {
-            onSuccess: () => {
-              message.success('成員新增成功！')
-              goBack()
-            },
-            onError: err => {
-              const errorData = err.response?.data
-              if (errorData?.details) {
-                submitMessage.value =
-                  '新增失敗，請檢查以下欄位：\n' + Object.values(errorData.details).flat().join('\n')
-              } else {
-                submitMessage.value = errorData?.message || '新增成員時發生未預期錯誤'
-              }
-              submitStatus.value = 'error'
-            }
-          })
-        } else {
-          // 編輯模式：包含離隊日期
-          const memberData = {
-            ...formData,
-            leaved_date_ts: formData.leaved_date_ts // 加入離隊日期
-          }
-
-          await updateMember(props.id, memberData, {
-            onSuccess: () => {
-              message.success('成員資料更新成功！')
-              goBack()
-            },
-            onError: err => {
-              submitMessage.value = err.response?.data?.message || '更新失敗，請稍後再試'
-              submitStatus.value = 'error'
-            }
-          })
-        }
-      } catch (error) {
-        console.error('❌ 意外錯誤:', error)
-        submitMessage.value = '發生未預期的錯誤，請稍後再試'
-        submitStatus.value = 'error'
-      }
-    })
-  }
-
-  const clearSubmitMessage = () => {
-    submitMessage.value = ''
-    submitStatus.value = ''
-  }
-
-  const resetForm = () => {
-    Object.assign(formData, {
-      id: null,
-      name: '',
-      display_name: '',
-      username: '',
-      password: '',
-      email: '',
-      role: 'member',
-      student_id: '',
-      gender: null,
-      position: null,
-      organization_id: null,
-      is_active: true,
-      joined_date_ts: null,
-      leaved_date_ts: null,
-      notes: '',
-      mu: null,
-      sigma: null
-    })
-  }
-
-  // Lifecycle
-  onMounted(async () => {
-    isLoading.value = true
-
+    saving.value = true
     try {
-      await loadOrganizationOptions()
-      if (props.mode === 'edit') {
-        await fetchMemberData()
-      }
+      if (isEdit.value) await membersApi.update(props.memberId, payload())
+      else await membersApi.create(payload())
+      message.success(isEdit.value ? '成員資料已更新' : '成員已建立')
+      goBack()
     } catch (error) {
-      console.error('初始化失敗:', error)
+      const data = error.response?.data
+      message.error(data?.details ? Object.values(data.details).flat().join('；') : data?.message || '儲存失敗')
     } finally {
-      isLoading.value = false
+      saving.value = false
+    }
+  }
+
+  onMounted(async () => {
+    loadOrganizationOptions()
+    if (!isEdit.value) return
+    loading.value = true
+    try {
+      member.value = await membersApi.get(props.memberId)
+      const m = member.value
+      Object.assign(form, {
+        username: m.user?.username || '',
+        display_name: m.user?.display_name || '',
+        email: m.user?.email || '',
+        role: m.user?.role || 'member',
+        is_active: m.user?.is_active ?? true,
+        name: m.name,
+        student_id: m.student_id || '',
+        gender: m.gender,
+        position: m.position,
+        organization_id: m.organization_id,
+        joined_date_ts: dateToTimestamp(m.joined_date),
+        leaved_date_ts: dateToTimestamp(m.leaved_date),
+        notes: m.notes || ''
+      })
+    } catch {
+      message.error('找不到這位成員')
+      goBack()
+    } finally {
+      loading.value = false
     }
   })
 </script>
 
 <style scoped>
-  .member-form-page {
-    min-height: 100vh;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    padding: 2rem 1rem;
-  }
-
-  .loading-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 60vh;
-  }
-
-  .error-alert {
-    max-width: 800px;
-    margin: 0 auto 2rem auto;
-  }
-
-  .form-container {
-    max-width: 900px;
+  .member-form {
+    max-width: 880px;
     margin: 0 auto;
   }
-
-  /* 現代化頁面標題 */
-  .page-header {
-    margin-bottom: 2rem;
+  .back {
+    margin-bottom: 8px;
   }
-
-  .header-content {
+  .sections {
     display: flex;
-    align-items: flex-start;
-    gap: 1rem;
+    flex-direction: column;
+    gap: 16px;
   }
-
-  .back-button {
-    padding: 0.75rem;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(10px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-    margin-top: 0.25rem;
+  .card {
+    padding: 20px 22px 4px;
+    border-radius: var(--radius-xl);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
   }
-
-  .back-button:hover {
-    background: rgba(255, 255, 255, 1);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-    transform: translateY(-2px);
-  }
-
-  .title-section {
-    flex: 1;
-  }
-
-  .page-title {
-    font-size: 2.25rem;
-    font-weight: 700;
-    margin: 0 0 0.5rem 0;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  .identity {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 20px;
+    padding-bottom: 20px;
+    background: linear-gradient(120deg, var(--blue-50), #fff);
   }
-
-  .guest-tag {
-    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
-    border: none;
-    color: #8b4513;
-    font-weight: 600;
-  }
-
-  .page-subtitle {
-    font-size: 1.1rem;
-    color: #64748b;
+  .identity-name {
     margin: 0;
-    font-weight: 400;
+    font-size: 22px;
+    color: var(--blue-900);
   }
-
-  /* 現代化表單卡片 */
-  .form-card {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    border-radius: 24px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 2.5rem;
+  .identity-sub {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: var(--color-text-muted);
   }
-
-  /* 表單區塊樣式 */
-  .form-section {
-    margin-bottom: 3rem;
-  }
-
-  .form-section:last-of-type {
-    margin-bottom: 2rem;
-  }
-
-  .section-header {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid rgba(102, 126, 234, 0.1);
-  }
-
-  .section-icon {
-    font-size: 1.5rem;
-    color: #667eea;
-  }
-
   .section-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin: 0;
-    color: #334155;
+    margin: 0 0 14px;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: var(--color-accent);
   }
-
-  .section-description {
-    margin-left: auto;
-    font-size: 0.9rem;
-    font-style: italic;
+  .full {
+    width: 100%;
   }
-
-  /* 狀態切換器 */
-  .status-toggle {
+  .footer {
+    position: sticky;
+    bottom: 0;
     display: flex;
-    align-items: center;
-    height: 40px;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 16px;
+    padding: 12px 0;
+    background: linear-gradient(transparent, var(--color-bg) 30%);
   }
-
-  /* 動作區塊 */
-  .action-section {
-    padding-top: 2rem;
-    border-top: 1px solid rgba(226, 232, 240, 0.8);
-  }
-
-  .submit-alert {
-    margin-bottom: 1.5rem;
-  }
-
-  /* 響應式設計 */
-  @media (max-width: 768px) {
-    .member-form-page {
-      padding: 1rem 0.5rem;
+  @media (max-width: 640px) {
+    .footer {
+      bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
     }
-
-    .form-card {
-      padding: 1.5rem;
-      border-radius: 16px;
-    }
-
-    .page-title {
-      font-size: 1.75rem;
-    }
-
-    .header-content {
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .back-button {
-      align-self: flex-start;
-    }
-  }
-
-  /* Nintendo 風格的按鈕增強 */
-  :deep(.n-button--primary) {
-    background: linear-gradient(135deg, #e60012 0%, #ff6b6b 100%);
-    border: none;
-    box-shadow: 0 4px 12px rgba(230, 0, 18, 0.3);
-    transition: all 0.3s ease;
-  }
-
-  :deep(.n-button--primary:hover) {
-    background: linear-gradient(135deg, #cc0010 0%, #ff5252 100%);
-    box-shadow: 0 6px 20px rgba(230, 0, 18, 0.4);
-    transform: translateY(-2px);
-  }
-
-  /* 表單控件增強 */
-  :deep(.n-input),
-  :deep(.n-select),
-  :deep(.n-date-picker) {
-    border-radius: 12px;
-  }
-
-  :deep(.n-input--focus),
-  :deep(.n-select--focus) {
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
   }
 </style>

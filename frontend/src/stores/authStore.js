@@ -1,261 +1,137 @@
 import { defineStore } from 'pinia'
 import { computed, reactive, ref } from 'vue'
 import router from '@/router'
-import apiClient from '@/services/apiClient'
+import { authApi } from '@/api'
+
+const STORAGE_KEYS = { user: 'user', accessToken: 'accessToken', refreshToken: 'refreshToken' }
+
+function readStoredUser() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEYS.user))
+  } catch {
+    return null
+  }
+}
+
+function describeError(error, fallback) {
+  const data = error.response?.data
+  if (data?.details) return Object.values(data.details).flat().join('；')
+  return data?.message || fallback
+}
 
 export const useAuthStore = defineStore('auth', () => {
-  // --- STATE ---
-  const user = ref(null)
-  const accessToken = ref(null)
-  const refreshToken = ref(null)
+  const user = ref(readStoredUser())
+  const accessToken = ref(localStorage.getItem(STORAGE_KEYS.accessToken))
+  const refreshToken = ref(localStorage.getItem(STORAGE_KEYS.refreshToken))
 
-  const status = reactive({
-    loggingIn: false,
-    loginError: null,
-    registering: false,
-    registerError: null,
-    refreshingToken: false,
-    refreshTokenError: null,
-    fetchingUser: false,
-    fetchUserError: null
-  })
+  const status = reactive({ loggingIn: false, loginError: null, registering: false, registerError: null })
 
-  // --- GETTERS ---
-  const isAuthenticated = computed(() => !!accessToken.value && !!user.value)
-  const userDisplayName = computed(() => user.value?.display_name || '訪客')
+  const isAuthenticated = computed(() => Boolean(accessToken.value && user.value))
+  const userDisplayName = computed(() => user.value?.display_name || user.value?.username || '訪客')
   const userRole = computed(() => user.value?.role)
   const isAdmin = computed(() => userRole.value === 'admin')
   const isCoach = computed(() => userRole.value === 'coach')
   const isCadre = computed(() => userRole.value === 'cadre')
 
-  // --- ACTIONS ---
-
-  /**
-   * 將認證數據儲存到 state 和 localStorage，並設定 axios 標頭。
-   */
-  function setAuthData(data) {
-    if (!data || !data.user || !data.access_token) {
-      console.error('setAuthData 失敗：傳入的數據無效。')
-      return
-    }
-    user.value = data.user
-    accessToken.value = data.access_token
-    if (data.refresh_token) {
-      refreshToken.value = data.refresh_token
-    }
-    localStorage.setItem('user', JSON.stringify(user.value))
-    localStorage.setItem('accessToken', accessToken.value)
-    if (refreshToken.value) {
-      localStorage.setItem('refreshToken', refreshToken.value)
-    }
-    apiClient.defaults.headers.common['Authorization'] = `Bearer ${accessToken.value}`
+  function setUser(value) {
+    user.value = value
+    localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(value))
   }
 
-  /**
-   * 登入
-   */
-  async function login(credentials, rememberMe = false) {
+  function setSession({ user: newUser, access_token: access, refresh_token: refresh }) {
+    setUser(newUser)
+    accessToken.value = access
+    localStorage.setItem(STORAGE_KEYS.accessToken, access)
+    if (refresh) {
+      refreshToken.value = refresh
+      localStorage.setItem(STORAGE_KEYS.refreshToken, refresh)
+    }
+  }
+
+  function clearSession() {
+    user.value = null
+    accessToken.value = null
+    refreshToken.value = null
+    Object.values(STORAGE_KEYS).forEach(key => localStorage.removeItem(key))
+  }
+
+  async function login(credentials) {
     status.loggingIn = true
     status.loginError = null
     try {
-      const response = await apiClient.post('/auth/login', credentials)
-      setAuthData(response.data)
-
-      if (rememberMe) {
-        localStorage.setItem('lastUsername', credentials.username)
-      }
-
+      setSession(await authApi.login(credentials))
       return true
     } catch (error) {
-      status.loginError = error.response?.data?.message || '發生未知的登入錯誤。'
+      status.loginError = describeError(error, '登入失敗，請稍後再試。')
       return false
     } finally {
       status.loggingIn = false
     }
   }
 
-  /**
-   * 註冊
-   */
-  async function register(payload) {
+  /** 註冊後直接登入。 */
+  async function register(phoneNumber) {
     status.registering = true
     status.registerError = null
     try {
-      const response = await apiClient.post('/auth/register', payload)
-      return { success: true, data: response.data }
+      setSession(await authApi.register(phoneNumber))
+      return true
     } catch (error) {
-      if (error.response?.data?.details) {
-        const details = error.response.data.details
-        const errorMessages = Object.keys(details)
-          .map(key => `${key}: ${details[key].join(', ')}`)
-          .join('; ')
-        status.registerError = `${error.response.data.message || '輸入數據有誤'}: ${errorMessages}`
-      } else {
-        status.registerError = error.response?.data?.message || '註冊失敗，請稍後再試。'
-      }
-      return { success: false, error: status.registerError }
+      status.registerError = describeError(error, '註冊失敗，請稍後再試。')
+      return false
     } finally {
       status.registering = false
     }
   }
 
-  /**
-   * 獲取當前使用者資料
-   */
   async function fetchCurrentUser() {
-    if (!accessToken.value) {
-      return null
-    }
-
-    status.fetchingUser = true
-    status.fetchUserError = null
-
+    if (!accessToken.value) return null
     try {
-      const response = await apiClient.get('/auth/me') // 假設有這個端點
-      if (response.data) {
-        user.value = response.data
-        localStorage.setItem('user', JSON.stringify(user.value))
-      }
+      setUser(await authApi.me())
       return user.value
-    } catch (error) {
-      status.fetchUserError = error.response?.data?.message || '無法獲取使用者資料'
-      // 如果是 401 錯誤，可能需要刷新 token 或登出
-      if (error.response?.status === 401) {
-        const newToken = await refreshTokenAction()
-        if (newToken) {
-          // 重試一次
-          try {
-            const retryResponse = await apiClient.get('/auth/me')
-            user.value = retryResponse.data
-            localStorage.setItem('user', JSON.stringify(user.value))
-            return user.value
-          } catch (_retryError) {
-            logoutAndRedirect()
-          }
-        }
-      }
+    } catch {
       return null
-    } finally {
-      status.fetchingUser = false
     }
   }
 
-  /**
-   * 清除本地認證資料
-   */
-  function clearAuthDataLocally() {
-    user.value = null
-    accessToken.value = null
-    refreshToken.value = null
-    localStorage.removeItem('user')
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('refreshToken')
-    delete apiClient.defaults.headers.common['Authorization']
-  }
-
-  /**
-   * 登出並重定向
-   */
-  function logoutAndRedirect() {
-    clearAuthDataLocally()
-    router.push({ name: 'Login', query: { loggedOut: 'true' } })
-  }
-
-  /**
-   * 刷新 Token
-   */
+  /** 換發 access token；失敗時登出。由 apiClient 在收到 401 時呼叫。 */
   async function refreshTokenAction() {
     if (!refreshToken.value) {
       logoutAndRedirect()
       return null
     }
-
-    status.refreshingToken = true
-    status.refreshTokenError = null
-
     try {
-      const response = await apiClient.post('/auth/refresh', null, {
-        headers: { Authorization: `Bearer ${refreshToken.value}` }
-      })
-      const newAccessToken = response.data.access_token
-      accessToken.value = newAccessToken
-      localStorage.setItem('accessToken', newAccessToken)
-      apiClient.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`
-
-      // 如果後端也返回新的 refresh token
-      if (response.data.refresh_token) {
-        refreshToken.value = response.data.refresh_token
-        localStorage.setItem('refreshToken', refreshToken.value)
-      }
-
-      return newAccessToken
-    } catch (_error) {
-      status.refreshTokenError = '您的登入已過期，請重新登入。'
+      const { access_token: access } = await authApi.refresh(refreshToken.value)
+      accessToken.value = access
+      localStorage.setItem(STORAGE_KEYS.accessToken, access)
+      return access
+    } catch {
       logoutAndRedirect()
       return null
-    } finally {
-      status.refreshingToken = false
     }
   }
 
-  /**
-   * 初始化（從 localStorage 恢復狀態）
-   */
-  function init() {
-    const storedUser = localStorage.getItem('user')
-    const storedToken = localStorage.getItem('accessToken')
-    const storedRefreshToken = localStorage.getItem('refreshToken')
-
-    if (storedUser && storedToken) {
-      try {
-        user.value = JSON.parse(storedUser)
-        accessToken.value = storedToken
-        refreshToken.value = storedRefreshToken
-        apiClient.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`
-      } catch (error) {
-        console.error('無法解析儲存的使用者資料:', error)
-        clearAuthDataLocally()
-      }
-    }
+  function logoutAndRedirect() {
+    clearSession()
+    router.push({ name: 'Login', query: { loggedOut: 'true' } })
   }
-
-  // 初始化
-  init()
 
   return {
-    // State
     user,
     accessToken,
-    refreshToken,
     status,
-
-    // Getters
     isAuthenticated,
     userDisplayName,
     userRole,
     isAdmin,
     isCoach,
     isCadre,
-
-    // Actions
+    setUser,
     login,
     register,
     fetchCurrentUser,
-    logoutAndRedirect,
     refreshTokenAction,
-    setAuthData,
-    clearAuthDataLocally,
-    init,
-
-    // Error clearing methods
-    clearLoginError: () => {
-      status.loginError = null
-    },
-    clearRegisterError: () => {
-      status.registerError = null
-    },
-    clearFetchUserError: () => {
-      status.fetchUserError = null
-    }
+    logoutAndRedirect,
+    clearLoginError: () => (status.loginError = null)
   }
 })

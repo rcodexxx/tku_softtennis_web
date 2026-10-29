@@ -64,7 +64,7 @@
           <!-- 球員選擇 -->
           <div v-if="currentStep === 'players'" class="setup-step">
             <div class="step-title">選擇參賽球員</div>
-            <MatchPlayerSelector v-model="matchForm" class="referee-player-selector" />
+            <TeamsPicker v-model="matchForm" class="referee-player-selector" />
           </div>
 
           <!-- 發球權選擇 -->
@@ -254,7 +254,7 @@
   import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
   import { useRouter } from 'vue-router'
   import { useMessage } from 'naive-ui'
-  import MatchPlayerSelector from '@/components/match/MatchPlayerSelector.vue'
+  import TeamsPicker from '@/components/match/TeamsPicker.vue'
   import apiClient from '@/services/apiClient'
 
   const router = useRouter()
@@ -461,7 +461,7 @@
     }
   }
 
-  const undoLastScore = team => {
+  const undoLastScore = _team => {
     const lastScore = scoreHistory.value.pop()
     if (lastScore) {
       aGames.value = lastScore.aGames
@@ -471,7 +471,7 @@
     }
   }
 
-  const canUndo = team => {
+  const canUndo = _team => {
     return scoreHistory.value.length > 0
   }
 

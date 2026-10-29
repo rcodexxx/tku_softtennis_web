@@ -1,191 +1,106 @@
 <template>
-  <div class="login-page-naive">
-    <n-card :bordered="false" class="login-card">
-      <n-h2 align="center" class="card-title-naive">登入系統</n-h2>
+  <AuthLayout title="歡迎回來" subtitle="登入後即可記錄比賽、查看個人數據。">
+    <n-alert v-if="notice" type="info" :show-icon="false" class="notice">{{ notice }}</n-alert>
+    <n-alert v-if="authStore.status.loginError" type="error" class="notice">
+      {{ authStore.status.loginError }}
+    </n-alert>
 
-      <n-alert
-        v-if="loginRouteMessage"
-        title="提示"
-        type="info"
-        closable
-        class="mb-4 login-alert"
-        @close="loginRouteMessage = ''"
-      >
-        {{ loginRouteMessage }}
-      </n-alert>
-
-      <n-form
-        ref="formRef"
-        :model="credentials"
-        :rules="formRules"
-        label-placement="top"
-        require-mark-placement="right-hanging"
-        class="login-form"
-        autocomplete="on"
-        @submit.prevent="handleLogin"
-      >
-        <n-form-item path="username" label="帳號 (手機號碼)">
-          <n-input
-            v-model:value="credentials.username"
-            placeholder="請輸入手機號碼 (09開頭10位數字)"
-            autocomplete="username"
-            size="large"
-            clearable
-            @keydown.enter.prevent="handleLogin"
-          >
-            <template #prefix>
-              <n-icon :component="PhoneIcon" />
-            </template>
-          </n-input>
-        </n-form-item>
-
-        <n-form-item path="password" label="密碼">
-          <n-input
-            v-model:value="credentials.password"
-            type="password"
-            show-password-on="click"
-            placeholder="請輸入密碼"
-            autocomplete="password"
-            size="large"
-            clearable
-            @keydown.enter.prevent="handleLogin"
-          >
-            <template #prefix>
-              <n-icon :component="LockIcon" />
-            </template>
-          </n-input>
-        </n-form-item>
-
-        <n-form-item :show-label="false">
-          <n-checkbox v-model:checked="rememberMe">記住帳號密碼</n-checkbox>
-        </n-form-item>
-
-        <n-alert
-          v-if="authStore.status.loginError"
-          title="登入失敗"
-          type="error"
-          closable
-          class="mb-3 login-alert"
-          @close="authStore.status.loginError = null"
+    <n-form ref="formRef" :model="credentials" :rules="rules" size="large" @submit.prevent="handleLogin">
+      <n-form-item path="username" label="帳號">
+        <n-input
+          v-model:value="credentials.username"
+          placeholder="手機號碼或 Email"
+          :input-props="{ autocomplete: 'username' }"
         >
-          {{ authStore.status.loginError }}
-        </n-alert>
+          <template #prefix><n-icon :component="PersonOutline" /></template>
+        </n-input>
+      </n-form-item>
+      <n-form-item path="password" label="密碼">
+        <n-input
+          v-model:value="credentials.password"
+          type="password"
+          show-password-on="click"
+          placeholder="請輸入密碼"
+          :input-props="{ autocomplete: 'current-password' }"
+          @keyup.enter="handleLogin"
+        >
+          <template #prefix><n-icon :component="LockClosedOutline" /></template>
+        </n-input>
+      </n-form-item>
+      <n-checkbox v-model:checked="rememberMe" class="remember">記住帳號</n-checkbox>
+      <n-button type="primary" block size="large" attr-type="submit" :loading="authStore.status.loggingIn">
+        登入
+      </n-button>
+    </n-form>
 
-        <n-form-item :show-label="false" class="submit-button-form-item">
-          <n-button
-            type="primary"
-            attr-type="submit"
-            block
-            strong
-            size="large"
-            :loading="authStore.status.loggingIn"
-            :disabled="authStore.status.loggingIn"
-            class="login-submit-button"
-          >
-            {{ authStore.status.loggingIn ? '登入中...' : '登入' }}
-          </n-button>
-        </n-form-item>
-      </n-form>
-
-      <n-divider class="login-divider" />
-
-      <n-space vertical align="center" class="mt-3 additional-actions">
-        <n-text>
-          還沒有帳號？
-          <router-link v-slot="{ navigate }" :to="{ name: 'Register' }">
-            <n-button text type="primary" @click="navigate">立即快速註冊</n-button>
-          </router-link>
-        </n-text>
-      </n-space>
-    </n-card>
-  </div>
+    <p class="switch">
+      還沒有帳號？
+      <router-link :to="{ name: 'Register' }">用手機號碼快速註冊</router-link>
+    </p>
+  </AuthLayout>
 </template>
 
 <script setup>
   import { onMounted, reactive, ref } from 'vue'
-  import { useAuthStore } from '@/stores/authStore.js' // 確保路徑正確
   import { useRoute, useRouter } from 'vue-router'
-  import {
-    NAlert,
-    NButton,
-    NCard,
-    NDivider,
-    NForm,
-    NFormItem,
-    NH2,
-    NIcon,
-    NInput,
-    NSpace,
-    NText,
-    useMessage
-  } from 'naive-ui'
-  import { KeyOutline as LockIcon, PhonePortraitOutline as PhoneIcon } from '@vicons/ionicons5'
-  import '@/assets/css/views/login.css'
+  import { LockClosedOutline, PersonOutline } from '@vicons/ionicons5'
+  import AuthLayout from '@/components/auth/AuthLayout.vue'
+  import { useAuthStore } from '@/stores/authStore'
+
+  const LAST_USERNAME_KEY = 'lastUsername'
 
   const authStore = useAuthStore()
-  const router = useRouter()
   const route = useRoute()
-  const message = useMessage() // Naive UI message API
+  const router = useRouter()
 
-
+  const formRef = ref(null)
   const rememberMe = ref(false)
-  const formRef = ref(null) // Ref for NForm instance
-  const credentials = reactive({
-    username: '',
-    password: ''
-  })
+  const notice = ref('')
+  const credentials = reactive({ username: '', password: '' })
 
-  const loginRouteMessage = ref('')
-
-  // Naive UI 表單驗證規則
-  const formRules = {
-    username: [
-      { required: true, message: '手機號碼為必填', trigger: ['input', 'blur'] },
-      {
-        pattern: /^09\d{8}$/,
-        message: '手機號碼格式不正確 (應為09開頭10位數字)',
-        trigger: ['input', 'blur']
-      }
-    ],
-    password: [
-      { required: true, message: '密碼為必填', trigger: ['input', 'blur'] },
-      { min: 6, message: '密碼長度至少需要6位', trigger: ['input', 'blur'] } // 可選的最小長度驗證
-    ]
+  const rules = {
+    username: [{ required: true, message: '請輸入帳號', trigger: ['input', 'blur'] }],
+    password: [{ required: true, message: '請輸入密碼', trigger: ['input', 'blur'] }]
   }
 
   onMounted(() => {
-    authStore.status.loginError = null
-    if (route.query.loggedOut === 'true') {
-      loginRouteMessage.value = '您已成功登出。'
-      router.replace({ query: {} })
-    } else if (route.query.sessionExpired === 'true') {
-      loginRouteMessage.value = '您的登入已過期或無效，請重新登入。'
-      router.replace({ query: {} })
-    } else if (route.query.unauthorized === 'true' || route.query.redirect) {
-      loginRouteMessage.value = '您需要登入才能訪問該頁面。'
-      const query = { ...route.query }
-      delete query.unauthorized
-      router.replace({ query })
+    authStore.clearLoginError()
+    const lastUsername = localStorage.getItem(LAST_USERNAME_KEY)
+    if (lastUsername) {
+      credentials.username = lastUsername
+      rememberMe.value = true
     }
+    if (route.query.loggedOut === 'true') notice.value = '您已成功登出。'
+    else if (route.query.redirect) notice.value = '請先登入才能使用這個頁面。'
   })
 
-  const handleLogin = () => {
-    formRef.value?.validate(async validationErrors => {
-      if (!validationErrors) {
-        // 表單驗證通過，執行登入
-        const success = await authStore.login(credentials, rememberMe.value)
-        if (success) {
-          const redirectPath = route.query.redirect || '/'
-          router.push(redirectPath)
-        }
-        // 失敗的錯誤訊息由 authStore.status.loginError 在模板中顯示
-      } else {
-        // Naive UI 會自動在表單項旁邊顯示錯誤，這裡可以選擇性地用 message API 提示
-        message.error('請修正表單中的錯誤。')
-        console.log('Login form validation errors:', validationErrors)
-      }
-    })
+  const handleLogin = async () => {
+    try {
+      await formRef.value?.validate()
+    } catch {
+      return
+    }
+    if (!(await authStore.login(credentials))) return
+    if (rememberMe.value) localStorage.setItem(LAST_USERNAME_KEY, credentials.username)
+    else localStorage.removeItem(LAST_USERNAME_KEY)
+    router.push(route.query.redirect || { name: 'Leaderboard' })
   }
 </script>
 
-<style scoped></style>
+<style scoped>
+  .notice {
+    margin-bottom: 18px;
+  }
+  .remember {
+    margin: -4px 0 20px;
+  }
+  .switch {
+    margin-top: 28px;
+    text-align: center;
+    color: var(--color-text-muted);
+  }
+  .switch a {
+    color: var(--color-primary);
+    font-weight: 700;
+  }
+</style>
