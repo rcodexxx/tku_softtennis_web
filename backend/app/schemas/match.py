@@ -11,7 +11,7 @@ from ..enums import (
     MatchTypeEnum,
 )
 from ..models.match_record import MAX_GAMES
-from .common import BaseSchema, EnumField, InputSchema, PageQuerySchema
+from .common import BaseSchema, EnumField, InputSchema, IntList, PageQuerySchema
 from .member import PlayerBriefSchema
 
 
@@ -115,3 +115,7 @@ class MatchQuerySchema(PageQuerySchema):
     match_type = EnumField(MatchTypeEnum)
     match_format = EnumField(MatchFormatEnum)
     player_id = fields.Int(validate=validate.Range(min=1))
+    # 比賽必須包含所有指定球員
+    player_ids = IntList()
+    # 以第一位指定球員的角度篩選勝負
+    result = fields.Str(validate=validate.OneOf(["win", "loss"]))

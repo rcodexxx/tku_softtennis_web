@@ -21,6 +21,7 @@ def create_app(config_name: str | None = None) -> Flask:
         if not app.config.get(key):
             raise RuntimeError(f"{key} is not configured.")
 
+    app.config["UPLOAD_FOLDER"] = app.config["UPLOAD_FOLDER"] or os.path.join(app.instance_path, "uploads")
     configure_logging(app)
 
     db.init_app(app)

@@ -10,6 +10,9 @@ from ..domain import rating as rating_domain
 from ..enums import MatchOutcomeEnum
 from ..extensions import db
 from ..models import Match, MatchRecord, Member, Organization
+from . import rating_service
+
+RECENT_FORM_SIZE = 5
 
 
 @dataclass
@@ -17,6 +20,9 @@ class MatchStats:
     wins: int = 0
     losses: int = 0
     last_match_date: date | None = None
+    # 最近的比賽結果，最新的在前：True 為勝
+    recent_results: list[bool] = field(default_factory=list)
+    score_change: float | None = None
 
     @property
     def total_matches(self) -> int:
@@ -33,6 +39,8 @@ class MatchStats:
             "total_matches": self.total_matches,
             "win_rate": self.win_rate,
             "last_match_date": self.last_match_date.isoformat() if self.last_match_date else None,
+            "recent_form": ["W" if won else "L" for won in self.recent_results],
+            "score_change": round(self.score_change, 2) if self.score_change is not None else None,
         }
 
 
@@ -44,7 +52,7 @@ class LeaderboardEntry:
 
 
 def match_stats() -> dict[int, MatchStats]:
-    """一次查詢計算所有球員的勝敗場次。"""
+    """一次查詢計算所有球員的勝敗場次、近況與最近一場的分數變化。"""
     rows = db.session.execute(
         select(
             MatchRecord.player1_id,
@@ -56,6 +64,7 @@ def match_stats() -> dict[int, MatchStats]:
         )
         .join(Match, MatchRecord.match_id == Match.id)
         .where(MatchRecord.side_a_outcome.in_([MatchOutcomeEnum.WIN, MatchOutcomeEnum.LOSS]))
+        .order_by(Match.match_date.desc(), MatchRecord.id.desc())
     )
     stats: dict[int, MatchStats] = {}
     for p1, p2, p3, p4, outcome, match_date in rows:
@@ -68,8 +77,12 @@ def match_stats() -> dict[int, MatchStats]:
                 s.wins += 1
             else:
                 s.losses += 1
+            if len(s.recent_results) < RECENT_FORM_SIZE:
+                s.recent_results.append(won)
             if s.last_match_date is None or match_date > s.last_match_date:
                 s.last_match_date = match_date
+    for pid, change in rating_service.last_match_score_changes().items():
+        stats.setdefault(pid, MatchStats()).score_change = change
     return stats
 
 

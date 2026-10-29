@@ -56,6 +56,7 @@ class Member(db.Model):
     sigma: Mapped[float] = mapped_column(Float, default=DEFAULT_SIGMA, comment="TrueSkill σ 值")
 
     notes: Mapped[str | None] = mapped_column(Text, comment="隊員備註")
+    avatar_filename: Mapped[str | None] = mapped_column(String(255), comment="頭像檔名")
 
     organization_id: Mapped[int | None] = mapped_column(
         ForeignKey("organizations.id", name="fk_members_organization_id"), index=True, comment="所屬組織ID"

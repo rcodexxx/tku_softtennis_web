@@ -224,3 +224,25 @@ def test_backdated_match_triggers_full_recalculation(client, db, admin_headers, 
 
     for member_id, (mu, sigma) in in_order.items():
         assert out_of_order[member_id] == (pytest.approx(mu), pytest.approx(sigma))
+
+
+def test_filter_by_multiple_players_and_result(client, admin_headers, players):
+    p1, p2, p3, p4 = players
+    p5 = make_user("0920000005", name="戊").member_profile
+    create_record(client, admin_headers, players)  # 甲乙 勝 丙丁
+    create_record(client, admin_headers, (p1, p5, p3, p4), a_games=1, b_games=4)  # 甲戊 敗
+    create_record(client, admin_headers, (p3, p4, p1, p2), a_games=4, b_games=1)  # 丙丁 勝 甲乙
+
+    def ids(**params):
+        return sorted(r["id"] for r in data(client.get("/api/match-records", query_string=params)))
+
+    all_ids = ids()
+    assert len(ids(player_ids=f"{p1.id},{p2.id}")) == 2
+    assert len(ids(player_ids=f"{p1.id},{p5.id}")) == 1
+    assert ids(player_ids=str(p1.id), result="win") == [all_ids[0]]
+    assert ids(player_ids=str(p1.id), result="loss") == all_ids[1:]
+    assert len(ids(player_ids=str(p3.id), result="win")) == 2
+
+
+def test_filter_rejects_bad_player_ids(client):
+    error(client.get("/api/match-records", query_string={"player_ids": "1,abc"}), 400)

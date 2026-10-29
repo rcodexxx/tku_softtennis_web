@@ -25,6 +25,10 @@ class Config:
         os.environ.get("CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173")
     )
 
+    # 未設定時放在 backend/instance/uploads
+    UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER")
+    MAX_CONTENT_LENGTH = 5 * 1024 * 1024
+
     LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
     DEBUG = False
     TESTING = False

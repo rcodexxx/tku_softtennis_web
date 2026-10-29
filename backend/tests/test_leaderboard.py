@@ -67,3 +67,13 @@ def test_compare_players(client, admin_headers, players):
 
 def test_compare_same_player_rejected(client, players):
     error(client.get(f"/api/leaderboard/compare/{players[0].id}/{players[0].id}"), 400)
+
+
+def test_leaderboard_recent_form_and_score_change(client, admin_headers, players):
+    create_record(client, admin_headers, players, match_date="2025-03-01")
+    create_record(client, admin_headers, players, match_date="2025-03-02", a_games=1, b_games=4)
+    by_name = {r["name"]: r for r in data(client.get("/api/leaderboard"))}
+    assert by_name["甲"]["recent_form"] == ["L", "W"]
+    assert by_name["丙"]["recent_form"] == ["W", "L"]
+    assert by_name["甲"]["score_change"] < 0 < by_name["丙"]["score_change"]
+    assert by_name["管理員"]["recent_form"] == [] and by_name["管理員"]["score_change"] is None

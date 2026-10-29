@@ -35,7 +35,7 @@ def my_matches(user: User, page: int, per_page: int) -> Page:
     )
 
 
-def perspective(record: MatchRecord, member_id: int) -> dict | None:
+def perspective(record: MatchRecord, member_id: int, score_change: float | None = None) -> dict | None:
     """從某位球員的角度描述比賽結果。"""
     if member_id in record.side_a_ids:
         side, my_games, opponent_games = "A", record.a_games, record.b_games
@@ -51,4 +51,5 @@ def perspective(record: MatchRecord, member_id: int) -> dict | None:
         "my_games": my_games,
         "opponent_games": opponent_games,
         "opponent_names": [p.display_name for p in opponents if p],
+        "score_change": round(score_change, 2) if score_change is not None else None,
     }

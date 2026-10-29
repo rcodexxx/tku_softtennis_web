@@ -7,6 +7,21 @@ def EnumField(enum_cls, **kwargs):  # noqa: N802
     return fields.Enum(enum_cls, by_value=True, **kwargs)
 
 
+class IntList(fields.Field):
+    """查詢參數用的逗號分隔整數清單，例如 player_ids=3,8。"""
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        try:
+            items = [int(part) for part in str(value).split(",") if part.strip()]
+        except ValueError as error:
+            raise self.make_error("invalid") from error
+        if any(item < 1 for item in items):
+            raise self.make_error("invalid")
+        return items
+
+    default_error_messages = {"invalid": "必須是以逗號分隔的正整數。"}
+
+
 class BaseSchema(Schema):
     class Meta:
         unknown = EXCLUDE

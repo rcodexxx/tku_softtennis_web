@@ -16,8 +16,9 @@ ADMIN_PASSWORD = "admin-password"
 
 
 @pytest.fixture()
-def app():
+def app(tmp_path):
     app = create_app("testing")
+    app.config["UPLOAD_FOLDER"] = str(tmp_path / "uploads")
     with app.app_context():
         _db.create_all()
         yield app

@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import and_, not_, or_, select
 from sqlalchemy.orm import joinedload
 
 from ..core.db import get_or_404
@@ -48,8 +48,11 @@ def list_records(params: dict) -> Page:
         stmt = stmt.where(Match.match_type == params["match_type"])
     if params.get("match_format"):
         stmt = stmt.where(Match.match_format == params["match_format"])
-    if params.get("player_id"):
-        stmt = stmt.where(involves_player(params["player_id"]))
+    player_ids = params.get("player_ids") or ([params["player_id"]] if params.get("player_id") else [])
+    for player_id in player_ids:
+        stmt = stmt.where(involves_player(player_id))
+    if params.get("result") and player_ids:
+        stmt = stmt.where(_player_result_clause(player_ids[0], won=params["result"] == "win"))
 
     column = {
         "match_date": Match.match_date,
@@ -59,6 +62,13 @@ def list_records(params: dict) -> Page:
     descending = params.get("sort_order", "desc") == "desc"
     stmt = stmt.order_by(column.desc() if descending else column.asc(), MatchRecord.id.desc())
     return paginate(stmt, params.get("page", 1), params.get("per_page", 20))
+
+
+def _player_result_clause(player_id: int, won: bool):
+    on_side_a = or_(MatchRecord.player1_id == player_id, MatchRecord.player2_id == player_id)
+    side_a_won = MatchRecord.side_a_outcome == MatchOutcomeEnum.WIN
+    player_won = or_(and_(on_side_a, side_a_won), and_(not_(on_side_a), not_(side_a_won)))
+    return player_won if won else not_(player_won)
 
 
 def get_record(record_id: int) -> MatchRecord:

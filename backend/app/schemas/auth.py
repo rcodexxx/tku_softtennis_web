@@ -1,5 +1,6 @@
 from marshmallow import fields, validate
 
+from ..services.avatar_service import avatar_url
 from .common import PHONE_REGEX, BaseSchema, InputSchema
 
 PASSWORD_MIN_LENGTH = 6
@@ -31,6 +32,9 @@ class AuthUserSchema(BaseSchema):
     role = fields.Function(lambda user: user.role.value)
     is_active = fields.Bool()
     member_id = fields.Function(lambda user: user.member_profile.id if user.member_profile else None)
+    avatar_url = fields.Function(
+        lambda user: avatar_url(user.member_profile.avatar_filename) if user.member_profile else None
+    )
     created_at = fields.DateTime()
 
 

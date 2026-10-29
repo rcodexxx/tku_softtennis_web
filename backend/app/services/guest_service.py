@@ -9,6 +9,7 @@ from ..core.errors import ConflictError, NotFoundError, PermissionDeniedError
 from ..enums import GuestRoleEnum
 from ..extensions import db
 from ..models import Member, Organization, User
+from . import avatar_service
 from ._queries import has_match_records
 
 # API 欄位 -> Member 欄位
@@ -81,6 +82,7 @@ def delete_guest(user: User, guest_id: int) -> None:
         raise ConflictError("此訪客已參與比賽，無法刪除。")
     db.session.delete(guest)
     db.session.commit()
+    avatar_service.delete_file(guest.avatar_filename)
 
 
 def _get_owned_guest(user: User, guest_id: int) -> Member:

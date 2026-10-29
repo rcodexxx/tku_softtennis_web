@@ -8,6 +8,7 @@ from ..domain.rating import CONSERVATIVE_K
 from ..enums import UserRoleEnum
 from ..extensions import db
 from ..models import Member, Organization, Racket, User
+from . import avatar_service
 from ._queries import has_match_records
 
 USER_FIELDS = ("email", "display_name", "role", "is_active")
@@ -107,6 +108,7 @@ def delete_member(member_id: int) -> None:
     else:
         db.session.delete(member)
     db.session.commit()
+    avatar_service.delete_file(member.avatar_filename)
 
 
 def _ensure_can_assign_role(actor: User, role: UserRoleEnum, current: UserRoleEnum) -> None:

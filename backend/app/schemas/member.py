@@ -6,9 +6,16 @@ from .auth import PASSWORD_MIN_LENGTH
 from .common import PHONE_REGEX, BaseSchema, EnumField, InputSchema, OrganizationBriefSchema, UserBriefSchema
 
 
+def _avatar_url(member) -> str | None:
+    from ..services.avatar_service import avatar_url
+
+    return avatar_url(member.avatar_filename)
+
+
 class PlayerBriefSchema(BaseSchema):
     id = fields.Int()
     name = fields.Str()
+    avatar_url = fields.Function(_avatar_url)
     display_name = fields.Str()
     is_guest = fields.Bool()
 
@@ -16,6 +23,7 @@ class PlayerBriefSchema(BaseSchema):
 class MemberSchema(BaseSchema):
     id = fields.Int()
     name = fields.Str()
+    avatar_url = fields.Function(_avatar_url)
     display_name = fields.Str()
     short_display_name = fields.Str()
     student_id = fields.Str(allow_none=True)

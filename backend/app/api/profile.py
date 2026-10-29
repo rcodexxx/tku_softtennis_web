@@ -6,7 +6,7 @@ from ..core.responses import ok
 from ..schemas.common import PageQuerySchema
 from ..schemas.match import MatchRecordSchema
 from ..schemas.profile import ProfileSchema, ProfileUpdateSchema
-from ..services import profile_service
+from ..services import profile_service, rating_service
 
 bp = Blueprint("profile", __name__, url_prefix="/profile")
 
@@ -35,8 +35,12 @@ def my_matches():
     user = get_current_user()
     page = profile_service.my_matches(user, params["page"], params["per_page"])
     member_id = user.member_profile.id
+    changes = rating_service.score_changes_for(member_id)
     items = [
-        {**record_schema.dump(record), "perspective": profile_service.perspective(record, member_id)}
+        {
+            **record_schema.dump(record),
+            "perspective": profile_service.perspective(record, member_id, changes.get(record.id)),
+        }
         for record in page.items
     ]
     return ok(items, meta=page.meta)
