@@ -261,7 +261,7 @@
       // 並發請求獲取統計數據
       const [membersResponse, organizationsResponse] = await Promise.all([
         // 獲取成員數據
-        apiClient.get('/members', { params: { all: true } }),
+        apiClient.get('/members', { params: { include_inactive: true, include_guests: true } }),
         // 獲取組織數據
         apiClient.get('/organizations')
       ])

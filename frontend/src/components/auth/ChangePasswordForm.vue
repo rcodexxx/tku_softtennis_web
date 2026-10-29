@@ -139,8 +139,8 @@
             new_password: passwords.new_password
           })
 
-          messageApi.success(response.data.msg || '密碼已成功修改！') // 使用 Naive UI 全局 message
-          emit('password-changed-status', response.data.msg || '密碼已成功修改！', 'success')
+          messageApi.success(response.message || '密碼已成功修改！') // 使用 Naive UI 全局 message
+          emit('password-changed-status', response.message || '密碼已成功修改！', 'success')
 
           // 清空表單
           passwords.old_password = ''
@@ -148,7 +148,7 @@
           passwords.confirm_new_password = ''
           // 可以在父組件決定是否強制登出或提示重新登入
         } catch (err) {
-          const errorMsg = err.response?.data?.msg || '修改密碼失敗，請檢查輸入。'
+          const errorMsg = err.response?.data?.message || '修改密碼失敗，請檢查輸入。'
           messageApi.error(errorMsg)
           emit('password-changed-status', errorMsg, 'error')
           console.error('Error changing password:', err.response || err)

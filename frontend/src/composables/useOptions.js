@@ -147,13 +147,11 @@ export function useOptions() {
 
     playerLoading.value = true
     try {
-      const response = await apiClient.get('/members?all=true&sort_by=name&sort_order=asc')
+      const response = await apiClient.get('/members', {
+        params: { include_inactive: true, include_guests: true, sort_by: 'name', sort_order: 'asc' }
+      })
 
-      let membersData = response.data
-      if (response.data?.members) membersData = response.data.members
-      else if (response.data?.data) membersData = response.data.data
-
-      if (!Array.isArray(membersData)) membersData = []
+      const membersData = response.data
 
       playerOptions.value = membersData.map(member => ({
         label: member.name || member.display_name || `成員 ${member.id}`,

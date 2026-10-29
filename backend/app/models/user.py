@@ -1,90 +1,44 @@
-import datetime  # 確保導入 datetime
+from datetime import datetime
+from typing import TYPE_CHECKING
 
-from sqlalchemy import Enum as SQLAlchemyEnum
-from sqlalchemy import Integer, String
+from sqlalchemy import String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from ..enums import UserRoleEnum
 from ..extensions import db
-from .enums.user_enums import UserRoleEnum
+from .base import enum_column, utcnow
+
+if TYPE_CHECKING:
+    from .member import Member
 
 
 class User(db.Model):
     __tablename__ = "users"
 
-    id = db.Column(Integer, primary_key=True, comment="使用者唯一識別碼")
-    username = db.Column(
-        String(30), unique=True, nullable=False, index=True, comment="帳號 (登入用)"
+    id: Mapped[int] = mapped_column(primary_key=True, comment="使用者唯一識別碼")
+    username: Mapped[str] = mapped_column(String(30), unique=True, index=True, comment="帳號 (登入用)")
+    email: Mapped[str | None] = mapped_column(
+        String(120), unique=True, index=True, comment="電子郵件 (通常用於登入或通知)"
     )
-    email = db.Column(
-        db.String(120),
-        unique=True,
-        nullable=True,
-        index=True,
-        comment="電子郵件 (通常用於登入或通知)",
+    password_hash: Mapped[str] = mapped_column(String(256), comment="雜湊後的密碼")
+    display_name: Mapped[str | None] = mapped_column(String(50), comment="暱稱 (顯示名稱)")
+    role: Mapped[UserRoleEnum] = mapped_column(
+        enum_column(UserRoleEnum, "user_role_enum"), default=UserRoleEnum.MEMBER, comment="使用者角色"
     )
-    password_hash = db.Column(String(256), nullable=False, comment="雜湊後的密碼")
-    display_name = db.Column(String(50), nullable=True, comment="暱稱 (顯示名稱)")
+    created_at: Mapped[datetime] = mapped_column(default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(default=utcnow, onupdate=utcnow, comment="最後更新時間")
+    is_active: Mapped[bool] = mapped_column(default=True, comment="帳號是否啟用")
 
-    role = db.Column(
-        SQLAlchemyEnum(
-            UserRoleEnum,
-            name="user_role_enum",
-            values_callable=lambda x: [e.value for e in x],
-        ),
-        nullable=False,
-        default=UserRoleEnum.MEMBER,  # 預設角色為隊員
-        comment="使用者角色",
-    )
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.datetime.now)
-    updated_at = db.Column(
-        db.DateTime,
-        nullable=False,
-        default=datetime.datetime.now,
-        onupdate=datetime.datetime.now,
-        comment="最後更新時間",
+    member_profile: Mapped["Member | None"] = relationship(
+        foreign_keys="Member.user_id", back_populates="user", cascade="all, delete-orphan"
     )
 
-    is_active = db.Column(
-        db.Boolean, default=True, nullable=False, comment="帳號是否啟用"
-    )
-    member_profile = db.relationship(
-        "Member",
-        foreign_keys="Member.user_id",
-        back_populates="user",
-        uselist=False,
-        cascade="all, delete-orphan",
-    )
-
-    def set_password(self, password: str):
-        """
-        設定使用者密碼。
-        會將傳入的明文密碼雜湊化後儲存。
-        """
+    def set_password(self, password: str) -> None:
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password: str) -> bool:
-        """
-        檢查傳入的明文密碼是否與儲存的雜湊密碼相符。
-        """
-        if not self.password_hash:
-            return False
-        return check_password_hash(self.password_hash, password)
+        return bool(self.password_hash) and check_password_hash(self.password_hash, password)
 
-    def to_dict(self):
-        """
-        將 User 物件轉換為字典。
-        :return: dict
-        """
-        data = {
-            "id": self.id,
-            "username": self.username,
-            "display_name": self.display_name,
-            "role": self.role.value,
-            "is_active": self.is_active,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-        }
-
-    def __repr__(self):
-        return (
-            f"<User id={self.id}, username='{self.username}', role='{self.role.value}'>"
-        )
+    def __repr__(self) -> str:
+        return f"<User id={self.id} username={self.username!r} role={self.role}>"

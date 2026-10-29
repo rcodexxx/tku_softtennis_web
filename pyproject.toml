@@ -1,43 +1,26 @@
-# pyproject.toml
 [tool.ruff]
-line-length = 88
-target-version = "py39"
+line-length = 120
+target-version = "py312"
+exclude = [".git", ".venv", "venv", "__pycache__", "migrations", "node_modules"]
 
-# 選擇要啟用的規則
+[tool.ruff.lint]
 select = [
-    "E", # pycodestyle errors
-    "F", # pyflakes
-    "I", # isort
-    "W", # pycodestyle warnings
-    "B", # flake8-bugbear
-    "N", # pep8-naming
-    "UP", # pyupgrade
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort
+    "W",   # pycodestyle warnings
+    "B",   # flake8-bugbear
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
     "C90", # mccabe complexity
 ]
 
-# 忽略某些規則
-ignore = [
-    "E501", # 行長度（讓 format 處理）
-]
-
-# 排除的目錄
-exclude = [
-    ".git",
-    ".venv",
-    "venv",
-    "__pycache__",
-    "migrations",
-    "node_modules",
-]
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
 
 [tool.ruff.format]
-# 格式化選項
 quote-style = "double"
 indent-style = "space"
-skip-magic-trailing-comma = false
-line-ending = "auto"
 
-[tool.ruff.isort]
-# import 排序設定
-known-first-party = ["tkust_stats_web"]  # 改成你的專案名稱
-section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+[tool.pytest.ini_options]
+testpaths = ["backend/tests"]

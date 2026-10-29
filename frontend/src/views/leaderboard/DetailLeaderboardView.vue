@@ -518,7 +518,7 @@
       // 使用新的 /leaderboard API 端點
       const params = {
         include_guests: includeGuests.value,
-        limit: 100 // 獲取更多數據以便前端篩選
+        per_page: 500
       }
 
       if (minMatches.value > 0) {
@@ -535,19 +535,8 @@
       let leaderboardArray = null
 
       if (response && response.data) {
-        // 嘗試不同的數據位置
         if (Array.isArray(response.data)) {
-          // 數據直接在 response.data 中
           leaderboardArray = response.data
-          console.log('數據位置: response.data (直接數組)')
-        } else if (response.data.data && Array.isArray(response.data.data)) {
-          // 數據在 response.data.data 中
-          leaderboardArray = response.data.data
-          console.log('數據位置: response.data.data')
-        } else if (response.data.leaderboard && Array.isArray(response.data.leaderboard)) {
-          // 數據在 response.data.leaderboard 中
-          leaderboardArray = response.data.leaderboard
-          console.log('數據位置: response.data.leaderboard')
         } else {
           console.error('無法找到排行榜數組數據，響應結構:', {
             hasData: !!response.data,
@@ -578,8 +567,9 @@
             return {
               ...member,
               rank: rank,
-              // 官方分數：(μ - 3σ) * 100
+              // 官方分數：(μ - 2σ) * 100
               official_rank_score: safeGet(member, 'conservative_score', 0) * 100,
+              organization_name: member.organization?.short_name || member.organization?.name || '',
               // 潛在實力：μ值
               potential_skill: mu * 100,
               // 穩定度：(1 - min(σ/8.33, 1)) × 100%

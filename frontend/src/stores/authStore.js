@@ -54,7 +54,7 @@ export const useAuthStore = defineStore('auth', () => {
   /**
    * 登入
    */
-  async function login(credentials, rememberMe= false) {
+  async function login(credentials, rememberMe = false) {
     status.loggingIn = true
     status.loginError = null
     try {
@@ -174,8 +174,8 @@ export const useAuthStore = defineStore('auth', () => {
     status.refreshTokenError = null
 
     try {
-      const response = await apiClient.post('/auth/refresh', {
-        refresh_token: refreshToken.value // 可能需要在 body 中傳送 refresh token
+      const response = await apiClient.post('/auth/refresh', null, {
+        headers: { Authorization: `Bearer ${refreshToken.value}` }
       })
       const newAccessToken = response.data.access_token
       accessToken.value = newAccessToken

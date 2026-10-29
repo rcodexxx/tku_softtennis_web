@@ -1,49 +1,52 @@
-import datetime
 import os
+from datetime import timedelta
+
+from dotenv import load_dotenv
+
+# 必須在讀取 os.environ 之前載入 .env；已存在的環境變數不會被覆蓋
+load_dotenv()
+
+
+def _split_csv(value: str) -> list[str]:
+    return [item.strip() for item in value.split(",") if item.strip()]
 
 
 class Config:
-    APP_VERSION = "1.0.0"
     SECRET_KEY = os.environ.get("SECRET_KEY")
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
-    JWT_ACCESS_TOKEN_EXPIRES = datetime.timedelta(days=7)  # Access Token 有效期
-    JWT_REFRESH_TOKEN_EXPIRES = datetime.timedelta(days=30)  # Refresh Token 有效期
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=7)
+    JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)
 
-    # WTF_CSRF_ENABLED = False
+    CORS_ALLOWED_ORIGINS = _split_csv(
+        os.environ.get("CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173")
+    )
+
+    LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
     DEBUG = False
     TESTING = False
 
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_ECHO = True  # 可選，顯示執行的 SQL
+    LOG_LEVEL = os.environ.get("LOG_LEVEL", "DEBUG")
 
 
 class TestingConfig(Config):
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = (
-        os.environ.get("TEST_DATABASE_URL") or "sqlite:///:memory:"
-    )
-    WTF_CSRF_ENABLED = False
+    SQLALCHEMY_DATABASE_URI = os.environ.get("TEST_DATABASE_URL", "sqlite://")
+    LOG_LEVEL = "WARNING"
 
 
 class ProductionConfig(Config):
     pass
 
 
-class RatingCalculationConfig(Config):
-    TRUESKILL_CONSERVATIVE_K = 2.0
-    TRUESKILL_MAX_SIGMA = 8.33
-    TRUESKILL_MIN_SIGMA = 1.0
-    TRUESKILL_EXP_THRESHOLD = 10
-
-
-config_by_name = dict(
-    development=DevelopmentConfig,
-    testing=TestingConfig,
-    production=ProductionConfig,
-    default=DevelopmentConfig,
-)
+config_by_name = {
+    "development": DevelopmentConfig,
+    "testing": TestingConfig,
+    "production": ProductionConfig,
+    "default": DevelopmentConfig,
+}

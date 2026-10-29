@@ -20,5 +20,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 複製整個專案到工作目錄
 COPY .. .
 
-# (Gunicorn 啟動命令不變)
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--reload", "run:app"]
+# 開發時要自動重載，可在 docker-compose 覆寫 command 加上 --reload
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "run:app"]

@@ -509,8 +509,9 @@
 
   const saveAndExit = async () => {
     try {
+      const matchDate = new Date(matchForm.value.match_date_ts)
       const matchData = {
-        match_date_ts: matchForm.value.match_date_ts,
+        match_date: `${matchDate.getFullYear()}-${String(matchDate.getMonth() + 1).padStart(2, '0')}-${String(matchDate.getDate()).padStart(2, '0')}`,
         match_type: matchForm.value.match_type,
         match_format: matchForm.value.match_format,
         player1_id: matchForm.value.player1_id,
@@ -522,7 +523,8 @@
         court_surface: matchForm.value.court_surface,
         court_environment: matchForm.value.court_environment,
         time_slot: matchForm.value.time_slot,
-        match_notes: '裁判模式記錄'
+        first_serve_side: firstServe.value === 'a' ? 'side_a' : 'side_b',
+        notes: '裁判模式記錄'
       }
 
       await apiClient.post('/match-records', matchData)
@@ -533,7 +535,7 @@
       }, 1500)
     } catch (error) {
       console.error('儲存比賽記錄失敗:', error)
-      message.error('儲存失敗，請稍後再試')
+      message.error(error.response?.data?.message || '儲存失敗，請稍後再試')
     }
   }
 

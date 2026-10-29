@@ -83,7 +83,7 @@
                 </div>
                 <div class="player-basic-info">
                   <h3 class="player-name">
-                    {{ profileData.member_profile?.name || profileData.display_name || '未設定' }}
+                    {{ profileData.member?.name || profileData.display_name || '未設定' }}
                   </h3>
                   <div class="player-status" :class="getStatusClass()">
                     <div class="status-dot"></div>
@@ -97,7 +97,7 @@
                   <div class="detail-icon">🎓</div>
                   <div class="detail-content">
                     <span class="detail-label">學號</span>
-                    <span class="detail-value">{{ profileData.member_profile?.student_id || '--' }}</span>
+                    <span class="detail-value">{{ profileData.member?.student_id || '--' }}</span>
                   </div>
                 </div>
 
@@ -105,7 +105,7 @@
                   <div class="detail-icon">🏓</div>
                   <div class="detail-content">
                     <span class="detail-label">位置</span>
-                    <span class="detail-value">{{ getPositionDisplay(profileData.member_profile?.position) }}</span>
+                    <span class="detail-value">{{ getPositionDisplay(profileData.member?.position) }}</span>
                   </div>
                 </div>
 
@@ -113,7 +113,7 @@
                   <div class="detail-icon">👤</div>
                   <div class="detail-content">
                     <span class="detail-label">性別</span>
-                    <span class="detail-value">{{ getGenderDisplay(profileData.member_profile?.gender) }}</span>
+                    <span class="detail-value">{{ getGenderDisplay(profileData.member?.gender) }}</span>
                   </div>
                 </div>
 
@@ -121,20 +121,18 @@
                   <div class="detail-icon">🏢</div>
                   <div class="detail-content">
                     <span class="detail-label">組織</span>
-                    <span class="detail-value">{{ profileData.member_profile?.organization?.name || '--' }}</span>
+                    <span class="detail-value">{{ profileData.member?.organization?.name || '--' }}</span>
                   </div>
                 </div>
 
                 <div class="detail-item">
                   <div class="detail-icon">
-                    {{
-                      getExperienceIcon(profileData.member_profile?.experience_level || playerStats.experience_level)
-                    }}
+                    {{ getExperienceIcon(profileData.member?.experience_level || playerStats.experience_level) }}
                   </div>
                   <div class="detail-content">
                     <span class="detail-label">經驗等級</span>
                     <span class="detail-value">
-                      {{ profileData.member_profile?.experience_level || playerStats.experience_level || '--' }}
+                      {{ profileData.member?.experience_level || playerStats.experience_level || '--' }}
                     </span>
                   </div>
                 </div>
@@ -157,7 +155,7 @@
           <!--                <div class="legend-color skill-2"></div>-->
           <!--                <span-->
           <!--                  >潛在實力 ({{-->
-          <!--                    formatScore(profileData.member_profile?.potential_skill || playerStats.potential_skill)-->
+          <!--                    formatScore(profileData.member?.potential_skill || playerStats.potential_skill)-->
           <!--                  }})</span-->
           <!--                >-->
           <!--              </div>-->
@@ -165,7 +163,7 @@
           <!--                <div class="legend-color skill-3"></div>-->
           <!--                <span-->
           <!--                  >穩定度 ({{-->
-          <!--                    profileData.member_profile?.consistency_rating || playerStats.consistency_rating || '&#45;&#45;'-->
+          <!--                    profileData.member?.consistency_rating || playerStats.consistency_rating || '&#45;&#45;'-->
           <!--                  }}%)</span-->
           <!--                >-->
           <!--              </div>-->
@@ -173,7 +171,7 @@
           <!--                <div class="legend-color skill-4"></div>-->
           <!--                <span-->
           <!--                  >評分可信度 ({{-->
-          <!--                    profileData.member_profile?.rating_confidence || playerStats.rating_confidence || '&#45;&#45;'-->
+          <!--                    profileData.member?.rating_confidence || playerStats.rating_confidence || '&#45;&#45;'-->
           <!--                  }}%)</span-->
           <!--                >-->
           <!--              </div>-->
@@ -310,7 +308,7 @@
           </n-grid>
 
           <!-- 球員資料 -->
-          <template v-if="profileData.member_profile">
+          <template v-if="profileData.member">
             <n-h6>球員資料</n-h6>
             <n-grid :x-gap="16" :cols="2">
               <n-form-item-gi label="真實姓名">
@@ -450,12 +448,12 @@
   // 方法
 
   function getStatusClass() {
-    const isActive = profileData.value?.member_profile?.is_active !== false
+    const isActive = profileData.value?.member?.is_active !== false
     return isActive ? 'status-active' : 'status-inactive'
   }
 
   function getStatusText() {
-    const isActive = profileData.value?.member_profile?.is_active !== false
+    const isActive = profileData.value?.member?.is_active !== false
     return isActive ? '活躍' : '非活躍'
   }
 
@@ -567,11 +565,11 @@
 
       // 使用 safeGet 安全獲取數據
       const stats = playerStats.value
-      const memberProfile = profileData.value?.member_profile
+      const memberProfile = profileData.value?.member
 
-      // 優先使用 playerStats（已經按排行榜邏輯處理過），然後是 member_profile
+      // 優先使用 playerStats（已經按排行榜邏輯處理過），然後是 member
       const rawValues = [
-        safeGet(stats, 'official_rank_score', 0) || safeGet(memberProfile, 'official_rank_score', 0) * 100,
+        safeGet(stats, 'official_rank_score', 0) || safeGet(memberProfile, 'conservative_score', 0) * 100,
         safeGet(stats, 'potential_skill', 0) ||
           safeGet(memberProfile, 'potential_skill', 0) * 100 ||
           safeGet(memberProfile, 'mu', 25) * 100,
@@ -695,20 +693,15 @@
     editableProfile.email = data.email || ''
     editableProfile.display_name = data.display_name || ''
 
-    if (data.member_profile) {
-      editableProfile.name = data.member_profile.name || ''
-      editableProfile.student_id = data.member_profile.student_id || ''
+    if (data.member) {
+      editableProfile.name = data.member.name || ''
+      editableProfile.student_id = data.member.student_id || ''
 
-      editableProfile.gender = isValidOption(genderOptions, data.member_profile.gender)
-        ? data.member_profile.gender
-        : null
+      editableProfile.gender = isValidOption(genderOptions, data.member.gender) ? data.member.gender : null
 
-      editableProfile.position = isValidOption(positionOptions, data.member_profile.position)
-        ? data.member_profile.position
-        : null
+      editableProfile.position = isValidOption(positionOptions, data.member.position) ? data.member.position : null
 
-      editableProfile.organization_id =
-        data.member_profile.organization?.id > 0 ? data.member_profile.organization.id : null
+      editableProfile.organization_id = data.member.organization?.id > 0 ? data.member.organization.id : null
     }
   }
 
@@ -726,15 +719,15 @@
 
       // 生成identicon
       await nextTick()
-      const displayName = userData.display_name || userData.member_profile?.name || userData.username || 'User'
+      const displayName = userData.display_name || userData.member?.name || userData.username || 'User'
 
       setTimeout(() => {
         generateIdenticon(displayName)
       }, 100)
 
       // 获取球员统计数据
-      if (userData.member_profile?.id) {
-        await fetchPlayerStats(userData.member_profile.id)
+      if (userData.member?.id) {
+        await fetchPlayerStats(userData.member.id)
         await fetchRecentMatches()
       } else {
         // 设置默认统计数据
@@ -771,7 +764,7 @@
       // 第一步：使用與排行榜相同的 API 端點和參數
       const params = {
         include_guests: true,
-        limit: 100
+        per_page: 500
       }
 
       console.log('📡 發送請求到 /leaderboard，參數:', params)
@@ -784,13 +777,8 @@
       let leaderboardArray = null
 
       if (response && response.data) {
-        // 檢查不同可能的數據位置（與排行榜邏輯完全相同）
         if (Array.isArray(response.data)) {
           leaderboardArray = response.data
-        } else if (response.data.data && Array.isArray(response.data.data)) {
-          leaderboardArray = response.data.data
-        } else if (response.data.leaderboard && Array.isArray(response.data.leaderboard)) {
-          leaderboardArray = response.data.leaderboard
         } else {
           console.error('❌ 無法找到排行榜數組數據，響應結構:', {
             hasData: !!response.data,
@@ -859,7 +847,7 @@
             // 從個人資料 API 獲取基本數據作為備用
             try {
               const profileResponse = await apiClient.get('/profile/me')
-              const memberProfile = profileResponse.data.member_profile
+              const memberProfile = profileResponse.data.member
 
               if (memberProfile) {
                 console.log('🔄 使用個人資料作為備用數據源')
@@ -875,7 +863,7 @@
                   win_rate: 0,
 
                   // 使用相同的計算邏輯
-                  official_rank_score: (mu - 3 * sigma) * 100, // 保守評分公式
+                  official_rank_score: safeGet(memberProfile, 'conservative_score', 0) * 100,
                   potential_skill: mu * 100,
                   consistency_rating: Math.max(0, Math.min(100, Math.round((1 - Math.min(sigma / 8.33, 1)) * 100))),
                   rating_confidence: Math.max(0, Math.min(100, Math.round((1 - sigma / 8.33) * 100))),
@@ -930,17 +918,17 @@
     try {
       // 使用個人比賽記錄 API，限制5場
       const response = await apiClient.get('/profile/me/matches', {
-        params: { limit: 5 }
+        params: { per_page: 5 }
       })
 
-      const matchesData = response.data.matches || []
+      const matchesData = response.data || []
       console.log('📊 獲取最近比賽:', matchesData.length, '場')
 
       // 處理比賽記錄
       recentMatches.value = matchesData
         .slice(0, 5)
         .map((match, index) => {
-          const perspective = match.user_perspective
+          const perspective = match.perspective
           if (!perspective) {
             console.warn(`❌ 比賽 ${match.id} 缺少用戶視角數據`)
             return null
@@ -953,11 +941,10 @@
             id: match.id,
             match_date: match.match_date,
             is_winner: isWinner,
-            opponent_names: perspective.opponent_names || '對手',
-            score_display:
-              perspective.score_display || `${perspective.user_score || 0} - ${perspective.opponent_score || 0}`,
-            user_score: perspective.user_score || 0,
-            opponent_score: perspective.opponent_score || 0,
+            opponent_names: perspective.opponent_names.join(' / ') || '對手',
+            score_display: `${perspective.my_games} - ${perspective.opponent_games}`,
+            user_score: perspective.my_games,
+            opponent_score: perspective.opponent_games,
             match_type: match.match_type || 'singles',
             rating_change: ratingChange
           }
@@ -1001,7 +988,7 @@
   function calculateRatingChange(match, perspective) {
     // 修正評分計算邏輯
     const isWin = perspective.is_winner === true
-    const scoreDiff = Math.abs(perspective.user_score - perspective.opponent_score)
+    const scoreDiff = Math.abs(perspective.my_games - perspective.opponent_games)
 
     if (isWin) {
       // 勝利應該加分（正數）
@@ -1021,10 +1008,10 @@
         try {
           const response = await apiClient.put('/profile/me', editableProfile)
           updateStatus.value = 'success'
-          updateMessage.value = response.data.message || '個人資料已成功更新！'
+          updateMessage.value = response.message || '個人資料已成功更新！'
           message.success(updateMessage.value)
 
-          const updatedProfile = response.data.profile
+          const updatedProfile = response.data
           authStore.user = updatedProfile
           localStorage.setItem('user', JSON.stringify(updatedProfile))
           populateForm(updatedProfile)
@@ -1033,7 +1020,7 @@
           await nextTick()
           avatarLoaded.value = false
           const displayName =
-            updatedProfile.display_name || updatedProfile.member_profile?.name || updatedProfile.username || 'User'
+            updatedProfile.display_name || updatedProfile.member?.name || updatedProfile.username || 'User'
           setTimeout(() => {
             generateIdenticon(displayName)
           }, 100)

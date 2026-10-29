@@ -325,7 +325,6 @@
 
   // 響應式數據
   const leaderboardData = ref([])
-  const systemStats = ref(null)
   const loading = ref(true)
   const error = ref(null)
 
@@ -437,24 +436,12 @@
 
       const response = await apiClient.get('/leaderboard', {
         params: {
-          limit: 100, // 獲取更多數據
+          per_page: 500,
           include_guests: true
         }
       })
 
-      let data
-
-      // 檢查響應格式
-      if (response.data && response.data.data && Array.isArray(response.data.data)) {
-        data = response.data.data
-        if (response.data.statistics) {
-          systemStats.value = response.data.statistics
-        }
-      } else if (response.data && Array.isArray(response.data)) {
-        data = response.data
-      } else {
-        throw new Error('API 響應格式不正確')
-      }
+      const data = response.data
 
       // 處理數據
       if (data && Array.isArray(data)) {
@@ -465,12 +452,9 @@
         leaderboardData.value = membersOnly.map((member, index) => {
           return {
             ...member,
-            official_rank_score:
-              safeGet(member, 'official_rank_score', 0) ||
-              safeGet(member, 'score', 0) ||
-              safeGet(member, 'conservative_score', 0),
+            official_rank_score: member.conservative_score,
             experience_level: safeGet(member, 'experience_level', ''),
-            organization_name: safeGet(member, 'organization_name', ''),
+            organization_name: member.organization?.short_name || member.organization?.name || '',
 
             total_matches: member.total_matches ?? 0,
             wins: member.wins ?? 0,
@@ -485,7 +469,6 @@
       console.error('❌ 排行榜獲取錯誤:', e)
       error.value = e.response?.data?.message || e.message || '載入排行榜時發生錯誤'
       leaderboardData.value = []
-      systemStats.value = null
     } finally {
       loading.value = false
     }

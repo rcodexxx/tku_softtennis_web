@@ -1,109 +1,46 @@
-# backend/app/models/match.py
-from sqlalchemy import Date, Integer, String, Text, Time
-from sqlalchemy import Enum as SQLAlchemyEnum
-from sqlalchemy.orm import relationship
+from datetime import date, time
+from typing import TYPE_CHECKING
 
+from sqlalchemy import String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from ..enums import CourtEnvironmentEnum, CourtSurfaceEnum, MatchFormatEnum, MatchTimeSlotEnum, MatchTypeEnum
 from ..extensions import db
-from .enums import (
-    CourtEnvironmentEnum,
-    CourtSurfaceEnum,
-    MatchFormatEnum,
-    MatchTimeSlotEnum,
-    MatchTypeEnum,
-)
+from .base import enum_column
+
+if TYPE_CHECKING:
+    from .match_record import MatchRecord
 
 
 class Match(db.Model):
+    """比賽事件（日期、場地、賽制等）。每場比賽目前對應一筆 MatchRecord。"""
+
     __tablename__ = "matches"
 
-    id = db.Column(Integer, primary_key=True, comment="比賽唯一識別碼")
-    match_date = db.Column(Date, nullable=False, index=True, comment="比賽日期")
-
-    # 時間相關字段
-    match_time = db.Column(Time, nullable=True, comment="比賽時間")
-    match_time_slot = db.Column(
-        SQLAlchemyEnum(
-            MatchTimeSlotEnum,
-            name="match_time_slot_enum_matches",
-            values_callable=lambda x: [e.value for e in x],
-        ),
-        nullable=True,
-        comment="比賽時間段",
+    id: Mapped[int] = mapped_column(primary_key=True, comment="比賽唯一識別碼")
+    match_date: Mapped[date] = mapped_column(index=True, comment="比賽日期")
+    match_time: Mapped[time | None] = mapped_column(comment="比賽時間")
+    match_time_slot: Mapped[MatchTimeSlotEnum | None] = mapped_column(
+        enum_column(MatchTimeSlotEnum, "match_time_slot_enum_matches"), comment="比賽時間段"
+    )
+    court_surface: Mapped[CourtSurfaceEnum | None] = mapped_column(
+        enum_column(CourtSurfaceEnum, "court_surface_enum_matches"), comment="場地材質"
+    )
+    court_environment: Mapped[CourtEnvironmentEnum | None] = mapped_column(
+        enum_column(CourtEnvironmentEnum, "court_environment_enum_matches"), comment="場地環境"
+    )
+    total_points: Mapped[int | None] = mapped_column(comment="比賽總得分")
+    duration_minutes: Mapped[int | None] = mapped_column(comment="比賽時長(分鐘)")
+    youtube_url: Mapped[str | None] = mapped_column(String(500), comment="YouTube 連結")
+    notes: Mapped[str | None] = mapped_column(Text, comment="比賽備註")
+    match_type: Mapped[MatchTypeEnum] = mapped_column(
+        enum_column(MatchTypeEnum, "match_type_enum_matches"), comment="比賽類型 (單打、雙打、混雙)"
+    )
+    match_format: Mapped[MatchFormatEnum] = mapped_column(
+        enum_column(MatchFormatEnum, "match_format_enum_matches"), comment="賽制"
     )
 
-    # 場地相關字段
-    court_surface = db.Column(
-        SQLAlchemyEnum(
-            CourtSurfaceEnum,
-            name="court_surface_enum_matches",
-            values_callable=lambda x: [e.value for e in x],
-        ),
-        nullable=True,
-        comment="場地材質",
-    )
-    court_environment = db.Column(
-        SQLAlchemyEnum(
-            CourtEnvironmentEnum,
-            name="court_environment_enum_matches",
-            values_callable=lambda x: [e.value for e in x],
-        ),
-        nullable=True,
-        comment="場地環境",
-    )
-
-    # 比賽詳細資訊
-    total_points = db.Column(Integer, nullable=True, comment="比賽總得分")
-    duration_minutes = db.Column(Integer, nullable=True, comment="比賽時長(分鐘)")
-    youtube_url = db.Column(String(500), nullable=True, comment="YouTube 連結")
-
-    # 備註字段
-    notes = db.Column(Text, nullable=True, comment="比賽備註")
-
-    # 原有必要字段
-    match_type = db.Column(
-        SQLAlchemyEnum(
-            MatchTypeEnum,
-            name="match_type_enum_matches",
-            values_callable=lambda x: [e.value for e in x],
-        ),
-        nullable=False,
-        comment="比賽類型 (單打、雙打、混雙)",
-    )
-    match_format = db.Column(
-        SQLAlchemyEnum(
-            MatchFormatEnum,
-            name="match_format_enum_matches",
-            values_callable=lambda x: [e.value for e in x],
-        ),
-        nullable=False,
-        comment="賽制",
-    )
-
-    # 關聯到比賽記錄
-    results = relationship(
-        "MatchRecord", back_populates="match", cascade="all, delete-orphan"
-    )
-
-    def to_dict(self) -> dict:
-        data = {
-            "id": self.id,
-            "match_date": self.match_date.isoformat() if self.match_date else None,
-            "match_time": self.match_time.isoformat() if self.match_time else None,
-            "match_time_slot": self.match_time_slot.value
-            if self.match_time_slot
-            else None,
-            "court_surface": self.court_surface.value if self.court_surface else None,
-            "court_environment": self.court_environment.value
-            if self.court_environment
-            else None,
-            "match_type": self.match_type.value if self.match_type else None,
-            "match_format": self.match_format.value if self.match_format else None,
-            "notes": self.notes,
-            "total_points": self.total_points,
-            "duration_minutes": self.duration_minutes,
-            "youtube_url": self.youtube_url,
-        }
-        return data
+    results: Mapped[list["MatchRecord"]] = relationship(back_populates="match", cascade="all, delete-orphan")
 
     def __repr__(self) -> str:
-        return f"<Match id={self.id}, date='{self.match_date}', type='{self.match_type.value if self.match_type else ''}'>"
+        return f"<Match id={self.id} date={self.match_date} type={self.match_type}>"

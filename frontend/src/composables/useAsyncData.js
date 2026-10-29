@@ -37,24 +37,29 @@ export function useAsyncData(initialData = null) {
 
   // 成員數據預處理器
   const processMemberData = formData => {
-    // 基礎數據結構
     const processed = {
       name: formData.name,
-      display_name: formData.display_name || formData.name, // 自動默認值
-      username: formData.username,
-      password: formData.password || null,
-      email: formData.email || null,
-      role: formData.role,
       student_id: formData.student_id || null,
       gender: formData.gender,
       position: formData.position,
       organization_id: formData.organization_id,
-      is_active: formData.is_active,
       notes: formData.notes,
-      joined_date: formatDate(formData.joined_date_ts)
+      joined_date: formatDate(formData.joined_date_ts),
+      leaved_date: formatDate(formData.leaved_date_ts)
     }
 
-    // 清理空字符串
+    // 訪客沒有帳號，不送帳號欄位
+    if (formData.role !== 'guest') {
+      Object.assign(processed, {
+        display_name: formData.display_name || formData.name,
+        username: formData.username,
+        password: formData.password || null,
+        email: formData.email || null,
+        role: formData.role,
+        is_active: formData.is_active
+      })
+    }
+
     return cleanEmptyStrings(processed)
   }
 
@@ -232,15 +237,6 @@ export function useAsyncData(initialData = null) {
     })
   }
 
-  // 比賽相關 API
-  const createMatch = (matchData, options = {}) => {
-    return post('/matches', matchData, {
-      dataType: 'match',
-      successMessage: '比賽記錄已成功新增！',
-      ...options
-    })
-  }
-
   // ========== 工具方法 ==========
 
   // 重置狀態
@@ -278,7 +274,6 @@ export function useAsyncData(initialData = null) {
     updateMember,
     createOrganization,
     updateOrganization,
-    createMatch,
 
     // 數據處理工具
     formatDateForAPI: formatDate,

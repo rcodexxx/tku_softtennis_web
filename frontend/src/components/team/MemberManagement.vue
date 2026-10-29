@@ -360,7 +360,7 @@
     memberError.value = null
 
     try {
-      const response = await apiClient.get('/members', { params: { all: true } })
+      const response = await apiClient.get('/members', { params: { include_inactive: true, include_guests: true } })
       allFetchedMembers.value = response.data || []
       console.log('✅ 載入成員數據:', allFetchedMembers.value.length)
 

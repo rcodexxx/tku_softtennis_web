@@ -129,11 +129,11 @@
           })
 
           // 註冊成功後，不再自動登入，而是顯示成功訊息並引導至登入頁面
-          message.success(response.data.message || '註冊成功！請前往登入頁面。', { duration: 5000 })
+          message.success(response.message || '註冊成功！請前往登入頁面。', { duration: 5000 })
 
           // 跳轉到登入頁面
           await router.push({ name: 'Leaderboard' })
-        } catch (_error) {
+        } catch (error) {
           // 將後端返回的錯誤訊息顯示在 alert 中
           const errorData = error.response?.data
           if (errorData && errorData.details) {

@@ -816,11 +816,8 @@
   // 訪客相關方法
   const loadGuestRoleOptions = async () => {
     try {
-      const response = await apiClient.get('/members/guests/role-options')
-      guestRoleOptions.value = response.data.options.map(option => ({
-        value: option.value,
-        label: `${option.label} - ${option.description}`
-      }))
+      const response = await apiClient.get('/guests/role-options')
+      guestRoleOptions.value = response.data.map(option => ({ value: option.value, label: option.label }))
     } catch (error) {
       console.error('載入訪客身份選項失敗:', error)
     }
@@ -829,10 +826,10 @@
   const loadMyGuests = async () => {
     loadingMyGuests.value = true
     try {
-      const response = await apiClient.get('/members/guests/search', {
+      const response = await apiClient.get('/guests', {
         params: { limit: 50 }
       })
-      myGuestsList.value = response.data.guests || []
+      myGuestsList.value = response.data
       syncGuestsToMainList()
     } catch (error) {
       console.error('載入我的訪客失敗:', error)
@@ -862,13 +859,8 @@
       await guestFormRef.value?.validate()
       creatingGuest.value = true
 
-      const response = await apiClient.post('/members/guests', guestForm.value)
-
-      if (!response?.data?.success || !response?.data?.member) {
-        throw new Error(`API響應格式不正確: ${JSON.stringify(response?.data)}`)
-      }
-
-      const apiMember = response.data.member
+      const response = await apiClient.post('/guests', guestForm.value)
+      const apiMember = response.data
 
       const newGuest = {
         id: apiMember.id,
@@ -883,7 +875,6 @@
         created_at: apiMember.created_at || new Date().toISOString(),
         mu: apiMember.mu || 25.0,
         sigma: apiMember.sigma || 8.333,
-        score: apiMember.score || 0,
         display_name: apiMember.display_name || apiMember.name || guestForm.value.name,
         short_display_name: apiMember.short_display_name || apiMember.name || guestForm.value.name,
         student_id: apiMember.student_id || null,
@@ -982,25 +973,12 @@
     try {
       const response = await apiClient.get('/members', {
         params: {
-          all: 'false',
           sort_by: 'name',
           sort_order: 'asc'
         }
       })
 
-      let membersData = response.data
-      if (response.data.members) {
-        membersData = response.data.members
-      } else if (response.data.results) {
-        membersData = response.data.results
-      } else if (response.data.data) {
-        membersData = response.data.data
-      }
-
-      if (!Array.isArray(membersData)) {
-        console.warn('球員數據不是數組:', membersData)
-        membersData = []
-      }
+      const membersData = response.data
 
       allActiveMembers.value = membersData
 
@@ -1066,7 +1044,6 @@
           created_at: player.created_at || null,
           mu: player.mu || 25.0,
           sigma: player.sigma || 8.333,
-          score: player.score || 0,
           display_name: player.display_name || player.name,
           short_display_name: player.short_display_name || player.name,
           student_id: player.student_id || null,
@@ -1187,7 +1164,7 @@
       const playerPromises = validPlayerIds.map(async playerId => {
         try {
           const response = await apiClient.get(`/members/${playerId}`)
-          return response.data.member || response.data
+          return response.data
         } catch (error) {
           console.warn(`無法載入球員 ${playerId}:`, error)
           return null

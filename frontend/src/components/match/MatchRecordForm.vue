@@ -439,22 +439,8 @@
     submitting.value = true
 
     try {
-      const payload = buildPayload()
-      console.log('發送新增請求:', payload)
-
-      // 檢查是否有詳細比分數據
-      const hasDetailedScores = Object.keys(matchForm.value)
-        .filter(key => key.startsWith('game') && key.endsWith('_score'))
-        .some(key => matchForm.value[key] > 0)
-
-      // 根據是否有詳細比分選擇 API 端點
-      const endpoint = hasDetailedScores ? '/match-records/detailed' : '/match-records'
-      console.log('使用端點:', endpoint, '有詳細比分:', hasDetailedScores)
-
-      const response = await apiClient.post(endpoint, payload)
-      console.log('新增響應:', response.data)
-
-      message.success(response.data.message || '比賽結果已成功儲存！')
+      const response = await apiClient.post('/match-records', buildPayload())
+      message.success(response.message || '比賽結果已成功儲存！')
 
       setTimeout(() => {
         router.push({ name: 'MatchManagement' })
@@ -481,25 +467,8 @@
     submitting.value = true
 
     try {
-      const payload = buildPayload()
-      console.log('發送更新請求:', payload)
-
-      // 檢查是否有詳細比分數據
-      const hasDetailedScores = Object.keys(matchForm.value)
-        .filter(key => key.startsWith('game') && key.endsWith('_score'))
-        .some(key => matchForm.value[key] > 0)
-
-      // 根據是否有詳細比分選擇 API 端點
-      const endpoint = hasDetailedScores
-        ? `/match-records/${props.matchId}/detailed`
-        : `/match-records/${props.matchId}`
-
-      console.log('使用端點:', endpoint, '有詳細比分:', hasDetailedScores)
-
-      const response = await apiClient.put(endpoint, payload)
-      console.log('更新響應:', response.data)
-
-      message.success(response.data.message || '比賽記錄已成功更新！')
+      const response = await apiClient.put(`/match-records/${props.matchId}`, buildPayload())
+      message.success(response.message || '比賽記錄已成功更新！')
 
       setTimeout(() => {
         router.push({ name: 'MatchManagement' })
@@ -524,14 +493,14 @@
       match_type: matchForm.value.match_type,
       match_format: matchForm.value.match_format,
       player1_id: matchForm.value.player1_id,
-      player2_id: matchForm.value.match_type === 'doubles' ? matchForm.value.player2_id : null,
+      player2_id: matchForm.value.match_type === 'singles' ? null : matchForm.value.player2_id,
       player3_id: matchForm.value.player3_id,
-      player4_id: matchForm.value.match_type === 'doubles' ? matchForm.value.player4_id : null,
+      player4_id: matchForm.value.match_type === 'singles' ? null : matchForm.value.player4_id,
       a_games: matchForm.value.a_games,
       b_games: matchForm.value.b_games,
 
       // 基本資訊
-      match_notes: matchForm.value.match_notes || null,
+      notes: matchForm.value.match_notes || null,
       court_surface: matchForm.value.court_surface || null,
       court_environment: matchForm.value.court_environment || null,
       time_slot: matchForm.value.time_slot || null,
@@ -547,19 +516,16 @@
     if (hasDetailedScores) {
       // 包含先發球方和所有局比分
       payload.first_serve_side = matchForm.value.first_serve_side || null
-
-      for (let i = 1; i <= 9; i++) {
-        payload[`game${i}_a_score`] = matchForm.value[`game${i}_a_score`] || 0
-        payload[`game${i}_b_score`] = matchForm.value[`game${i}_b_score`] || 0
-      }
-
-      console.log('包含詳細比分數據到 payload')
-    } else {
-      console.log('不包含詳細比分數據')
+      payload.games = Array.from({ length: 9 }, (_, i) => ({
+        a_score: matchForm.value[`game${i + 1}_a_score`] || 0,
+        b_score: matchForm.value[`game${i + 1}_b_score`] || 0
+      }))
     }
 
-    // 移除 null/undefined/空字串的字段
+    // 移除空值；搭檔欄位保留 null，改成單打時才能清掉原本的搭檔
+    const keepNull = ['player2_id', 'player4_id']
     Object.keys(payload).forEach(key => {
+      if (keepNull.includes(key)) return
       if (payload[key] === null || payload[key] === undefined || payload[key] === '') {
         delete payload[key]
       }
@@ -577,14 +543,6 @@
     })
 
     const errorData = err.response?.data
-
-    if (errorData?.error === 'score_validation_error') {
-      message.error(errorData.message || '比分驗證失敗，請檢查輸入', {
-        duration: 8000,
-        closable: true
-      })
-      return
-    }
 
     let errorMessage = `${action}失敗，請稍後再試。`
 
@@ -651,34 +609,25 @@
     })
   }
 
+  // 把 API 的 games 陣列轉成表單使用的 game{n}_a_score / game{n}_b_score 欄位
+  const gameScoreFields = (games = []) => {
+    const fields = {}
+    for (let i = 1; i <= 9; i++) {
+      const game = games.find(g => g.game === i)
+      fields[`game${i}_a_score`] = game?.a_score || 0
+      fields[`game${i}_b_score`] = game?.b_score || 0
+    }
+    return fields
+  }
+
   const loadMatchData = async () => {
     if (!props.matchId || props.mode === 'add') return
 
     loading.value = true
 
     try {
-      // 首先嘗試詳細端點，如果失敗再嘗試基本端點
-      let response
-      let isDetailedResponse = false
-
-      try {
-        console.log('嘗試載入詳細比賽數據...')
-        response = await apiClient.get(`/match-records/${props.matchId}/detailed`)
-        isDetailedResponse = true
-        console.log('成功載入詳細數據')
-      } catch (detailedErr) {
-        console.log('詳細端點失敗，嘗試基本端點...')
-        response = await apiClient.get(`/match-records/${props.matchId}`)
-        isDetailedResponse = false
-        console.log('成功載入基本數據')
-      }
-
-      const record = response.data.record
-      if (!record) {
-        throw new Error('找不到比賽記錄數據')
-      }
-
-      console.log('載入的比賽記錄:', record, '來源:', isDetailedResponse ? '詳細端點' : '基本端點')
+      const response = await apiClient.get(`/match-records/${props.matchId}`)
+      const record = response.data
 
       // 處理日期轉換
       let matchDate = null
@@ -713,47 +662,18 @@
         a_games: record.a_games || 0,
         b_games: record.b_games || 0,
 
-        // 詳細比分數據 - 確保所有字段都被正確載入
-        game1_a_score: record.game1_a_score || 0,
-        game1_b_score: record.game1_b_score || 0,
-        game2_a_score: record.game2_a_score || 0,
-        game2_b_score: record.game2_b_score || 0,
-        game3_a_score: record.game3_a_score || 0,
-        game3_b_score: record.game3_b_score || 0,
-        game4_a_score: record.game4_a_score || 0,
-        game4_b_score: record.game4_b_score || 0,
-        game5_a_score: record.game5_a_score || 0,
-        game5_b_score: record.game5_b_score || 0,
-        game6_a_score: record.game6_a_score || 0,
-        game6_b_score: record.game6_b_score || 0,
-        game7_a_score: record.game7_a_score || 0,
-        game7_b_score: record.game7_b_score || 0,
-        game8_a_score: record.game8_a_score || 0,
-        game8_b_score: record.game8_b_score || 0,
-        game9_a_score: record.game9_a_score || 0,
-        game9_b_score: record.game9_b_score || 0,
+        // 每局比分
+        ...gameScoreFields(record.games),
 
         // 其他比賽資訊
-        match_notes: record.match_notes || record.notes || '',
+        match_notes: record.notes || '',
         court_surface: record.court_surface || null,
         court_environment: record.court_environment || null,
-        time_slot: record.time_slot || record.match_time_slot || null,
+        time_slot: record.time_slot || null,
         duration_minutes: record.duration_minutes || null,
         youtube_url: record.youtube_url || '',
         first_serve_side: record.first_serve_side || null
       }
-
-      // 檢查是否有詳細比分數據
-      const hasDetailedScores = Object.keys(matchForm.value)
-        .filter(key => key.startsWith('game') && key.endsWith('_score'))
-        .some(key => matchForm.value[key] > 0)
-
-      console.log('數據載入完成:', {
-        hasDetailedScores,
-        isDetailedResponse,
-        totalA: record.a_games,
-        totalB: record.b_games
-      })
 
       // 數據載入完成後，通知子組件重新初始化
       await nextTick()

@@ -1,0 +1,21 @@
+from marshmallow import fields, validate
+
+from ..domain.rating import EXPERIENCE_LEVELS
+from .common import InputSchema
+
+SORT_FIELDS = ["score", "win_rate", "total_matches", "wins", "experience", "recent_activity", "join_date"]
+
+
+class LeaderboardQuerySchema(InputSchema):
+    include_guests = fields.Bool(load_default=True)
+    include_inactive = fields.Bool(load_default=False)
+    organization_id = fields.Int()
+    experience_level = fields.Str(validate=validate.OneOf([level for level, _ in EXPERIENCE_LEVELS]))
+    min_matches = fields.Int(load_default=0, validate=validate.Range(min=0))
+    min_win_rate = fields.Float(validate=validate.Range(min=0, max=100))
+    active_since = fields.Date()
+    joined_after = fields.Date()
+    sort_by = fields.Str(load_default="score", validate=validate.OneOf(SORT_FIELDS))
+    sort_order = fields.Str(load_default="desc", validate=validate.OneOf(["asc", "desc"]))
+    page = fields.Int(load_default=1, validate=validate.Range(min=1))
+    per_page = fields.Int(load_default=50, validate=validate.Range(min=1, max=500))

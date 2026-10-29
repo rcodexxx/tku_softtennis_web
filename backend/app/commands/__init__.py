@@ -1,29 +1,11 @@
-# backend/app/commands/__init__.py
-from flask import Blueprint
+from flask import Flask
 
-from .init_admin import (
-    init_admin_command,
-    list_admins_command,
-    reset_admin_password_command,
-)
-from .rating_commands import (
-    rating_stats_command,
-    recalculate_all_ratings_command,
-    reset_all_ratings_command,
-    validate_ratings_command,
-)
+from .admin import init_admin, list_admins, reset_admin_password
+from .ratings import rating_stats, recalculate_all_ratings, reset_all_ratings
 
-# 創建一個 Blueprint 來組織命令
-# cli_group=None 表示指令直接在 flask 下，而不是 flask admin init-admin
-cli_commands_bp = Blueprint("commands", __name__, cli_group=None)
+COMMANDS = (init_admin, list_admins, reset_admin_password, recalculate_all_ratings, reset_all_ratings, rating_stats)
 
-# 將所有管理員相關指令添加到 Blueprint
-cli_commands_bp.cli.add_command(init_admin_command)
-cli_commands_bp.cli.add_command(list_admins_command)
-cli_commands_bp.cli.add_command(reset_admin_password_command)
 
-# 將所有評分相關指令添加到 Blueprint
-cli_commands_bp.cli.add_command(recalculate_all_ratings_command)
-cli_commands_bp.cli.add_command(reset_all_ratings_command)
-cli_commands_bp.cli.add_command(rating_stats_command)
-cli_commands_bp.cli.add_command(validate_ratings_command)
+def register_commands(app: Flask) -> None:
+    for command in COMMANDS:
+        app.cli.add_command(command)

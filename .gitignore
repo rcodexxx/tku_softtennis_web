@@ -115,3 +115,7 @@ logs/
 *.sqlite3
 db.sqlite3
 
+
+# 資料庫備份（含個資，不要 commit）
+backup
+*.dump
