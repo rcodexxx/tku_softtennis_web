@@ -1,9 +1,10 @@
 <template>
-  <article class="member-card" :class="{ inactive: !member.is_active }">
+  <article class="member-card" :class="{ inactive: !member.is_active || member.has_left }">
     <PlayerAvatar :id="member.id" :name="member.name" :src="member.avatar_url" :size="56" />
     <div class="body">
       <div class="name-row">
         <h3 class="name">{{ member.name }}</h3>
+        <span v-if="member.is_a_division" class="division">甲組</span>
         <span class="role" :class="roleKey">{{ roleLabel }}</span>
       </div>
       <p class="sub">
@@ -17,7 +18,7 @@
         <span class="score num">{{ formatRating(member.rating) }}</span>
         <span class="status">
           <span class="dot"></span>
-          {{ member.is_active ? '在隊' : '已離隊／停用' }}
+          {{ !member.is_active ? '已停用' : member.has_left ? '已離隊' : '在隊' }}
         </span>
       </div>
     </div>
@@ -71,6 +72,13 @@
 </script>
 
 <style scoped>
+  .division {
+    padding: 0 6px;
+    border: 1px solid var(--ink);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+  }
   .member-card {
     display: flex;
     align-items: center;
@@ -102,7 +110,7 @@
   }
   .name {
     margin: 0;
-    font-size: 16px;
+    font-size: 17px;
     font-weight: 800;
     color: var(--blue-900);
     white-space: nowrap;
@@ -113,7 +121,7 @@
     flex-shrink: 0;
     padding: 0 8px;
     border-radius: var(--radius-full);
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 700;
     background: var(--blue-50);
     color: var(--blue-700);
@@ -136,7 +144,7 @@
   }
   .sub {
     margin: 2px 0 6px;
-    font-size: 12px;
+    font-size: 14px;
     color: var(--color-text-muted);
     white-space: nowrap;
     overflow: hidden;
@@ -156,7 +164,7 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    font-size: 12px;
+    font-size: 14px;
     color: var(--gray-500);
   }
   .dot {

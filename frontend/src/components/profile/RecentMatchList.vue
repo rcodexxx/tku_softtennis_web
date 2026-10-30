@@ -100,7 +100,7 @@
   .match-meta {
     display: flex;
     gap: 8px;
-    font-size: 12px;
+    font-size: 14px;
     color: var(--color-text-muted);
   }
   .type {
@@ -132,11 +132,11 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    font-size: 12px;
+    font-size: 14px;
     color: var(--color-text-muted);
   }
   .performance b {
-    font-size: 15px;
+    font-size: 17px;
     color: var(--blue-900);
   }
 </style>

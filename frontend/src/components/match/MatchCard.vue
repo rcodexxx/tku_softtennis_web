@@ -2,6 +2,7 @@
   <article class="match-card" @click="emit('view', record)">
     <header class="meta">
       <span class="date num">{{ dateLabel }}</span>
+      <span v-if="categoryTag(record)" class="chip category">{{ categoryTag(record) }}</span>
       <span class="chip">{{ getMatchTypeDisplay(record.match_type) }}</span>
       <span class="chip">{{ getMatchFormatDisplay(record.match_format) }}</span>
       <span v-if="record.has_detailed_scores" class="chip detail">每局比分</span>
@@ -60,6 +61,7 @@
 </template>
 
 <script setup>
+  import { categoryTag } from '@/utils/matchCategory'
   import { computed } from 'vue'
   import { Edit, TrashCan } from '@vicons/carbon'
   import PlayerAvatar from '@/components/base/PlayerAvatar.vue'
@@ -111,11 +113,11 @@
     align-items: center;
     gap: 8px;
     margin-bottom: 10px;
-    font-size: 12px;
+    font-size: 14px;
     color: var(--color-text-muted);
   }
   .date {
-    font-size: 15px;
+    font-size: 17px;
     font-weight: 600;
     color: var(--gray-700);
   }
@@ -125,6 +127,10 @@
     background: var(--blue-50);
     color: var(--blue-700);
     font-weight: 600;
+  }
+  .chip.category {
+    background: var(--ink);
+    color: var(--bg);
   }
   .chip.detail {
     background: var(--gold-100);
@@ -194,7 +200,7 @@
     color: var(--blue-700);
   }
   .score sup {
-    font-size: 15px;
+    font-size: 17px;
     margin-left: 1px;
     color: var(--gray-400);
   }

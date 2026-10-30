@@ -74,12 +74,12 @@
   }
   .code {
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 13px;
     color: var(--ink-4);
   }
   .label {
     flex: 1;
-    font-size: 15px;
+    font-size: 17px;
     font-weight: 600;
     letter-spacing: 0.04em;
   }

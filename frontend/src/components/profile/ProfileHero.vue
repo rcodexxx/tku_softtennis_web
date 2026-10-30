@@ -106,7 +106,7 @@
     padding: 3px 12px;
     border-radius: var(--radius-full);
     background: color-mix(in srgb, var(--bg) 14%, transparent);
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 600;
   }
   .tag.role {

@@ -28,6 +28,11 @@
 
     <section class="shared">
       <span class="shared-title">整批共用</span>
+      <MatchCategoryPicker
+        v-model:category="shared.category"
+        v-model:event-id="shared.event_id"
+        class="shared-category"
+      />
       <n-select
         v-model:value="shared.court_surface"
         :options="courtSurfaceOptions"
@@ -224,8 +229,9 @@
 </template>
 
 <script setup>
+  import MatchCategoryPicker from '@/components/match/MatchCategoryPicker.vue'
   import { computed, h, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
-  import { useRouter } from 'vue-router'
+  import { useRoute, useRouter } from 'vue-router'
   import { useDialog, useMessage } from 'naive-ui'
   import {
     Add,
@@ -271,6 +277,7 @@
   const STATUS_TEXT = { empty: '空白列，儲存時略過', incomplete: '', invalid: '', ready: '可以儲存' }
 
   const router = useRouter()
+  const route = useRoute()
   const message = useMessage()
   const dialog = useDialog()
   const { courtSurfaceOptions, courtEnvironmentOptions, timeSlotOptions, matchTypeOptions, matchFormatOptions } =
@@ -278,7 +285,13 @@
   const modKey = /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘' : 'Ctrl'
 
   const rows = ref([newBatchRow()])
-  const shared = reactive({ court_surface: 'hard_court', court_environment: 'outdoor', time_slot: null })
+  const shared = reactive({
+    category: 'internal',
+    event_id: null,
+    court_surface: 'hard_court',
+    court_environment: 'outdoor',
+    time_slot: null
+  })
   const players = ref([])
   const playersLoading = ref(false)
   const playersError = ref('')
@@ -444,6 +457,10 @@
 
   const submit = async () => {
     const ready = rows.value.filter((_, index) => statuses.value[index].state === 'ready')
+    if (shared.category === 'event' && !shared.event_id) {
+      message.warning('請先選擇賽事')
+      return
+    }
     saving.value = true
     try {
       const created = await matchesApi.createBatch(batchPayload(ready, shared))
@@ -502,6 +519,8 @@
 
   onMounted(() => {
     restoreDraft()
+    // 從賽事頁進來時，整批預設歸到那個賽事
+    if (Number(route.query.event)) Object.assign(shared, { category: 'event', event_id: Number(route.query.event) })
     loadPlayers()
     window.addEventListener('keydown', onKeydown)
     focusRow(rows.value[0].key)
@@ -562,6 +581,9 @@
     background: var(--blue-50);
     border: 1px dashed var(--blue-200);
   }
+  .shared-category {
+    flex-basis: 100%;
+  }
   .shared-title {
     font-weight: 800;
     color: var(--blue-900);
@@ -570,7 +592,7 @@
     width: 140px;
   }
   .shared-hint {
-    font-size: 13px;
+    font-size: 15px;
     color: var(--color-text-muted);
   }
 
@@ -727,7 +749,7 @@
     background: var(--surface-2);
   }
   .score-caption {
-    font-size: 11px;
+    font-size: 13px;
     color: var(--color-text-muted);
   }
 
@@ -749,7 +771,7 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 600;
     color: var(--color-text-muted);
   }
@@ -819,7 +841,7 @@
     border-radius: 6px;
     border: 1px solid currentColor;
     font-family: var(--font-number);
-    font-size: 12px;
+    font-size: 14px;
     opacity: 0.6;
   }
 
@@ -846,7 +868,7 @@
     white-space: nowrap;
   }
   .count {
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 600;
   }
   .count.ready strong {
@@ -948,7 +970,7 @@
     font-weight: 600;
   }
   .batch-player-option__meta {
-    font-size: 12px;
+    font-size: 14px;
     color: var(--color-text-muted);
     overflow: hidden;
     text-overflow: ellipsis;

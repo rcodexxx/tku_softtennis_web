@@ -125,7 +125,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 600;
     color: var(--gray-700);
   }

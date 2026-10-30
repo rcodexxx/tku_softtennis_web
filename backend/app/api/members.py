@@ -4,17 +4,46 @@ from ..core.auth import admin_required, get_current_user, login_required, staff_
 from ..core.requests import load_args, load_json
 from ..core.responses import created, ok
 from ..schemas.member import MemberCreateSchema, MemberQuerySchema, MemberSchema, MemberUpdateSchema
-from ..services import avatar_service, leaderboard_service, member_service
+from ..schemas.roster import RosterCandidateSchema, RosterUpdateSchema
+from ..services import avatar_service, leaderboard_service, member_service, roster_service, season_service
 
 bp = Blueprint("members", __name__, url_prefix="/members")
 
 member_schema = MemberSchema()
+candidate_schema = RosterCandidateSchema()
 
 
 @bp.get("")
 def list_members():
     members = member_service.list_members(load_args(MemberQuerySchema()))
     return ok(member_schema.dump(members, many=True), meta={"total": len(members)})
+
+
+@bp.get("/roster")
+@staff_required
+def roster():
+    stats = leaderboard_service.season_data(season_service.current_season()).stats
+    rows = []
+    for member in roster_service.candidates():
+        member_stats = stats.get(member.id, leaderboard_service.MatchStats())
+        rows.append(
+            {
+                "member": member,
+                "gender": member.gender.value if member.gender else None,
+                "is_a_division": member.is_a_division,
+                "status": roster_service.status_of(member),
+                "total_matches": member_stats.total_matches,
+                "last_match_date": member_stats.last_match_date,
+            }
+        )
+    return ok(candidate_schema.dump(rows, many=True))
+
+
+@bp.put("/roster")
+@staff_required
+def update_roster():
+    changed = roster_service.update(load_json(RosterUpdateSchema())["roster"])
+    return ok(member_schema.dump(changed, many=True), message=f"已更新 {len(changed)} 位隊員的隊籍。")
 
 
 @bp.get("/<int:member_id>")

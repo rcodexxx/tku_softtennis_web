@@ -1,11 +1,8 @@
 from datetime import date, timedelta
 
-import pytest
-
-from app.enums import GenderEnum
 from app.models import Member
 
-from .conftest import auth_header, data, error, login, make_guest, make_org, make_user
+from .conftest import auth_header, data, error, login, make_guest
 from .test_matches import create_record, ratings
 
 TODAY = date.today().isoformat()
@@ -19,25 +16,6 @@ def start_season(client, headers, name, start_date=TODAY, roster=(), status=201)
 def started(client, headers, name, **kwargs):
     resp, status = start_season(client, headers, name, **kwargs)
     return data(resp, status)
-
-
-@pytest.fixture()
-def orgs(app):
-    team, alumni = make_org("淡江大學軟網隊"), make_org("校友會")
-    app.config.update(TEAM_ORGANIZATION_ID=team.id, ALUMNI_ORGANIZATION_ID=alumni.id)
-    return team, alumni
-
-
-@pytest.fixture()
-def team_players(orgs):
-    team, _ = orgs
-    return tuple(
-        make_user(f"092000000{i}", name=name, gender=gender, organization_id=team.id).member_profile
-        for i, (name, gender) in enumerate(
-            [("甲", GenderEnum.MALE), ("乙", GenderEnum.MALE), ("丙", GenderEnum.FEMALE), ("丁", GenderEnum.FEMALE)],
-            start=1,
-        )
-    )
 
 
 def test_list_seasons_is_empty_at_first(client):
@@ -106,7 +84,7 @@ def test_roster_changes_apply_and_old_season_keeps_old_teams(client, db, admin_h
     started(client, admin_headers, "113 學年度", start_date="2025-01-01")
     create_record(client, admin_headers, team_players)
 
-    roster = data(client.get("/api/seasons/roster", headers=admin_headers))
+    roster = data(client.get("/api/members/roster", headers=admin_headers))
     assert {r["member"]["name"]: (r["status"], r["total_matches"]) for r in roster} == {
         "甲": ("team", 1),
         "乙": ("team", 1),
@@ -125,10 +103,11 @@ def test_roster_changes_apply_and_old_season_keeps_old_teams(client, db, admin_h
     assert db.session.get(Member, p2.id).leaved_date == date.today()
     assert db.session.get(Member, p3.id).organization_id == team.id
 
+    # 離隊的人不在校隊榜，但還在綜合榜
     current_team = data(client.get("/api/leaderboard", query_string={"scope": "team"}))
     assert {r["name"] for r in current_team} == {"丙", "丁"}
     combined = data(client.get("/api/leaderboard", query_string={"scope": "combined"}))
-    assert {r["name"] for r in combined} == {"甲", "丙", "丁"}
+    assert {r["name"] for r in combined} == {"甲", "乙", "丙", "丁"}
 
     old_id = data(client.get("/api/seasons"))[1]["id"]
     old_team = data(client.get("/api/leaderboard", query_string={"scope": "team", "season_id": old_id}))

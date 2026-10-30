@@ -24,10 +24,10 @@ export function defaultSeasonStart(date = new Date()) {
   return `${schoolYear(date)}-08-01`
 }
 
-/** 開新賽季時每位隊員的去向。 */
+/** 名單整理時每位隊員的去向：畢業會轉到校友會；離隊的人還能一起打球，只是不算校隊。 */
 export const ROSTER_CHOICES = [
   { value: 'team', label: '校隊' },
-  { value: 'alumni', label: '校友會' },
+  { value: 'alumni', label: '畢業' },
   { value: 'left', label: '離隊' }
 ]
 

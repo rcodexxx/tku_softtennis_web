@@ -33,6 +33,8 @@ class MemberSchema(BaseSchema):
     is_active = fields.Bool()
     joined_date = fields.Date(allow_none=True)
     leaved_date = fields.Date(allow_none=True)
+    has_left = fields.Bool()
+    is_a_division = fields.Bool()
     notes = fields.Str(allow_none=True)
     created_at = fields.DateTime(allow_none=True)
 
@@ -71,6 +73,7 @@ class _MemberFieldsSchema(InputSchema):
     racket_id = fields.Int(allow_none=True)
     joined_date = fields.Date(allow_none=True)
     leaved_date = fields.Date(allow_none=True)
+    is_a_division = fields.Bool()
     notes = fields.Str(allow_none=True)
 
     @validates_schema

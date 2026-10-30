@@ -32,6 +32,17 @@ describe('比賽紀錄 ↔ 表單', () => {
     expect(form.match_notes).toBe('冠軍賽')
   })
 
+  it('只有賽事分類會帶賽事', () => {
+    const base = { ...newMatchForm(), player1_id: 1, player3_id: 3, a_games: 4 }
+    expect(matchPayloadFromForm({ ...base, category: 'event', event_id: 7 })).toMatchObject({
+      category: 'event',
+      event_id: 7
+    })
+    const friendly = matchPayloadFromForm({ ...base, category: 'friendly', event_id: 7 })
+    expect(friendly.category).toBe('friendly')
+    expect(friendly).not.toHaveProperty('event_id')
+  })
+
   it('表單轉回 payload 時日期和比分不變', () => {
     const payload = matchPayloadFromForm(matchFormFromRecord(record))
     expect(payload.match_date).toBe('2025-06-29')

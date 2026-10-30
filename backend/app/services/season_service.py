@@ -5,16 +5,13 @@
 
 from datetime import date, timedelta
 
-from flask import current_app
 from sqlalchemy import func, select
 
 from ..core.db import get_or_404
 from ..core.errors import ConflictError, ValidationError
 from ..extensions import db
 from ..models import MatchRecord, Member, Season, SeasonRoster
-from . import rating_service
-
-TEAM, ALUMNI, LEFT = "team", "alumni", "left"
+from . import rating_service, roster_service
 
 
 def list_seasons() -> list[Season]:
@@ -65,17 +62,6 @@ def summaries() -> list[dict]:
     return [describe(season) for season in list_seasons()]
 
 
-def roster_candidates() -> list[tuple[Member, str]]:
-    """開新賽季時要整理的名單：目前在校隊或校友會的正式隊員。"""
-    team, alumni = _organization_ids()
-    members = db.session.scalars(
-        select(Member)
-        .where(Member.is_guest.is_(False), Member.organization_id.in_([team, alumni]), Member.active_clause())
-        .order_by(Member.organization_id, Member.name)
-    )
-    return [(m, TEAM if m.organization_id == team else ALUMNI) for m in members]
-
-
 def start_season(data: dict) -> Season:
     """開新賽季：封存上個賽季的名單、套用名單調整，所有人的分數從起始分數重新計算。"""
     previous = current_season()
@@ -88,22 +74,12 @@ def start_season(data: dict) -> Season:
     if db.session.scalar(select(Season.id).where(Season.name == data["name"])):
         raise ConflictError(f"賽季「{data['name']}」已存在。")
 
-    members = list(db.session.scalars(select(Member)))
     if previous:
         previous.rosters = [
-            SeasonRoster(member_id=m.id, organization_id=m.organization_id) for m in members if m.organization_id
+            SeasonRoster(member_id=m.id, organization_id=m.organization_id, has_left=m.has_left)
+            for m in db.session.scalars(select(Member).where(Member.organization_id.is_not(None)))
         ]
-
-    by_id = {m.id: m for m in members}
-    team, alumni = _organization_ids()
-    for item in data["roster"]:
-        member = by_id.get(item["member_id"])
-        if member is None or member.is_guest:
-            raise ValidationError(f"找不到隊員 #{item['member_id']}。")
-        if item["status"] == LEFT:
-            member.leaved_date = member.leaved_date or start
-        else:
-            member.organization_id = team if item["status"] == TEAM else alumni
+    roster_service.apply(data["roster"], on_date=start)
 
     season = Season(name=data["name"], start_date=start)
     db.session.add(season)
@@ -111,7 +87,3 @@ def start_season(data: dict) -> Season:
     rating_service.recalculate_all()
     db.session.commit()
     return season
-
-
-def _organization_ids() -> tuple[int, int]:
-    return current_app.config["TEAM_ORGANIZATION_ID"], current_app.config["ALUMNI_ORGANIZATION_ID"]

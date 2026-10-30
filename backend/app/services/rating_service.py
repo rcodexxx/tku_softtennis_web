@@ -1,13 +1,14 @@
 """依時間順序重算比賽，把分數寫回資料庫。
 
 每個賽季分開計算：賽季開始時所有人回到起始分數，分數取決於這個賽季最近 20 場的表現。
-任何比賽、賽季或球員性別有變動時都從頭重算（資料量小，重算很快）。
+任何比賽、賽季、球員性別或甲組有變動時都從頭重算（資料量小，重算很快）。
 """
 
 from dataclasses import dataclass
 from datetime import date
 
 from sqlalchemy import func, select
+from sqlalchemy.orm import joinedload
 
 from ..domain import rating as rating_domain
 from ..extensions import db
@@ -77,24 +78,39 @@ def replay(period: Period | None = None) -> Replay:
     """依序重算某段期間（預設為全部）的比賽；期間開始時所有人都從起始分數算起。"""
     period = period or Period()
     db.session.flush()
-    genders = db.session.execute(select(Member.id, Member.gender))
-    starts = {pid: rating_domain.starting_rating(gender) for pid, gender in genders}
+    players = db.session.execute(select(Member.id, Member.gender, Member.is_a_division, Member.is_guest)).all()
+    starts = {pid: rating_domain.starting_rating(gender, a_division) for pid, gender, a_division, _ in players}
+    guest_history = _guest_history({pid for pid, *_, is_guest in players if is_guest})
     ratings = dict(starts)
     performances: dict[int, list[float]] = {}
     results: dict[int, dict[int, MatchResult]] = {}
 
-    stmt = select(MatchRecord).join(MatchRecord.match).order_by(Match.match_date.asc(), MatchRecord.id.asc())
-    records = db.session.scalars(period.filter(stmt))
+    stmt = (
+        select(MatchRecord)
+        .join(MatchRecord.match)
+        .options(joinedload(MatchRecord.match).joinedload(Match.event))
+        .order_by(Match.match_date.asc(), MatchRecord.id.asc())
+    )
+    records = db.session.scalars(period.filter(stmt)).unique()
     for record in records:
         side_a, side_b = record.side_a_ids, record.side_b_ids
+        if not record.match.counts_toward_rating:
+            continue
         if not side_a or not side_b or any(pid not in ratings for pid in side_a + side_b):
             continue
         team_a = rating_domain.team_rating([ratings[pid] for pid in side_a])
         team_b = rating_domain.team_rating([ratings[pid] for pid in side_b])
         swing = rating_domain.swing(team_a, team_b, record.a_games, record.b_games)
 
+        # 對上還不熟的訪客時，這場對我方的影響打折
+        known = guest_history.get(record.id, {})
+
+        def weight(opponents: list[int], known: dict[int, int] = known) -> float:
+            return sum(rating_domain.familiarity(known[p]) if p in known else 1.0 for p in opponents) / len(opponents)
+
+        deltas = [(pid, swing * weight(side_b)) for pid in side_a] + [(pid, -swing * weight(side_a)) for pid in side_b]
         record_results = {}
-        for pid, delta in [(pid, swing) for pid in side_a] + [(pid, -swing) for pid in side_b]:
+        for pid, delta in deltas:
             before = ratings[pid]
             performance = rating_domain.clamp(before + delta)
             performances.setdefault(pid, []).append(performance)
@@ -102,6 +118,30 @@ def replay(period: Period | None = None) -> Replay:
             record_results[pid] = MatchResult(before, performance, ratings[pid])
         results[record.id] = record_results
     return Replay(ratings, performances, results)
+
+
+def _guest_history(guests: set[int]) -> dict[int, dict[int, int]]:
+    """每場比賽裡的訪客在這場之前已經打過幾場（不分賽季），以 MatchRecord.id 為鍵。"""
+    seen: dict[int, int] = {}
+    history: dict[int, dict[int, int]] = {}
+    rows = db.session.execute(
+        select(
+            MatchRecord.id,
+            MatchRecord.player1_id,
+            MatchRecord.player2_id,
+            MatchRecord.player3_id,
+            MatchRecord.player4_id,
+        )
+        .join(MatchRecord.match)
+        .order_by(Match.match_date.asc(), MatchRecord.id.asc())
+    )
+    for record_id, *player_ids in rows:
+        here = {pid: seen.get(pid, 0) for pid in player_ids if pid in guests}
+        if here:
+            history[record_id] = here
+        for pid in here:
+            seen[pid] = here[pid] + 1
+    return history
 
 
 def recalculate_all() -> None:

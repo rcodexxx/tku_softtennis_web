@@ -60,7 +60,7 @@
     }
   }
   .title {
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 700;
     letter-spacing: 0.06em;
     color: var(--ink);

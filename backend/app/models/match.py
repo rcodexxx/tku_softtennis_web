@@ -1,14 +1,22 @@
 from datetime import date, time
 from typing import TYPE_CHECKING
 
-from sqlalchemy import String, Text
+from sqlalchemy import ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from ..enums import CourtEnvironmentEnum, CourtSurfaceEnum, MatchFormatEnum, MatchTimeSlotEnum, MatchTypeEnum
+from ..enums import (
+    CourtEnvironmentEnum,
+    CourtSurfaceEnum,
+    MatchCategoryEnum,
+    MatchFormatEnum,
+    MatchTimeSlotEnum,
+    MatchTypeEnum,
+)
 from ..extensions import db
 from .base import enum_column
 
 if TYPE_CHECKING:
+    from .event import Event
     from .match_record import MatchRecord
 
 
@@ -40,7 +48,22 @@ class Match(db.Model):
         enum_column(MatchFormatEnum, "match_format_enum_matches"), comment="賽制"
     )
 
+    category: Mapped[MatchCategoryEnum] = mapped_column(
+        enum_column(MatchCategoryEnum, "match_category_enum"),
+        default=MatchCategoryEnum.INTERNAL,
+        server_default=MatchCategoryEnum.INTERNAL.value,
+        comment="比賽分類（internal/friendly/event）",
+    )
+    event_id: Mapped[int | None] = mapped_column(
+        ForeignKey("events.id", name="fk_matches_event_id", ondelete="SET NULL"), index=True, comment="所屬賽事ID"
+    )
+
+    event: Mapped["Event | None"] = relationship(back_populates="matches")
     results: Mapped[list["MatchRecord"]] = relationship(back_populates="match", cascade="all, delete-orphan")
+
+    @property
+    def counts_toward_rating(self) -> bool:
+        return self.event is None or self.event.counts_toward_rating
 
     def __repr__(self) -> str:
         return f"<Match id={self.id} date={self.match_date} type={self.match_type}>"

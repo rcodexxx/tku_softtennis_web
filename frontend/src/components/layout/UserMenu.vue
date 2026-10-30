@@ -78,7 +78,7 @@
   }
   .user-name {
     font-weight: 700;
-    font-size: 14px;
+    font-size: 16px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -88,7 +88,7 @@
   }
   .user-role {
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 13px;
     letter-spacing: 0.08em;
     color: var(--ink-3);
   }

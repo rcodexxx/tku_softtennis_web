@@ -5,8 +5,8 @@
         <section>
           <h4>分數 1–10</h4>
           <p>
-            每位球員的分數是<b>這個賽季最近 20 場「本場表現」的平均</b>，越近的比賽越重要。每個賽季男生從 5.0、女生從
-            4.0 重新開始，打滿 {{ RATED_MATCHES }} 場之前標示為「評估中」。
+            分數是<b>這個賽季最近 20 場「本場表現」的平均</b>，越近的比賽越重要。每個賽季重新開始：男生 5.0、女生
+            4.0，甲組再加 1 分。
           </p>
         </section>
         <section>
@@ -35,9 +35,7 @@
   </n-collapse>
 </template>
 
-<script setup>
-  import { RATED_MATCHES } from '@/utils/rating'
-</script>
+<script setup></script>
 
 <style scoped>
   .rating-guide {

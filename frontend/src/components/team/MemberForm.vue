@@ -92,6 +92,12 @@
                 filterable
               />
             </n-form-item-gi>
+            <n-form-item-gi span="2 m:1" label="組別">
+              <n-switch v-model:value="form.is_a_division">
+                <template #checked>甲組</template>
+                <template #unchecked>一般組</template>
+              </n-switch>
+            </n-form-item-gi>
             <n-form-item-gi span="2 m:1" label="入隊日期" path="joined_date_ts">
               <n-date-picker v-model:value="form.joined_date_ts" type="date" clearable class="full" />
             </n-form-item-gi>
@@ -162,6 +168,7 @@
     gender: null,
     position: null,
     organization_id: null,
+    is_a_division: false,
     joined_date_ts: null,
     leaved_date_ts: null,
     notes: ''
@@ -195,6 +202,7 @@
       gender: form.gender,
       position: form.position,
       organization_id: form.organization_id,
+      is_a_division: form.is_a_division,
       joined_date: formatDate(form.joined_date_ts),
       notes: form.notes || null,
       display_name: form.display_name || form.name,
@@ -245,6 +253,7 @@
         gender: m.gender,
         position: m.position,
         organization_id: m.organization_id,
+        is_a_division: m.is_a_division ?? false,
         joined_date_ts: dateToTimestamp(m.joined_date),
         leaved_date_ts: dateToTimestamp(m.leaved_date),
         notes: m.notes || ''
@@ -292,12 +301,12 @@
   }
   .identity-sub {
     margin: 4px 0 0;
-    font-size: 13px;
+    font-size: 15px;
     color: var(--color-text-muted);
   }
   .section-title {
     margin: 0 0 14px;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 800;
     letter-spacing: 0.08em;
     color: var(--color-accent);

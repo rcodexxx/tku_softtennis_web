@@ -126,7 +126,7 @@
     color: var(--blue-700);
   }
   .sub {
-    font-size: 13px;
+    font-size: 15px;
     color: var(--color-text-muted);
   }
   .head-score {
@@ -149,7 +149,7 @@
     border-radius: var(--radius-md);
     background: var(--blue-50);
     text-align: center;
-    font-size: 12px;
+    font-size: 14px;
     color: var(--color-text-muted);
   }
   .big {
@@ -185,7 +185,7 @@
   }
   .side {
     white-space: nowrap;
-    font-size: 13px;
+    font-size: 15px;
   }
   .side b {
     font-size: 22px;
@@ -217,7 +217,7 @@
   }
   .compare-note {
     margin: 8px 0 0;
-    font-size: 12px;
+    font-size: 14px;
     color: var(--color-text-muted);
   }
 </style>

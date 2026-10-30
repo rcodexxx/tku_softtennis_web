@@ -129,7 +129,7 @@
   }
   .head h3 {
     margin: 0;
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 800;
     color: var(--blue-900);
   }
@@ -138,7 +138,7 @@
     border-radius: var(--radius-full);
     background: var(--gray-100);
     color: var(--gray-700);
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 700;
   }
   .current .chip {
@@ -147,7 +147,7 @@
   }
   .range {
     margin: 4px 0 6px;
-    font-size: 13px;
+    font-size: 15px;
     color: var(--color-text-muted);
   }
   .empty {

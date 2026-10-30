@@ -93,3 +93,23 @@ def test_leaderboard_recent_form_and_score_change(client, admin_headers, players
     assert by_name["甲"]["score_change"] < 0 < by_name["丙"]["score_change"]
     assert by_name["甲"]["rating"] < 5.0 and by_name["丙"]["rating"] > 4.0
     assert by_name["管理員"]["recent_form"] == [] and by_name["管理員"]["score_change"] is None
+
+
+def test_custom_board_lists_only_its_members(client, admin_headers, member_headers, players):
+    p1, p2, _, _ = players
+    board = data(
+        client.post("/api/boards", headers=admin_headers, json={"name": "打球嗎", "member_ids": [p1.id, p2.id]}), 201
+    )
+    assert {m["name"] for m in board["members"]} == {"甲", "乙"}
+
+    rows = data(client.get("/api/leaderboard", headers=admin_headers, query_string={"board_id": board["id"]}))
+    assert {r["name"] for r in rows} == {"甲", "乙"}
+    # 自訂榜單目前只給幹部看
+    error(client.get("/api/leaderboard", query_string={"board_id": board["id"]}), 401)
+    error(client.get("/api/leaderboard", headers=member_headers, query_string={"board_id": board["id"]}), 403)
+    error(client.get("/api/boards", headers=member_headers), 403)
+
+    data(client.put(f"/api/boards/{board['id']}", headers=admin_headers, json={"member_ids": [p1.id]}))
+    rows = data(client.get("/api/leaderboard", headers=admin_headers, query_string={"board_id": board["id"]}))
+    assert [r["name"] for r in rows] == ["甲"]
+    error(client.post("/api/boards", headers=admin_headers, json={"name": "打球嗎"}), 409)

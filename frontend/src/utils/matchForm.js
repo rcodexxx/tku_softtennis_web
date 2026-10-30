@@ -29,6 +29,8 @@ export function newMatchForm() {
     match_date_ts: Date.now(),
     match_type: 'doubles',
     match_format: 'games_9',
+    category: 'internal',
+    event_id: null,
     player1_id: null,
     player2_id: null,
     player3_id: null,
@@ -58,6 +60,8 @@ export function matchFormFromRecord(record) {
     match_date_ts: dateToTimestamp(record.match_date) ?? Date.now(),
     match_type: record.match_type || 'doubles',
     match_format: record.match_format || 'games_9',
+    category: record.category || 'internal',
+    event_id: record.event?.id ?? null,
     player1_id: record.player1_id ?? null,
     player2_id: record.player2_id ?? null,
     player3_id: record.player3_id ?? null,
@@ -81,6 +85,9 @@ export function matchPayloadFromForm(form) {
     match_date: formatDate(form.match_date_ts),
     match_type: form.match_type,
     match_format: form.match_format,
+    category: form.category || 'internal',
+    // 只有賽事分類才帶賽事
+    event_id: form.category === 'event' ? form.event_id : null,
     player1_id: form.player1_id,
     // 搭檔欄位一律送出（單打時為 null），改成單打時才能清掉原本的搭檔
     player2_id: singles ? null : form.player2_id,

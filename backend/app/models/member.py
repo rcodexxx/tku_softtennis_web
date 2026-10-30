@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Float, ForeignKey, String, Text, and_, exists, or_, select
+from sqlalchemy import Float, ForeignKey, String, Text, exists, false, or_, select
 from sqlalchemy.orm import Mapped, aliased, mapped_column, relationship
 
 from ..domain.rating import starting_rating
@@ -47,9 +47,10 @@ class Member(db.Model):
     last_used_at: Mapped[datetime | None] = mapped_column(comment="最後使用時間（訪客專用）")
     usage_count: Mapped[int | None] = mapped_column(default=0, comment="使用次數（訪客專用）")
 
-    # 隊籍
+    # 隊籍：離隊的人不算校隊，但還會一起打球，所以仍是活躍的球員
     joined_date: Mapped[date | None] = mapped_column(comment="入隊日期")
     leaved_date: Mapped[date | None] = mapped_column(comment="離隊日期")
+    is_a_division: Mapped[bool] = mapped_column(default=False, server_default=false(), comment="是否為甲組")
 
     # 由 rating_service 依比賽紀錄重算；沒打過比賽時為 None
     rating: Mapped[float | None] = mapped_column(Float, comment="分數（1–10）")
@@ -79,12 +80,15 @@ class Member(db.Model):
     @property
     def score(self) -> float:
         """目前分數；還沒打過比賽時用起始分數。"""
-        return self.rating if self.rating is not None else starting_rating(self.gender)
+        return self.rating if self.rating is not None else starting_rating(self.gender, self.is_a_division)
+
+    @property
+    def has_left(self) -> bool:
+        return self.leaved_date is not None
 
     @property
     def is_active(self) -> bool:
-        if self.leaved_date is not None:
-            return False
+        """能不能被選來記錄比賽；只有帳號停用才算不活躍（離隊不算）。"""
         if self.is_guest:
             return True
         return bool(self.user and self.user.is_active)
@@ -94,7 +98,7 @@ class Member(db.Model):
         """SQL 版的 is_active。"""
         account = aliased(User)
         active_user = exists(select(account.id).where(account.id == cls.user_id, account.is_active.is_(True)))
-        return and_(cls.leaved_date.is_(None), or_(cls.is_guest.is_(True), active_user))
+        return or_(cls.is_guest.is_(True), active_user)
 
     @property
     def display_name(self) -> str:

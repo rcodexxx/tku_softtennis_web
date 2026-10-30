@@ -157,7 +157,7 @@
   }
   .team-title {
     margin: 0 0 12px;
-    font-size: 16px;
+    font-size: 17px;
     font-weight: 800;
   }
   .a .team-title {
@@ -172,7 +172,7 @@
   .position {
     display: block;
     margin-bottom: 4px;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 700;
     color: var(--color-text-muted);
   }
@@ -224,7 +224,7 @@
     color: var(--blue-900);
   }
   .picked-sub {
-    font-size: 12px;
+    font-size: 14px;
     color: var(--color-text-muted);
   }
   .swap {

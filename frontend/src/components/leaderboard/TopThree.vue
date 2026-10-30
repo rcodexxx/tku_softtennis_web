@@ -27,7 +27,10 @@
           <PlayerAvatar :id="champion.id" :name="champion.name" :src="champion.avatar_url" :size="72" ring="gold" />
         </span>
         <div class="identity">
-          <span class="name">{{ champion.name }}</span>
+          <span class="name">
+            {{ champion.name }}
+            <span v-if="champion.is_a_division" class="division">甲組</span>
+          </span>
           <span class="hud-label">{{ champion.organization_name || '—' }}</span>
           <span class="readout num">
             {{ champion.wins }}W {{ champion.losses }}L · {{ Math.round(champion.win_rate) }}%
@@ -78,7 +81,10 @@
               :ring="index === 0 ? 'silver' : 'bronze'"
             />
             <div class="identity">
-              <span class="runner-name">{{ player.name }}</span>
+              <span class="runner-name">
+                {{ player.name }}
+                <span v-if="player.is_a_division" class="division">甲組</span>
+              </span>
               <span class="readout num">{{ player.wins }}W {{ player.losses }}L</span>
             </div>
           </div>
@@ -211,8 +217,17 @@
     letter-spacing: 0.04em;
     color: var(--ink);
   }
+  .division {
+    margin-left: 6px;
+    padding: 0 6px;
+    border: 1px solid currentColor;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    vertical-align: 4px;
+  }
   .readout {
-    font-size: 12px;
+    font-size: 14px;
     color: var(--ink-2);
   }
   .champion-score {
@@ -229,7 +244,7 @@
     color: var(--ink);
   }
   .score-meta {
-    font-size: 13px;
+    font-size: 15px;
     color: var(--ink-3);
   }
   .ruler {
@@ -258,7 +273,7 @@
     display: flex;
     justify-content: space-between;
     margin-top: 6px;
-    font-size: 11px;
+    font-size: 13px;
     color: var(--ink-4);
   }
   @keyframes grow {
@@ -293,7 +308,7 @@
     gap: 14px;
   }
   .runner-name {
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 700;
     letter-spacing: 0.04em;
     color: var(--ink);
@@ -315,7 +330,7 @@
     color: var(--ink-4);
   }
   .vacant-text {
-    font-size: 15px;
+    font-size: 17px;
     letter-spacing: 0.2em;
   }
 

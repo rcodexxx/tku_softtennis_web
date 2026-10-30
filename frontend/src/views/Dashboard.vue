@@ -27,7 +27,7 @@
             </template>
             <template v-else>
               <span class="rank-value unranked">未上榜</span>
-              <span class="rank-sub">{{ seasonPrefix }}再打 {{ matchesToQualify }} 場就能上榜</span>
+              <span class="rank-sub">{{ seasonPrefix }}打一場就會上榜</span>
             </template>
           </div>
           <StatCard label="分數" :value="member.rating" :decimals="1" :icon="Trophy" accent="var(--gold-500)" />
@@ -90,9 +90,6 @@
   import { useAuthStore } from '@/stores/authStore'
   import { formatDate } from '@/utils/format'
 
-  // 與首頁排行榜相同的上榜門檻
-  const MIN_MATCHES = 5
-
   const authStore = useAuthStore()
   const { getGenderDisplay, getPositionDisplay } = useOptions()
 
@@ -123,7 +120,6 @@
       .filter(value => typeof value === 'number')
       .reverse()
   )
-  const matchesToQualify = computed(() => Math.max(0, MIN_MATCHES - stats.value.total_matches))
 
   const profileItems = computed(() => [
     { label: '真實姓名', value: member.value.name },
@@ -142,7 +138,7 @@
     try {
       profile.value = await profileApi.get()
       if (member.value) {
-        const board = scope => leaderboardApi.list({ scope, min_matches: MIN_MATCHES, per_page: 500 })
+        const board = scope => leaderboardApi.list({ scope, min_matches: 1, per_page: 500 })
         const [memberStats, team, combined, matches, seasons] = await Promise.all([
           membersApi.stats(member.value.id),
           board('team'),
@@ -205,7 +201,7 @@
     box-shadow: var(--shadow-md);
   }
   .rank-label {
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 700;
   }
   .rank-value {
@@ -218,7 +214,7 @@
     font-weight: 800;
   }
   .rank-sub {
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 600;
     opacity: 0.75;
   }
@@ -253,7 +249,7 @@
     margin: 0;
   }
   .profile-list dt {
-    font-size: 12px;
+    font-size: 14px;
     color: var(--color-text-muted);
   }
   .profile-list dd {

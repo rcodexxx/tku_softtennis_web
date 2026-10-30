@@ -70,7 +70,13 @@ export function themeOverridesFor(mode) {
       borderRadiusSmall: '2px',
       fontFamily: fontSans,
       fontFamilyMono: fontMono,
-      fontSize: '14px'
+      fontSize: '16px',
+      fontSizeMini: '13px',
+      fontSizeTiny: '14px',
+      fontSizeSmall: '15px',
+      fontSizeMedium: '16px',
+      fontSizeLarge: '17px',
+      fontSizeHuge: '18px'
     },
     Button: {
       fontWeight: '500',

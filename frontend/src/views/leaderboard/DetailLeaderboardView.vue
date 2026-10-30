@@ -250,7 +250,7 @@
     box-shadow: var(--shadow-sm);
   }
   .distribution-title {
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 600;
     color: var(--color-text-muted);
   }
@@ -275,7 +275,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 4px 12px;
-    font-size: 12px;
+    font-size: 14px;
     color: var(--gray-700);
   }
   .toolbar {
@@ -353,7 +353,7 @@
     color: var(--blue-900);
   }
   .detail-table :deep(.cell-player-sub) {
-    font-size: 12px;
+    font-size: 14px;
     color: var(--color-text-muted);
   }
   .detail-table :deep(.guest-tag) {
@@ -362,7 +362,7 @@
     border-radius: var(--radius-full);
     background: var(--gold-100);
     color: var(--accent-text);
-    font-size: 11px;
+    font-size: 13px;
   }
   .detail-table :deep(.cell-score) {
     display: flex;
@@ -380,11 +380,11 @@
     border-radius: var(--radius-full);
     background: var(--gold-100);
     color: var(--accent-text);
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 700;
   }
   .detail-table :deep(.cell-number) {
-    font-size: 18px;
+    font-size: 20px;
     color: var(--gray-700);
   }
   .detail-table :deep(.cell-bar) {
@@ -407,10 +407,10 @@
   .detail-table :deep(.cell-bar-text) {
     width: 40px;
     text-align: right;
-    font-size: 16px;
+    font-size: 17px;
   }
   .detail-table :deep(.cell-record) {
-    font-size: 18px;
+    font-size: 20px;
   }
   .detail-table :deep(.cell-record .win) {
     color: var(--color-win);

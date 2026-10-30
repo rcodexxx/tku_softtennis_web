@@ -113,3 +113,22 @@ def players(app):
     p3 = make_user("0920000003", name="丙", gender=GenderEnum.FEMALE).member_profile
     p4 = make_user("0920000004", name="丁", gender=GenderEnum.FEMALE).member_profile
     return p1, p2, p3, p4
+
+
+@pytest.fixture()
+def orgs(app):
+    team, alumni = make_org("淡江大學軟網隊"), make_org("校友會")
+    app.config.update(TEAM_ORGANIZATION_ID=team.id, ALUMNI_ORGANIZATION_ID=alumni.id)
+    return team, alumni
+
+
+@pytest.fixture()
+def team_players(orgs):
+    team, _ = orgs
+    return tuple(
+        make_user(f"092000000{i}", name=name, gender=gender, organization_id=team.id).member_profile
+        for i, (name, gender) in enumerate(
+            [("甲", GenderEnum.MALE), ("乙", GenderEnum.MALE), ("丙", GenderEnum.FEMALE), ("丁", GenderEnum.FEMALE)],
+            start=1,
+        )
+    )

@@ -326,7 +326,7 @@
     color: var(--blue-900);
   }
   .tile-sub {
-    font-size: 12px;
+    font-size: 14px;
     color: var(--color-text-muted);
     white-space: nowrap;
     overflow: hidden;
@@ -337,7 +337,7 @@
     border-radius: var(--radius-full);
     background: var(--gold-100);
     color: var(--accent-text);
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 600;
   }
   .check {
@@ -354,7 +354,7 @@
   }
   .guest-notes {
     margin-top: 2px;
-    font-size: 12px;
+    font-size: 14px;
     color: var(--gray-700);
   }
   .empty {

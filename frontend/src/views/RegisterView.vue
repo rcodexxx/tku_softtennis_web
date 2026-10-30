@@ -69,7 +69,7 @@
   }
   .hint {
     margin: -4px 0 20px;
-    font-size: 13px;
+    font-size: 15px;
   }
   .switch {
     margin-top: 28px;

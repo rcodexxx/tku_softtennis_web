@@ -20,7 +20,7 @@
     display: inline-flex;
     align-items: center;
     gap: 2px;
-    font-size: 15px;
+    font-size: 17px;
     font-weight: 600;
   }
   .arrow {

@@ -75,6 +75,19 @@ const routes = [
     meta: { roles: STAFF, fullscreen: true, beta: true }
   },
   {
+    path: '/events',
+    name: 'Events',
+    component: () => import('@/views/match/EventsView.vue'),
+    meta: { roles: STAFF }
+  },
+  {
+    path: '/events/:id',
+    name: 'EventDetail',
+    component: () => import('@/views/match/EventDetailView.vue'),
+    props: route => ({ eventId: route.params.id }),
+    meta: { roles: STAFF }
+  },
+  {
     path: '/matches/management',
     name: 'MatchManagement',
     component: () => import('@/views/match/MatchManagementCenterView.vue'),
@@ -91,6 +104,12 @@ const routes = [
     name: 'AddMember',
     component: () => import('@/views/team/MemberFormView.vue'),
     props: { mode: 'add' },
+    meta: { roles: STAFF }
+  },
+  {
+    path: '/management/roster',
+    name: 'Roster',
+    component: () => import('@/views/team/RosterView.vue'),
     meta: { roles: STAFF }
   },
   {

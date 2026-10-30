@@ -42,7 +42,7 @@
     justify-content: center;
     gap: 4px;
     color: var(--ink-3);
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 600;
     letter-spacing: 0.06em;
     transition: color var(--duration-fast);

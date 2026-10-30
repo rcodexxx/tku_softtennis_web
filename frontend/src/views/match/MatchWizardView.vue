@@ -33,6 +33,9 @@
                 <n-form-item label="比賽日期">
                   <n-date-picker v-model:value="form.match_date_ts" type="date" class="full" />
                 </n-form-item>
+                <n-form-item label="分類">
+                  <MatchCategoryPicker v-model:category="form.category" v-model:event-id="form.event_id" />
+                </n-form-item>
                 <n-form-item label="比賽類型">
                   <div class="choices">
                     <button
@@ -43,7 +46,7 @@
                       :class="{ active: form.match_type === option.value }"
                       @click="form.match_type = option.value"
                     >
-                      <span class="choice-icon">{{ option.value === 'singles' ? '👤' : '👥' }}</span>
+                      <n-icon class="choice-icon" :component="option.value === 'singles' ? User : UserMultiple" />
                       {{ option.label }}
                     </button>
                   </div>
@@ -155,9 +158,10 @@
   import { computed, onMounted, ref, watch } from 'vue'
   import { useRouter } from 'vue-router'
   import { useMessage } from 'naive-ui'
-  import { ArrowLeft, ArrowRight, Layers } from '@vicons/carbon'
+  import { ArrowLeft, ArrowRight, Layers, User, UserMultiple } from '@vicons/carbon'
   import { matchesApi, membersApi } from '@/api'
   import PageHeader from '@/components/base/PageHeader.vue'
+  import MatchCategoryPicker from '@/components/match/MatchCategoryPicker.vue'
   import GameScoreEditor from '@/components/match/GameScoreEditor.vue'
   import MatchScoreboard from '@/components/match/MatchScoreboard.vue'
   import TeamsPicker from '@/components/match/TeamsPicker.vue'
@@ -206,7 +210,10 @@
 
   /** 每一步離開前的檢查，回傳錯誤訊息或空字串。 */
   const validators = [
-    () => (!form.value.match_date_ts ? '請選擇比賽日期' : ''),
+    () => {
+      if (!form.value.match_date_ts) return '請選擇比賽日期'
+      return form.value.category === 'event' && !form.value.event_id ? '請選擇賽事' : ''
+    },
     () => {
       const f = form.value
       const needed =

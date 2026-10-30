@@ -51,7 +51,7 @@
     gap: 8px;
   }
   .label {
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 700;
     color: var(--gray-500);
   }
@@ -59,7 +59,7 @@
     color: var(--red-500);
   }
   .serve {
-    font-size: 15px;
+    font-size: 17px;
     opacity: 0.12;
     filter: grayscale(1);
     text-align: center;
@@ -87,7 +87,7 @@
     display: flex;
     align-items: center;
     padding: 0 10px;
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 700;
     color: var(--gray-500);
     background: var(--gray-100);

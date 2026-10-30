@@ -1,6 +1,8 @@
 from flask import Blueprint
+from flask_jwt_extended import verify_jwt_in_request
 
-from ..core.errors import ValidationError
+from ..core.auth import get_current_user, is_staff
+from ..core.errors import PermissionDeniedError, ValidationError
 from ..core.requests import load_args
 from ..core.responses import ok
 from ..schemas.leaderboard import LeaderboardQuerySchema, SeasonQuerySchema
@@ -16,7 +18,10 @@ season_schema = SeasonSchema()
 
 @bp.get("")
 def get_leaderboard():
-    season, page = leaderboard_service.leaderboard(load_args(LeaderboardQuerySchema()))
+    params = load_args(LeaderboardQuerySchema())
+    if params.get("board_id"):
+        _require_staff()
+    season, page = leaderboard_service.leaderboard(params)
     rows = [
         {**member_schema.dump(e.member), **e.stats.to_dict(), "rating": round(e.score, 2), "rank": e.rank}
         for e in page.items
@@ -41,3 +46,10 @@ def compare(member1_id: int, member2_id: int):
             "comparison": result["comparison"],
         }
     )
+
+
+def _require_staff() -> None:
+    """自訂榜單目前只給幹部看。"""
+    verify_jwt_in_request()
+    if not is_staff(get_current_user()):
+        raise PermissionDeniedError()

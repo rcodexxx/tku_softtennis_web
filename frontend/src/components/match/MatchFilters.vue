@@ -23,6 +23,14 @@
       @update:value="value => set('result', value)"
     />
     <n-select
+      :value="filters.category"
+      :options="MATCH_CATEGORIES"
+      clearable
+      placeholder="分類"
+      class="filter small"
+      @update:value="value => set('category', value)"
+    />
+    <n-select
       :value="filters.match_type"
       :options="matchTypeOptions"
       clearable
@@ -50,6 +58,7 @@
 </template>
 
 <script setup>
+  import { MATCH_CATEGORIES } from '@/utils/matchCategory'
   import { computed } from 'vue'
   import { useOptions } from '@/composables/useOptions'
 
@@ -65,7 +74,7 @@
 
   const active = computed(() => {
     const f = props.filters
-    return Boolean(f.player_ids.length || f.result || f.match_type || f.match_format || f.date_range)
+    return Boolean(f.player_ids.length || f.result || f.category || f.match_type || f.match_format || f.date_range)
   })
 
   const set = (key, value) => {

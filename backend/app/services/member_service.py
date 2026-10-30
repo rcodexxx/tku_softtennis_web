@@ -22,6 +22,7 @@ MEMBER_FIELDS = (
     "racket_id",
     "joined_date",
     "leaved_date",
+    "is_a_division",
     "notes",
 )
 
@@ -95,8 +96,8 @@ def update_member(actor: User, member_id: int, data: dict) -> Member:
             if field in data:
                 setattr(member.user, field, data[field])
 
-    if "gender" in data:
-        # 起始分數依性別而定
+    if "gender" in data or "is_a_division" in data:
+        # 起始分數依性別與甲組而定
         rating_service.recalculate_all()
     db.session.commit()
     return member

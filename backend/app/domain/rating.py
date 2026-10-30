@@ -8,6 +8,9 @@
 
 個人分數 = 最近 20 場本場表現的加權平均（越新越重），再加上一筆起始分數當作 3 場的份量，
 讓剛開始打的人分數不會大起大落。只看局數比例，所以輸給強隊但比分接近也會加分。
+
+校外對手（訪客）的實力一開始不知道，系統只能先用起始分數猜。所以對上還不熟的訪客時，
+這場對我方分數的影響打折：第 1 次碰到算 1/3、第 2 次 2/3、第 3 次起照常；訪客自己的分數照常更新。
 """
 
 import math
@@ -21,18 +24,25 @@ MAX_RATING = 10.0
 # 起始分數：男女實力差距大，女生從比較低的分數開始，對戰男生時的預期才合理
 STARTING_RATINGS = {GenderEnum.MALE: 5.0, GenderEnum.FEMALE: 4.0}
 DEFAULT_STARTING_RATING = 4.5
+# 甲組和一般組的差距和男女差不多，所以同性別的甲組多 1 分起算
+A_DIVISION_BONUS = 1.0
 STARTING_WEIGHT = 3.0
 
 # 差 1 分 → 強隊預期拿 70% 的局數
 SCALE = 1 / math.log(0.7 / 0.3)
 MAX_SWING = 1.5
 WINDOW = 20
-# 少於這個場數的分數還不穩定，顯示為「評估中」
-RATED_MATCHES = 5
+# 訪客打滿這麼多場後，系統才算「認識」他
+FAMILIAR_MATCHES = 3
 
 
-def starting_rating(gender: GenderEnum | None) -> float:
-    return STARTING_RATINGS.get(gender, DEFAULT_STARTING_RATING)
+def starting_rating(gender: GenderEnum | None, a_division: bool = False) -> float:
+    return STARTING_RATINGS.get(gender, DEFAULT_STARTING_RATING) + (A_DIVISION_BONUS if a_division else 0.0)
+
+
+def familiarity(prior_matches: int) -> float:
+    """對一位訪客的了解程度（0–1）：之前跟我們打過幾場。"""
+    return min(1.0, (prior_matches + 1) / FAMILIAR_MATCHES)
 
 
 def team_rating(ratings: Sequence[float]) -> float:

@@ -21,7 +21,16 @@ const ITEMS = [
     label: '記錄',
     icon: Edit,
     staff: true,
-    routes: ['MatchManagement', 'RecordMatch', 'BatchRecordMatch', 'ViewMatch', 'EditMatch', 'RefereeMode']
+    routes: [
+      'MatchManagement',
+      'RecordMatch',
+      'BatchRecordMatch',
+      'ViewMatch',
+      'EditMatch',
+      'RefereeMode',
+      'Events',
+      'EventDetail'
+    ]
   },
   {
     name: 'ManagementCenter',
@@ -29,7 +38,7 @@ const ITEMS = [
     label: '管理',
     icon: Settings,
     staff: true,
-    routes: ['ManagementCenter', 'AddMember', 'EditMember', 'NewSeason']
+    routes: ['ManagementCenter', 'AddMember', 'EditMember', 'NewSeason', 'Roster']
   }
 ]
 

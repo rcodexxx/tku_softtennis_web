@@ -1,7 +1,6 @@
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 
-from flask import current_app
 from sqlalchemy import func, select
 from sqlalchemy.orm import joinedload
 
@@ -11,7 +10,7 @@ from ..domain import rating as rating_domain
 from ..enums import MatchOutcomeEnum
 from ..extensions import db
 from ..models import Match, MatchRecord, Member, Organization, Season
-from . import rating_service, season_service
+from . import board_service, rating_service, roster_service, season_service
 
 RECENT_FORM_SIZE = 5
 
@@ -134,9 +133,7 @@ def leaderboard(params: dict) -> tuple[Season | None, Page]:
     return season, paginate_list(entries, params["page"], params["per_page"])
 
 
-def _leaderboard_members(params: dict, season: Season | None, current: bool) -> list[Member]:
-    # 舊賽季照封存的名單分組，並列出當時有上場的所有人（包含之後離隊的）
-    roster = {} if current else {r.member_id: r.organization_id for r in season.rosters}
+def _member_query(params: dict, current: bool):
     stmt = select(Member).options(joinedload(Member.user), joinedload(Member.organization))
     if not params["include_guests"]:
         stmt = stmt.where(Member.is_guest.is_(False))
@@ -146,22 +143,34 @@ def _leaderboard_members(params: dict, season: Season | None, current: bool) -> 
         stmt = stmt.where(Member.gender == params["gender"])
     if params.get("joined_after"):
         stmt = stmt.where(Member.joined_date >= params["joined_after"])
+    return stmt
 
-    def organization_of(member: Member) -> int | None:
-        return roster.get(member.id, member.organization_id)
 
+def _leaderboard_members(params: dict, season: Season | None, current: bool) -> list[Member]:
+    # 舊賽季照封存的名單分組，並列出當時有上場的所有人
+    roster = {} if current else {r.member_id: (r.organization_id, r.has_left) for r in season.rosters}
+    stmt = _member_query(params, current)
+
+    def standing(member: Member) -> tuple[int | None, bool]:
+        return roster.get(member.id, (member.organization_id, member.has_left))
+
+    def in_scope(member: Member) -> bool:
+        organization, has_left = standing(member)
+        if params["scope"] == "team":
+            # 離隊的人不算校隊
+            return organization == team and not has_left
+        return organization in (team, alumni)
+
+    team, alumni = roster_service.organization_ids()
     members = list(db.session.scalars(stmt).unique())
+    if params.get("board_id"):
+        listed = {m.id for m in board_service.get_board(params["board_id"]).members}
+        return [m for m in members if m.id in listed]
     if params["scope"] != "all":
-        allowed = _scope_organizations(params["scope"])
-        members = [m for m in members if organization_of(m) in allowed]
+        members = [m for m in members if in_scope(m)]
     if params.get("organization_id"):
-        members = [m for m in members if organization_of(m) == params["organization_id"]]
+        members = [m for m in members if standing(m)[0] == params["organization_id"]]
     return members
-
-
-def _scope_organizations(scope: str) -> list[int]:
-    team = current_app.config["TEAM_ORGANIZATION_ID"]
-    return [team] if scope == "team" else [team, current_app.config["ALUMNI_ORGANIZATION_ID"]]
 
 
 def _sort_key(sort_by: str):

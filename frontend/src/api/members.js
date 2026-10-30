@@ -6,6 +6,10 @@ export default {
   list: params => apiClient.get('/members', { params }).then(unwrap),
   get: id => apiClient.get(`/members/${id}`).then(unwrap),
   stats: id => apiClient.get(`/members/${id}/stats`).then(unwrap),
+  /** 名單整理：校隊與校友會的隊員，status 為 team／alumni（已畢業）／left（已離隊）。 */
+  roster: () => apiClient.get('/members/roster').then(unwrap),
+  /** roster：[{ member_id, status }] */
+  updateRoster: roster => apiClient.put('/members/roster', { roster }).then(unwrap),
   create: data => apiClient.post('/members', data).then(unwrap),
   update: (id, data) => apiClient.put(`/members/${id}`, data).then(unwrap),
   remove: id => apiClient.delete(`/members/${id}`),

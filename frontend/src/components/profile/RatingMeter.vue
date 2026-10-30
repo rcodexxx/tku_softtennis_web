@@ -2,9 +2,7 @@
   <div class="meter">
     <div class="meter-head">
       <span class="value num">{{ formatRating(rating) }}</span>
-      <span class="status" :class="{ rated }">
-        {{ rated ? '正式分數' : `評估中・${totalMatches ?? 0}/${RATED_MATCHES} 場` }}
-      </span>
+      <span class="status num">本季 {{ totalMatches ?? 0 }} 場</span>
     </div>
 
     <div class="track" aria-hidden="true">
@@ -44,21 +42,19 @@
 
 <script setup>
   import { computed } from 'vue'
-  import { formatRating, isRated, RATED_MATCHES, ratingPercent } from '@/utils/rating'
+  import { formatRating, ratingPercent } from '@/utils/rating'
 
   const TICKS = [1, 4, 7, 10]
   const WIDTH = 300
   const HEIGHT = 72
   const PADDING = 8
 
-  /** 分數、是否已打滿上榜場數，以及最近幾場的本場表現（舊到新，可省略）。 */
+  /** 分數、本季場數，以及最近幾場的本場表現（舊到新，可省略）。 */
   const props = defineProps({
     rating: { type: Number, default: null },
     totalMatches: { type: Number, default: 0 },
     performances: { type: Array, default: () => [] }
   })
-
-  const rated = computed(() => isRated(props.totalMatches))
 
   const range = computed(() => {
     const values = [...props.performances, props.rating].filter(v => typeof v === 'number')
@@ -101,7 +97,7 @@
     border-radius: var(--radius-full);
     background: var(--gold-100);
     color: var(--accent-text);
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 700;
   }
   .status.rated {
@@ -139,7 +135,7 @@
     display: flex;
     justify-content: space-between;
     margin-top: 4px;
-    font-size: 12px;
+    font-size: 14px;
     color: var(--gray-400);
   }
 
@@ -148,7 +144,7 @@
   }
   .trend figcaption {
     margin-bottom: 6px;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 700;
     color: var(--gray-700);
   }
@@ -186,7 +182,7 @@
     flex-wrap: wrap;
     gap: 6px;
     margin: 6px 0 0;
-    font-size: 12px;
+    font-size: 14px;
     color: var(--color-text-muted);
   }
   .legend-line {
@@ -210,7 +206,7 @@
   }
   .hint {
     margin: 14px 0 0;
-    font-size: 12px;
+    font-size: 14px;
     color: var(--color-text-muted);
   }
 

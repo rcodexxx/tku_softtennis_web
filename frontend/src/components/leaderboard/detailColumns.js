@@ -1,7 +1,7 @@
 import { h } from 'vue'
 import PlayerAvatar from '@/components/base/PlayerAvatar.vue'
 import { formatDate } from '@/utils/format'
-import { formatRating, isRated } from '@/utils/rating'
+import { formatRating } from '@/utils/rating'
 import RecentForm from './RecentForm.vue'
 import ScoreChange from './ScoreChange.vue'
 
@@ -51,9 +51,7 @@ export function detailColumns() {
       render: row =>
         h('div', { class: 'cell-score' }, [
           h('span', { class: 'num cell-score-value' }, formatRating(row.rating)),
-          isRated(row.total_matches)
-            ? h(ScoreChange, { change: row.score_change })
-            : h('span', { class: 'cell-provisional' }, '評估中')
+          h(ScoreChange, { change: row.score_change })
         ])
     },
     {

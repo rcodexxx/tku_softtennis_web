@@ -51,7 +51,7 @@
   .subtitle {
     margin: 6px 0 0;
     color: var(--color-text-muted);
-    font-size: 14px;
+    font-size: 16px;
   }
   .actions {
     display: flex;

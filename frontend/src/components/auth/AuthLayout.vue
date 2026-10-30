@@ -143,7 +143,7 @@
   }
   .brand-copy p {
     margin: 10px 0 0;
-    font-size: 18px;
+    font-size: 20px;
     color: var(--blue-200);
   }
   .form-panel {
@@ -160,7 +160,7 @@
   .back-link {
     display: inline-block;
     margin-bottom: 28px;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 600;
     color: var(--color-text-muted);
   }
@@ -190,7 +190,7 @@
       font-size: 32px;
     }
     .brand-copy p {
-      font-size: 15px;
+      font-size: 17px;
     }
     .court {
       inset: 10% 6% 20% 6%;

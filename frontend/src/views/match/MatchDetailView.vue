@@ -184,7 +184,7 @@
     color: var(--blue-900);
   }
   .serve-rate {
-    font-size: 12px;
+    font-size: 14px;
     color: var(--color-text-muted);
   }
   .info {
@@ -194,7 +194,7 @@
     margin: 0;
   }
   .info dt {
-    font-size: 12px;
+    font-size: 14px;
     color: var(--color-text-muted);
   }
   .info dd {

@@ -260,7 +260,7 @@
     position: absolute;
     top: 10px;
     right: 12px;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 800;
     color: var(--accent-text);
     animation: stagger-in var(--duration-base) var(--ease-spring) both;
@@ -268,7 +268,7 @@
   .rule {
     margin: 10px 0 20px;
     text-align: center;
-    font-size: 13px;
+    font-size: 15px;
     color: var(--color-text-muted);
   }
   .serve-picker {
@@ -314,7 +314,7 @@
     opacity: 0.45;
   }
   .game-label {
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 700;
     color: var(--gray-500);
   }
@@ -335,11 +335,11 @@
   .stepper :deep(input) {
     text-align: center;
     font-family: var(--font-number);
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 600;
   }
   .game-status {
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 700;
     text-align: right;
     color: var(--gray-500);
@@ -355,7 +355,7 @@
   }
   .hint {
     margin: 12px 0 0;
-    font-size: 12px;
+    font-size: 14px;
     color: var(--color-text-muted);
   }
   @media (max-width: 640px) {

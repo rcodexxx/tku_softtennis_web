@@ -26,7 +26,10 @@
         <span class="col-player">
           <PlayerAvatar :id="player.id" :name="player.name" :src="player.avatar_url" :size="34" />
           <span class="player-text">
-            <span class="player-name">{{ player.name }}</span>
+            <span class="player-name">
+              {{ player.name }}
+              <span v-if="player.is_a_division" class="division">甲組</span>
+            </span>
             <span class="player-sub">{{ player.organization_name || (player.is_guest ? '訪客' : '隊員') }}</span>
           </span>
         </span>
@@ -39,8 +42,7 @@
         <span class="col-score">
           <template v-if="player.total_matches">
             <span class="score num">{{ formatRating(player.rating) }}</span>
-            <span v-if="!isRated(player.total_matches)" class="provisional">評估中</span>
-            <ScoreChange v-else :change="player.score_change" />
+            <ScoreChange :change="player.score_change" />
           </template>
           <span v-else class="score num muted">—</span>
         </span>
@@ -53,7 +55,7 @@
   import PlayerAvatar from '@/components/base/PlayerAvatar.vue'
   import RecentForm from './RecentForm.vue'
   import ScoreChange from './ScoreChange.vue'
-  import { formatRating, isRated } from '@/utils/rating'
+  import { formatRating } from '@/utils/rating'
 
   /** players 需帶 rank（沒有名次時為 null，顯示「—」）。 */
   defineProps({
@@ -83,7 +85,7 @@
     height: 36px;
     border-bottom: 1px solid var(--line);
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 13px;
     letter-spacing: 0.1em;
     color: var(--ink-3);
   }
@@ -130,7 +132,7 @@
     transition: transform var(--duration-slow) var(--ease-out);
   }
   .rank {
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 500;
     color: var(--ink-3);
   }
@@ -159,9 +161,18 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
+  .division {
+    margin-left: 6px;
+    padding: 0 5px;
+    border: 1px solid var(--ink-2);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-2);
+    vertical-align: 2px;
+  }
   .player-sub {
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 13px;
     letter-spacing: 0.06em;
     color: var(--ink-3);
   }
@@ -192,12 +203,12 @@
     width: 38px;
     text-align: right;
     font-family: var(--font-mono);
-    font-size: 13px;
+    font-size: 15px;
     color: var(--ink-2);
   }
   .col-matches {
     font-family: var(--font-mono);
-    font-size: 14px;
+    font-size: 16px;
     color: var(--ink-2);
     text-align: center;
   }
@@ -215,18 +226,11 @@
   .score.muted {
     color: var(--ink-4);
   }
-  .provisional {
-    padding: 1px 6px;
-    border: 1px solid var(--accent-soft);
-    color: var(--accent-text);
-    font-family: var(--font-mono);
-    font-size: 11px;
-  }
   .ranking-head .col-score {
     text-align: right;
   }
   .ranking-head .col-matches {
-    font-size: 11px;
+    font-size: 13px;
     color: inherit;
   }
 

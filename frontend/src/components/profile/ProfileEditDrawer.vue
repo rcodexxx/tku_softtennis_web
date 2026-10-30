@@ -132,7 +132,7 @@
 <style scoped>
   .section {
     margin: 4px 0 12px;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 800;
     letter-spacing: 0.08em;
     color: var(--color-accent);

@@ -98,7 +98,7 @@
     padding: 2px 12px;
     border-radius: var(--radius-full);
     background: color-mix(in srgb, var(--bg) 14%, transparent);
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 600;
   }
   .board {
@@ -157,7 +157,7 @@
   .names {
     display: flex;
     flex-direction: column;
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 800;
   }
   .placeholder {
@@ -193,7 +193,7 @@
       gap: 8px;
     }
     .names {
-      font-size: 14px;
+      font-size: 16px;
     }
     .score {
       font-size: 48px;

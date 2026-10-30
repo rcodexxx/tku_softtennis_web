@@ -10,6 +10,11 @@ def test_starting_rating_depends_on_gender():
     assert rating.starting_rating(None) == rating.DEFAULT_STARTING_RATING
 
 
+def test_a_division_starts_like_one_gender_step_higher():
+    assert rating.starting_rating(GenderEnum.MALE, a_division=True) == 6.0
+    assert rating.starting_rating(GenderEnum.FEMALE, a_division=True) == 5.0
+
+
 def test_one_point_gap_expects_seventy_percent_of_games():
     assert rating.expected_share(6.0, 5.0) == pytest.approx(0.7)
     assert rating.expected_share(5.0, 5.0) == pytest.approx(0.5)

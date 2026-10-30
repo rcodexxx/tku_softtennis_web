@@ -35,7 +35,7 @@ a {
 /* HUD 標籤：等寬小字、字距加寬，例如「RK-01」「S-115」 */
 .hud-label {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;

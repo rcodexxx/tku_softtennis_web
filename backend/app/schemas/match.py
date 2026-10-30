@@ -4,6 +4,7 @@ from ..domain import scoring
 from ..enums import (
     CourtEnvironmentEnum,
     CourtSurfaceEnum,
+    MatchCategoryEnum,
     MatchFormatEnum,
     MatchOutcomeEnum,
     MatchStartServeEnum,
@@ -12,6 +13,7 @@ from ..enums import (
 )
 from ..models.match_record import MAX_GAMES
 from .common import BaseSchema, EnumField, InputSchema, IntList, PageQuerySchema
+from .event import EventBriefSchema
 from .member import PlayerBriefSchema
 
 MAX_BATCH_SIZE = 50
@@ -26,6 +28,9 @@ class MatchRecordInputSchema(InputSchema):
     match_date = fields.Date(required=True)
     match_type = EnumField(MatchTypeEnum, required=True)
     match_format = EnumField(MatchFormatEnum, required=True)
+    # 隊內／校外友誼／賽事；選了賽事時分類自動為 event
+    category = EnumField(MatchCategoryEnum)
+    event_id = fields.Int(allow_none=True, validate=validate.Range(min=1))
 
     player1_id = fields.Int(required=True, validate=validate.Range(min=1))
     player2_id = fields.Int(allow_none=True, validate=validate.Range(min=1))
@@ -90,6 +95,8 @@ class MatchRecordSchema(BaseSchema):
     match_date = fields.Date(attribute="match.match_date")
     match_type = EnumField(MatchTypeEnum, attribute="match.match_type")
     match_format = EnumField(MatchFormatEnum, attribute="match.match_format")
+    category = EnumField(MatchCategoryEnum, attribute="match.category")
+    event = fields.Nested(EventBriefSchema, attribute="match.event", allow_none=True)
     time_slot = EnumField(MatchTimeSlotEnum, attribute="match.match_time_slot", allow_none=True)
     court_surface = EnumField(CourtSurfaceEnum, attribute="match.court_surface", allow_none=True)
     court_environment = EnumField(CourtEnvironmentEnum, attribute="match.court_environment", allow_none=True)
@@ -122,6 +129,8 @@ class MatchQuerySchema(PageQuerySchema):
     end_date = fields.Date()
     match_type = EnumField(MatchTypeEnum)
     match_format = EnumField(MatchFormatEnum)
+    category = EnumField(MatchCategoryEnum)
+    event_id = fields.Int(validate=validate.Range(min=1))
     player_id = fields.Int(validate=validate.Range(min=1))
     # 比賽必須包含所有指定球員
     player_ids = IntList()

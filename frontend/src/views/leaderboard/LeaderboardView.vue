@@ -25,7 +25,7 @@
     <div class="controls">
       <div class="scopes" role="tablist" aria-label="排行榜範圍">
         <button
-          v-for="option in SCOPES"
+          v-for="option in scopeTabs"
           :key="option.value"
           type="button"
           role="tab"
@@ -35,6 +35,7 @@
           @click="setBoard({ scope: option.value })"
         >
           <span class="scope-label">{{ option.label }}</span>
+          <span v-if="option.custom" class="custom-mark" aria-hidden="true">◆</span>
         </button>
       </div>
       <div class="genders" role="group" aria-label="性別">
@@ -86,7 +87,7 @@
         <span class="corner tl"></span>
         <span class="corner br"></span>
         <span class="hud-label">Rank // Pending</span>
-        <p class="awaiting-title">尚無人打滿 {{ MIN_MATCHES }} 場</p>
+        <p class="awaiting-title">本季還沒有比賽</p>
         <n-button v-if="previousSeason && !viewingPast" size="small" @click="setBoard({ season: previousSeason.id })">
           看 {{ previousSeason.name }}
         </n-button>
@@ -94,9 +95,7 @@
 
       <section v-if="restRanked.length || keyword" class="section">
         <div class="section-head">
-          <span class="hud-label">{{
-            keyword ? '搜尋結果' : `Rank 04 – ${String(board.ranked.length).padStart(2, '0')}`
-          }}</span>
+          <span class="hud-label">{{ keyword ? '搜尋結果' : '名單' }}</span>
           <span class="rule"></span>
           <n-input v-model:value="keyword" placeholder="搜尋球員" clearable size="small" class="search">
             <template #prefix><n-icon :component="Search" /></template>
@@ -104,14 +103,6 @@
         </div>
         <RankingList v-if="restRanked.length" :players="restRanked" :highlight-id="myId" @select="selected = $event" />
         <p v-else class="no-match">沒有符合的球員</p>
-      </section>
-
-      <section v-if="unranked.length" class="section">
-        <div class="section-head">
-          <span class="hud-label">評估中 · 未滿 {{ MIN_MATCHES }} 場</span>
-          <span class="rule"></span>
-        </div>
-        <RankingList :players="unranked" :highlight-id="myId" @select="selected = $event" />
       </section>
     </div>
 
@@ -126,17 +117,17 @@
   import { computed, onMounted, ref, watch } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import { Analytics, Archive, Search } from '@vicons/carbon'
-  import { leaderboardApi } from '@/api'
+  import { boardsApi, leaderboardApi } from '@/api'
   import PlayerDetailModal from '@/components/leaderboard/PlayerDetailModal.vue'
   import RankingList from '@/components/leaderboard/RankingList.vue'
   import RatingGuide from '@/components/leaderboard/RatingGuide.vue'
   import TopThree from '@/components/leaderboard/TopThree.vue'
+  import { usePermissions } from '@/composables/usePermissions'
   import { useSeasons } from '@/composables/useSeasons'
   import { useAuthStore } from '@/stores/authStore'
   import { organizationLabel } from '@/utils/player'
-  import { RATED_MATCHES, rankPlayers } from '@/utils/rating'
+  import { rankPlayers } from '@/utils/rating'
 
-  const MIN_MATCHES = RATED_MATCHES
   const SCOPES = [
     { value: 'team', label: '校隊' },
     { value: 'combined', label: '綜合' }
@@ -150,6 +141,7 @@
   const router = useRouter()
   const route = useRoute()
   const authStore = useAuthStore()
+  const { hasManagementAccess } = usePermissions()
   const {
     seasons,
     current: currentSeason,
@@ -166,7 +158,18 @@
   const myId = computed(() => authStore.user?.member_id ?? null)
 
   // 目前的排行榜存在網址上，方便分享
-  const scope = computed(() => (SCOPES.some(s => s.value === route.query.scope) ? route.query.scope : 'team'))
+  // 自訂榜單（例如「打球嗎」）目前只給幹部看，分頁值為 board:<id>
+  const boards = ref([])
+  const scopeTabs = computed(() => [
+    ...SCOPES,
+    ...boards.value.map(board => ({ value: `board:${board.id}`, label: board.name, custom: true }))
+  ])
+  const scope = computed(() => {
+    const requested = route.query.scope
+    if (SCOPES.some(s => s.value === requested)) return requested
+    return /^board:\d+$/.test(requested ?? '') && hasManagementAccess.value ? requested : 'team'
+  })
+  const boardId = computed(() => (scope.value.startsWith('board:') ? Number(scope.value.slice(6)) : null))
   const gender = computed(() => (['male', 'female'].includes(route.query.gender) ? route.query.gender : null))
   // 沒指定賽季時看目前賽季
   const seasonId = computed(() => Number(route.query.season) || null)
@@ -193,11 +196,12 @@
   const board = computed(() => rankPlayers(players.value))
 
   const matches = player => player.name.toLowerCase().includes(keyword.value.trim().toLowerCase())
-  // 前三名在上面另外顯示；搜尋時列出所有符合的已排名球員
+  // 前三名在上面另外顯示；其他人依名次排下來，還沒比賽的在最後。搜尋時列出所有符合的人
   const restRanked = computed(() =>
-    keyword.value.trim() ? board.value.ranked.filter(matches) : board.value.ranked.slice(3)
+    keyword.value.trim()
+      ? [...board.value.ranked, ...board.value.unranked].filter(matches)
+      : [...board.value.ranked.slice(3), ...board.value.unranked]
   )
-  const unranked = computed(() => board.value.unranked.filter(matches))
 
   const loadPlayers = async () => {
     loading.value = true
@@ -205,7 +209,7 @@
     try {
       const { items } = await leaderboardApi.list({
         season_id: seasonId.value || undefined,
-        scope: scope.value,
+        ...(boardId.value ? { board_id: boardId.value } : { scope: scope.value }),
         gender: gender.value || undefined,
         min_matches: 0,
         per_page: 500
@@ -220,9 +224,19 @@
 
   watch(boardKey, loadPlayers)
 
+  const loadBoards = async () => {
+    if (!hasManagementAccess.value) return
+    try {
+      boards.value = await boardsApi.list()
+    } catch {
+      boards.value = []
+    }
+  }
+
   onMounted(() => {
     loadPlayers()
     loadSeasons()
+    loadBoards()
   })
 </script>
 
@@ -290,7 +304,7 @@
     cursor: pointer;
   }
   .scope-label {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 700;
     letter-spacing: 0.06em;
   }
@@ -309,6 +323,10 @@
   .scope.active {
     color: var(--ink);
   }
+  .custom-mark {
+    font-size: 11px;
+    color: var(--accent);
+  }
   .scope.active::after {
     transform: scaleX(1);
   }
@@ -324,7 +342,7 @@
     background: transparent;
     color: var(--ink-3);
     font: inherit;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 600;
     cursor: pointer;
     transition:
@@ -353,7 +371,7 @@
     border-left: 3px solid var(--accent);
     background: var(--accent-tint);
     color: var(--ink);
-    font-size: 14px;
+    font-size: 16px;
   }
   .past-banner span {
     flex: 1;

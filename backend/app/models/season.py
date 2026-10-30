@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from sqlalchemy import ForeignKey, String
+from sqlalchemy import ForeignKey, String, false
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..extensions import db
@@ -24,7 +24,7 @@ class Season(db.Model):
 
 
 class SeasonRoster(db.Model):
-    """賽季結束時每位球員所屬的組織，讓舊賽季的排行榜照當時的名單分校隊／校友會。"""
+    """賽季結束時每位球員的隊籍，讓舊賽季的排行榜照當時的名單分校隊／校友會。"""
 
     __tablename__ = "season_rosters"
 
@@ -38,3 +38,4 @@ class SeasonRoster(db.Model):
         ForeignKey("organizations.id", name="fk_season_rosters_organization_id", ondelete="SET NULL"),
         comment="賽季結束時所屬組織ID",
     )
+    has_left: Mapped[bool] = mapped_column(default=False, server_default=false(), comment="賽季結束時是否已離隊")

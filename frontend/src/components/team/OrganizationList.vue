@@ -219,11 +219,11 @@
   }
   .org-title h3 {
     margin: 0;
-    font-size: 16px;
+    font-size: 17px;
     color: var(--blue-900);
   }
   .short {
-    font-size: 12px;
+    font-size: 14px;
     color: var(--color-text-muted);
   }
   .actions {
@@ -231,7 +231,7 @@
   }
   .description {
     margin: 0;
-    font-size: 13px;
+    font-size: 15px;
     color: var(--gray-700);
   }
   .org-foot {
@@ -241,7 +241,7 @@
     margin-top: auto;
     padding-top: 10px;
     border-top: 1px dashed var(--color-border);
-    font-size: 12px;
+    font-size: 14px;
     color: var(--color-text-muted);
   }
   .members b {

@@ -45,42 +45,7 @@
 
             <!-- 2. 整理名單 -->
             <template v-else-if="step === 1">
-              <div class="roster-toolbar">
-                <div class="tally">
-                  <span v-for="choice in ROSTER_CHOICES" :key="choice.value" class="tally-item" :class="choice.value">
-                    {{ choice.label }} <b class="num">{{ summary[choice.value].count }}</b>
-                  </span>
-                </div>
-                <n-input v-model:value="keyword" placeholder="搜尋隊員" clearable round size="small" class="search">
-                  <template #prefix><n-icon :component="Search" /></template>
-                </n-input>
-              </div>
-              <p class="note">畢業的人轉到校友會；不再打球的設為離隊，比賽紀錄會保留，但不會出現在新排行榜。</p>
-
-              <n-empty v-if="!rows.length" description="校隊和校友會目前沒有隊員" class="empty" />
-              <ul v-else class="roster">
-                <li
-                  v-for="(row, index) in visibleRows"
-                  :key="row.member.id"
-                  class="roster-row stagger-in"
-                  :class="{ changed: row.choice !== row.status, [row.choice]: true }"
-                  :style="{ '--i': index }"
-                >
-                  <PlayerAvatar :id="row.member.id" :name="row.member.name" :src="row.member.avatar_url" :size="40" />
-                  <div class="who">
-                    <span class="name">{{ row.member.name }}</span>
-                    <span class="meta">
-                      {{ STATUS_LABELS[row.status] }}・{{ row.total_matches }} 場
-                      <template v-if="row.last_match_date">・最後出賽 {{ row.last_match_date }}</template>
-                    </span>
-                  </div>
-                  <n-radio-group v-model:value="row.choice" size="small" class="choice">
-                    <n-radio-button v-for="choice in ROSTER_CHOICES" :key="choice.value" :value="choice.value">
-                      {{ choice.label }}
-                    </n-radio-button>
-                  </n-radio-group>
-                </li>
-              </ul>
+              <RosterEditor :rows="rows" />
             </template>
 
             <!-- 3. 確認 -->
@@ -101,8 +66,8 @@
               </div>
               <ul class="effects">
                 <li v-if="currentSeason">{{ currentSeason.name }}的排行榜封存，可在排行榜切換查看。</li>
-                <li>所有人的分數回到起始分數（男生 5.0、女生 4.0），打滿 5 場後重新上榜。</li>
-                <li>離隊的隊員保留帳號和比賽紀錄，可以在團隊管理改回來。</li>
+                <li>所有人的分數回到起始分數（男 5.0、女 4.0，甲組加 1）。</li>
+                <li>離隊的人保留比賽紀錄，還能記錄比賽、出現在綜合榜。</li>
               </ul>
             </template>
           </div>
@@ -139,17 +104,16 @@
   import { computed, onMounted, ref } from 'vue'
   import { useRouter } from 'vue-router'
   import { useMessage } from 'naive-ui'
-  import { Archive, ArrowLeft, ArrowRight, Flag, Search } from '@vicons/carbon'
-  import { seasonsApi } from '@/api'
+  import { Archive, ArrowLeft, ArrowRight, Flag } from '@vicons/carbon'
+  import { membersApi, seasonsApi } from '@/api'
   import PageHeader from '@/components/base/PageHeader.vue'
-  import PlayerAvatar from '@/components/base/PlayerAvatar.vue'
+  import RosterEditor from '@/components/team/RosterEditor.vue'
   import { celebrate } from '@/utils/celebrate'
   import { dateToTimestamp, formatDate } from '@/utils/format'
   import { defaultSeasonName, defaultSeasonStart, ROSTER_CHOICES, rosterPayload, rosterSummary } from '@/utils/season'
 
   const STEPS = ['基本資料', '整理名單', '確認']
-  const STATUS_LABELS = { team: '目前在校隊', alumni: '目前在校友會' }
-  const OUTCOME_LABELS = { team: '留在校隊', alumni: '在校友會', left: '離隊' }
+  const OUTCOME_LABELS = { team: '校隊', alumni: '校友會（畢業）', left: '離隊' }
 
   const router = useRouter()
   const message = useMessage()
@@ -161,16 +125,11 @@
   const stepError = ref('')
   const seasons = ref([])
   const rows = ref([])
-  const keyword = ref('')
   const name = ref(defaultSeasonName())
   const startDate = ref(dateToTimestamp(formatDate(new Date())))
 
   const currentSeason = computed(() => seasons.value.find(season => season.is_current) ?? null)
   const summary = computed(() => rosterSummary(rows.value))
-  const visibleRows = computed(() => {
-    const term = keyword.value.trim().toLowerCase()
-    return term ? rows.value.filter(row => row.member.name.toLowerCase().includes(term)) : rows.value
-  })
 
   // 開始日期不能晚於今天，也要晚於目前賽季的開始日期
   const isDateDisabled = timestamp =>
@@ -217,7 +176,7 @@
 
   onMounted(async () => {
     try {
-      const [seasonList, roster] = await Promise.all([seasonsApi.list(), seasonsApi.roster()])
+      const [seasonList, roster] = await Promise.all([seasonsApi.list(), membersApi.roster()])
       seasons.value = seasonList
       // 預設從這個學年度的 8 月 1 日開始；已經不能選時改成今天
       const schoolYearStart = dateToTimestamp(defaultSeasonStart())
@@ -253,7 +212,7 @@
   }
   .note {
     margin: 4px 0 16px;
-    font-size: 13px;
+    font-size: 15px;
     color: var(--color-text-muted);
   }
 
@@ -269,7 +228,7 @@
   }
   .archive-card p {
     margin: 2px 0 0;
-    font-size: 13px;
+    font-size: 15px;
     opacity: 0.8;
   }
   .basics {
@@ -278,87 +237,7 @@
     gap: 0 16px;
   }
 
-  .roster-toolbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  .tally {
-    display: flex;
-    gap: 8px;
-  }
-  .tally-item {
-    padding: 4px 12px;
-    border-radius: var(--radius-full);
-    font-size: 13px;
-    font-weight: 700;
-  }
-  .search {
-    width: 200px;
-  }
-  .roster {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-  .roster-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 14px;
-    border: 1px solid var(--color-border);
-    border-left: 4px solid var(--accent);
-    border-radius: var(--radius-md);
-    background: var(--color-surface);
-    transition:
-      background var(--duration-fast) var(--ease-out),
-      border-color var(--duration-fast) var(--ease-out),
-      transform var(--duration-base) var(--ease-spring);
-  }
-  .roster-row.changed {
-    background: var(--tint);
-    transform: translateX(4px);
-  }
-  .who {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-  }
-  .name {
-    font-weight: 700;
-    color: var(--blue-900);
-  }
-  .meta {
-    font-size: 12px;
-    color: var(--color-text-muted);
-  }
-  .empty {
-    padding: 40px 0;
-  }
-
   /* 三種去向的顏色：校隊藍、校友會金、離隊灰 */
-  .team {
-    --accent: var(--blue-600);
-    --tint: var(--blue-50);
-  }
-  .alumni {
-    --accent: var(--gold-500);
-    --tint: var(--gold-100);
-  }
-  .left {
-    --accent: var(--gray-400);
-    --tint: var(--gray-100);
-  }
-  .tally-item {
-    background: var(--tint);
-    color: var(--blue-900);
-  }
 
   .confirm-hero {
     display: flex;
@@ -369,7 +248,7 @@
     text-align: center;
   }
   .confirm-eyebrow {
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 700;
     letter-spacing: 0.1em;
     color: var(--red-500);
@@ -389,17 +268,30 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
   }
+  .outcome.team {
+    --edge: var(--ink);
+    --tint: var(--surface);
+  }
+  .outcome.alumni {
+    --edge: var(--accent);
+    --tint: var(--accent-tint);
+  }
+  .outcome.left {
+    --edge: var(--ink-4);
+    --tint: var(--surface-sunk);
+  }
   .outcome {
     display: flex;
     flex-direction: column;
     gap: 2px;
     padding: 16px;
     border-radius: var(--radius-lg);
-    border-top: 4px solid var(--accent);
+    border: 1px solid var(--line-soft);
+    border-top: 3px solid var(--edge);
     background: var(--tint);
   }
   .outcome-label {
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 700;
     color: var(--gray-700);
   }
@@ -409,7 +301,7 @@
     color: var(--blue-900);
   }
   .outcome-moved {
-    font-size: 12px;
+    font-size: 14px;
     color: var(--gray-700);
   }
   .effects {
@@ -470,20 +362,6 @@
     .basics,
     .outcomes {
       grid-template-columns: minmax(0, 1fr);
-    }
-    .roster-row {
-      flex-wrap: wrap;
-    }
-    .choice {
-      width: 100%;
-      display: flex;
-    }
-    .choice :deep(.n-radio-button) {
-      flex: 1;
-      text-align: center;
-    }
-    .search {
-      width: 100%;
     }
     .nav {
       bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));

@@ -17,6 +17,8 @@ class LeaderboardQuerySchema(SeasonQuerySchema):
     organization_id = fields.Int()
     # team：校隊；combined：校隊 + 校友會；all：不限
     scope = fields.Str(load_default="all", validate=validate.OneOf(["all", "team", "combined"]))
+    # 自訂榜單：只列出榜單裡的人（會忽略 scope）
+    board_id = fields.Int()
     gender = EnumField(GenderEnum)
     min_matches = fields.Int(load_default=0, validate=validate.Range(min=0))
     min_win_rate = fields.Float(validate=validate.Range(min=0, max=100))

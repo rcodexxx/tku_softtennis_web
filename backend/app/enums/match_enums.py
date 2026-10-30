@@ -37,13 +37,12 @@ class MatchPositionEnum(BaseEnum):
     VERSATILE = "versatile"
 
 
-class MatchNatureEnum(BaseEnum):
-    """比賽性質"""
+class MatchCategoryEnum(BaseEnum):
+    """比賽分類：隊內、校外友誼、自訂賽事"""
 
+    INTERNAL = "internal"
     FRIENDLY = "friendly"
-    INTERNAL_RANKING = "internal_ranking"
-    PRACTICE = "practice"
-    NIAG = "NIAG"  # 全大運
+    EVENT = "event"
 
 
 class CourtSurfaceEnum(BaseEnum):

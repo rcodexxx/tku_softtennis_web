@@ -81,7 +81,7 @@
   import { onMounted, onUnmounted, ref, watch } from 'vue'
   import { useRouter } from 'vue-router'
   import { useDialog, useMessage } from 'naive-ui'
-  import { Add, Layers, Timer } from '@vicons/carbon'
+  import { Add, Layers, Timer, Trophy } from '@vicons/carbon'
   import { matchesApi, membersApi } from '@/api'
   import PageHeader from '@/components/base/PageHeader.vue'
   import MatchCard from '@/components/match/MatchCard.vue'
@@ -104,14 +104,27 @@
       icon: Layers
     },
     {
+      name: 'Events',
+      code: 'C // Events',
+      title: '賽事',
+      icon: Trophy
+    },
+    {
       name: 'RefereeMode',
-      code: 'C // Referee',
+      code: 'D // Referee',
       title: '裁判模式',
       icon: Timer,
       beta: true
     }
   ]
-  const emptyFilters = () => ({ player_ids: [], match_type: null, match_format: null, result: null, date_range: null })
+  const emptyFilters = () => ({
+    player_ids: [],
+    category: null,
+    match_type: null,
+    match_format: null,
+    result: null,
+    date_range: null
+  })
 
   const router = useRouter()
   const dialog = useDialog()
@@ -133,6 +146,7 @@
     const params = { page: page.value, per_page: pageSize.value, sort_by: 'match_date', sort_order: 'desc' }
     if (f.player_ids.length) params.player_ids = f.player_ids.join(',')
     if (f.result && f.player_ids.length) params.result = f.result
+    if (f.category) params.category = f.category
     if (f.match_type) params.match_type = f.match_type
     if (f.match_format) params.match_format = f.match_format
     if (f.date_range?.length === 2) {
@@ -227,7 +241,7 @@
 <style scoped>
   .actions-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 12px;
     margin-bottom: 28px;
   }
@@ -273,7 +287,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 700;
     letter-spacing: 0.04em;
   }
@@ -282,7 +296,7 @@
     border: 1px solid var(--accent-soft);
     color: var(--accent-text);
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 500;
   }
   .section-head {
@@ -296,8 +310,8 @@
     height: 1px;
     background: var(--line);
   }
-  /* 手機：三個入口排成一列，只留圖示和名稱 */
-  @media (max-width: 760px) {
+  /* 窄螢幕：入口排成一列，只留圖示和名稱 */
+  @media (max-width: 900px) {
     .actions-grid {
       gap: 8px;
       margin-bottom: 20px;
@@ -313,7 +327,7 @@
     .action-title {
       flex-direction: column;
       gap: 6px;
-      font-size: 14px;
+      font-size: 16px;
     }
   }
 

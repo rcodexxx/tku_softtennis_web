@@ -2,12 +2,12 @@ from sqlalchemy import and_, not_, or_, select
 from sqlalchemy.orm import joinedload
 
 from ..core.db import get_or_404
-from ..core.errors import NotFoundError
+from ..core.errors import NotFoundError, ValidationError
 from ..core.pagination import Page, paginate
 from ..domain import scoring
-from ..enums import MatchOutcomeEnum
+from ..enums import MatchCategoryEnum, MatchOutcomeEnum
 from ..extensions import db
-from ..models import Match, MatchRecord, Member
+from ..models import Event, Match, MatchRecord, Member
 from ..models.base import utcnow
 from ..schemas.match import validate_players, validate_scores
 from . import rating_service
@@ -27,6 +27,8 @@ MATCH_FIELDS = {
     "duration_minutes": "duration_minutes",
     "youtube_url": "youtube_url",
     "notes": "notes",
+    "category": "category",
+    "event_id": "event_id",
 }
 
 _LOAD_OPTIONS = (
@@ -48,6 +50,10 @@ def list_records(params: dict) -> Page:
         stmt = stmt.where(Match.match_type == params["match_type"])
     if params.get("match_format"):
         stmt = stmt.where(Match.match_format == params["match_format"])
+    if params.get("category"):
+        stmt = stmt.where(Match.category == params["category"])
+    if params.get("event_id"):
+        stmt = stmt.where(Match.event_id == params["event_id"])
     player_ids = params.get("player_ids") or ([params["player_id"]] if params.get("player_id") else [])
     for player_id in player_ids:
         stmt = stmt.where(involves_player(player_id))
@@ -138,6 +144,15 @@ def _apply_match_fields(match: Match, data: dict) -> None:
     for field, column in MATCH_FIELDS.items():
         if field in data:
             setattr(match, column, data[field])
+    # 有賽事就是賽事分類；改成其他分類時拿掉賽事
+    if "event_id" in data and data["event_id"]:
+        if db.session.get(Event, data["event_id"]) is None:
+            raise NotFoundError("找不到指定的賽事。")
+        match.category = MatchCategoryEnum.EVENT
+    elif match.category == MatchCategoryEnum.EVENT and not match.event_id:
+        raise ValidationError("賽事比賽請選擇賽事。", details={"event_id": ["請選擇賽事。"]})
+    elif match.category != MatchCategoryEnum.EVENT:
+        match.event_id = None
 
 
 def _apply_players(record: MatchRecord, data: dict) -> None:
