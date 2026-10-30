@@ -1,6 +1,7 @@
 import { h } from 'vue'
 import PlayerAvatar from '@/components/base/PlayerAvatar.vue'
-import { experienceIcon, EXPERIENCE_LEVELS } from '@/utils/experience'
+import { formatDate } from '@/utils/format'
+import { formatRating, isRated } from '@/utils/rating'
 import RecentForm from './RecentForm.vue'
 import ScoreChange from './ScoreChange.vue'
 
@@ -13,7 +14,6 @@ const bar = (value, color) =>
   ])
 
 const numberSorter = key => (a, b) => a[key] - b[key]
-const experienceRank = level => EXPERIENCE_LEVELS.findIndex(item => item.label === level)
 
 /** 詳細數據表格的欄位（排序在前端進行）。 */
 export function detailColumns() {
@@ -43,24 +43,18 @@ export function detailColumns() {
         ])
     },
     {
-      title: '排名分數',
-      key: 'conservative_score',
+      title: '分數',
+      key: 'rating',
       width: 130,
       align: 'right',
-      sorter: numberSorter('conservative_score'),
+      sorter: numberSorter('rating'),
       render: row =>
         h('div', { class: 'cell-score' }, [
-          h('span', { class: 'num cell-score-value' }, Math.round(row.conservative_score * 100)),
-          h(ScoreChange, { change: row.score_change })
+          h('span', { class: 'num cell-score-value' }, formatRating(row.rating)),
+          isRated(row.total_matches)
+            ? h(ScoreChange, { change: row.score_change })
+            : h('span', { class: 'cell-provisional' }, '評估中')
         ])
-    },
-    {
-      title: '潛在實力',
-      key: 'mu',
-      width: 100,
-      align: 'right',
-      sorter: numberSorter('mu'),
-      render: row => h('span', { class: 'num cell-number' }, Math.round(row.mu * 100))
     },
     {
       title: '勝率',
@@ -68,20 +62,6 @@ export function detailColumns() {
       width: 150,
       sorter: numberSorter('win_rate'),
       render: row => bar(row.win_rate, 'linear-gradient(90deg, var(--blue-400), var(--blue-600))')
-    },
-    {
-      title: '穩定度',
-      key: 'consistency_rating',
-      width: 150,
-      sorter: numberSorter('consistency_rating'),
-      render: row => bar(row.consistency_rating, 'linear-gradient(90deg, #4ade80, var(--green-600))')
-    },
-    {
-      title: '經驗',
-      key: 'experience_level',
-      width: 90,
-      sorter: (a, b) => experienceRank(a.experience_level) - experienceRank(b.experience_level),
-      render: row => `${experienceIcon(row.experience_level)} ${row.experience_level}`
     },
     {
       title: '戰績',
@@ -96,6 +76,13 @@ export function detailColumns() {
           h('b', { class: 'loss' }, row.losses)
         ])
     },
-    { title: '近況', key: 'recent_form', width: 140, render: row => h(RecentForm, { form: row.recent_form }) }
+    { title: '近況', key: 'recent_form', width: 140, render: row => h(RecentForm, { form: row.recent_form }) },
+    {
+      title: '最近比賽',
+      key: 'last_match_date',
+      width: 120,
+      sorter: (a, b) => (a.last_match_date || '').localeCompare(b.last_match_date || ''),
+      render: row => h('span', { class: 'num cell-number' }, formatDate(row.last_match_date) || '—')
+    }
   ]
 }

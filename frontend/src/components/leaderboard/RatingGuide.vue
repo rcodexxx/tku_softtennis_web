@@ -1,32 +1,34 @@
 <template>
   <n-collapse class="rating-guide">
-    <n-collapse-item title="評分系統怎麼算？" name="guide">
+    <n-collapse-item title="分數怎麼算？" name="guide">
       <div class="guide-grid">
         <section>
-          <h4>排名分數</h4>
+          <h4>分數 1–10</h4>
           <p>
-            採用 TrueSkill 評分。每位球員有實力估計 μ 與不確定性 σ，排名分數為
-            <code>(μ − 2σ) × 100</code>：比賽越少、σ 越大，分數就越保守，避免新手打一兩場就衝上前段。
+            每位球員的分數是<b>最近 20 場「本場表現」的平均</b>，越近的比賽越重要。男生從 5.0、女生從 4.0 開始，打滿
+            {{ RATED_MATCHES }} 場之前標示為「評估中」。
           </p>
         </section>
         <section>
-          <h4>比賽如何影響分數</h4>
+          <h4>本場表現</h4>
           <p>
-            贏球加分、輸球扣分；贏過分數比自己高的對手加得更多。比分差距越大，分數變動也越大。混合性別的比賽另有加減分調整。
+            先用兩隊分數算出<b>預期拿下幾成局數</b>：差 1 分時，強隊預期拿 7
+            成。實際打得比預期好，本場表現就高於你目前的分數； 比預期差就低於。同隊兩人加減一樣多，單場最多 ±1.5 分。
           </p>
         </section>
         <section>
-          <h4>穩定度與可信度</h4>
-          <p>都由 σ 換算成 0–100%：σ 越小代表系統越確定你的實力，打越多場比賽就會越高。</p>
+          <h4>看局數，不只看輸贏</h4>
+          <p>
+            4-0 比 4-3 加得多；輸給強很多的隊伍但比分接近，<b>輸了也會加分</b>。所以男女混打時，
+            女生只要打得比預期好就會進步，不用一定要贏。
+          </p>
         </section>
         <section>
-          <h4>經驗等級</h4>
-          <ul class="levels">
-            <li v-for="(level, index) in EXPERIENCE_LEVELS" :key="level.label">
-              {{ level.icon }} {{ level.label }}
-              <span class="range">{{ sigmaRange(index) }}</span>
-            </li>
-          </ul>
+          <h4>範例</h4>
+          <p>
+            你的隊伍 <code>4.0</code> 對上 <code>5.0</code>，預期只拿 3 成局數。結果 3-4 惜敗（拿到 4 成多），
+            本場表現比你目前的分數高約 <code>0.7</code>。
+          </p>
         </section>
       </div>
     </n-collapse-item>
@@ -34,13 +36,7 @@
 </template>
 
 <script setup>
-  import { EXPERIENCE_LEVELS } from '@/utils/experience'
-
-  const sigmaRange = index => {
-    const low = EXPERIENCE_LEVELS[index].minSigma.toFixed(1)
-    if (index === 0) return `σ ≥ ${low}`
-    return `${low} ≤ σ < ${EXPERIENCE_LEVELS[index - 1].minSigma.toFixed(1)}`
-  }
+  import { RATED_MATCHES } from '@/utils/rating'
 </script>
 
 <style scoped>
@@ -70,18 +66,6 @@
     background: var(--blue-50);
     color: var(--blue-700);
     font-weight: 700;
-  }
-  .levels {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: grid;
-    gap: 4px;
-  }
-  .range {
-    margin-left: 6px;
-    font-size: 12px;
-    color: var(--color-text-muted);
   }
   @media (max-width: 720px) {
     .guide-grid {

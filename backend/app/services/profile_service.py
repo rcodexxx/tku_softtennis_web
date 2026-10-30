@@ -4,7 +4,7 @@ from ..core.errors import ConflictError, NotFoundError
 from ..core.pagination import Page
 from ..extensions import db
 from ..models import MatchRecord, Organization, User
-from . import match_service
+from . import match_service, rating_service
 
 USER_FIELDS = ("email", "display_name")
 MEMBER_FIELDS = ("name", "student_id", "gender", "position", "organization_id")
@@ -23,6 +23,8 @@ def update_profile(user: User, data: dict) -> User:
         for field in MEMBER_FIELDS:
             if field in data:
                 setattr(user.member_profile, field, data[field])
+        if "gender" in data:
+            rating_service.recalculate_all()
     db.session.commit()
     return user
 
@@ -35,7 +37,7 @@ def my_matches(user: User, page: int, per_page: int) -> Page:
     )
 
 
-def perspective(record: MatchRecord, member_id: int, score_change: float | None = None) -> dict | None:
+def perspective(record: MatchRecord, member_id: int, result: rating_service.MatchResult | None = None) -> dict | None:
     """從某位球員的角度描述比賽結果。"""
     if member_id in record.side_a_ids:
         side, my_games, opponent_games = "A", record.a_games, record.b_games
@@ -51,5 +53,7 @@ def perspective(record: MatchRecord, member_id: int, score_change: float | None 
         "my_games": my_games,
         "opponent_games": opponent_games,
         "opponent_names": [p.display_name for p in opponents if p],
-        "score_change": round(score_change, 2) if score_change is not None else None,
+        # 本場表現與這場讓分數變動多少
+        "performance": round(result.performance, 2) if result else None,
+        "score_change": round(result.change, 2) if result else None,
     }

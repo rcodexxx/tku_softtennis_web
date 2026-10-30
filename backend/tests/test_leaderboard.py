@@ -1,4 +1,6 @@
-from .conftest import data, error, make_guest
+from app.enums import GenderEnum
+
+from .conftest import data, error, make_guest, make_org, make_user
 from .test_matches import create_record
 
 
@@ -12,7 +14,7 @@ def test_leaderboard_ranks_and_match_stats(client, admin_headers, players):
     assert (by_name["甲"]["wins"], by_name["甲"]["losses"]) == (1, 0)
     assert by_name["丙"]["win_rate"] == 0.0
     assert by_name["甲"]["last_match_date"] == "2025-03-01"
-    assert rows[0]["conservative_score"] >= rows[-1]["conservative_score"]
+    assert rows[0]["rating"] >= rows[-1]["rating"]
 
 
 def test_leaderboard_min_matches_filters_out_new_players(client, players):
@@ -43,9 +45,22 @@ def test_leaderboard_rejects_bad_params(client):
     error(client.get("/api/leaderboard", query_string={"sort_by": "nope"}), 400)
 
 
-def test_leaderboard_experience_filter(client, players):
-    assert len(data(client.get("/api/leaderboard", query_string={"experience_level": "新手"}))) == 4
-    assert len(data(client.get("/api/leaderboard", query_string={"experience_level": "資深"}))) == 0
+def test_leaderboard_scope_and_gender_filters(app, client):
+    team, alumni, other = make_org("淡江大學軟網隊"), make_org("校友會"), make_org("其他學校")
+    app.config.update(TEAM_ORGANIZATION_ID=team.id, ALUMNI_ORGANIZATION_ID=alumni.id)
+    make_user("0930000001", name="隊員男", gender=GenderEnum.MALE, organization_id=team.id)
+    make_user("0930000002", name="隊員女", gender=GenderEnum.FEMALE, organization_id=team.id)
+    make_user("0930000003", name="校友", gender=GenderEnum.MALE, organization_id=alumni.id)
+    make_guest("校友訪客", organization_id=alumni.id)
+    make_guest("外校訪客", organization_id=other.id)
+
+    def names(**params):
+        return {r["name"] for r in data(client.get("/api/leaderboard", query_string=params))}
+
+    assert names(scope="team") == {"隊員男", "隊員女"}
+    assert names(scope="combined") == {"隊員男", "隊員女", "校友", "校友訪客"}
+    assert names(scope="combined", gender="female") == {"隊員女"}
+    error(client.get("/api/leaderboard", query_string={"scope": "nope"}), 400)
 
 
 def test_statistics(client, admin_headers, players):
@@ -53,7 +68,7 @@ def test_statistics(client, admin_headers, players):
     stats = data(client.get("/api/leaderboard/statistics"))
     assert stats["total_members"] == 5  # 4 位球員 + 管理員
     assert stats["total_matches"] == 1
-    assert stats["experience_distribution"]
+    assert stats["score_distribution"]["max"] > stats["score_distribution"]["min"]
 
 
 def test_compare_players(client, admin_headers, players):
@@ -61,7 +76,7 @@ def test_compare_players(client, admin_headers, players):
     p1, _, p3, _ = players
     result = data(client.get(f"/api/leaderboard/compare/{p1.id}/{p3.id}"))
     assert result["comparison"]["is_likely_stronger"] is True
-    assert result["comparison"]["predicted_win_probability"] > 0.5
+    assert result["comparison"]["expected_games_share"] > 0.5
     assert result["member1"]["wins"] == 1
 
 
@@ -76,4 +91,5 @@ def test_leaderboard_recent_form_and_score_change(client, admin_headers, players
     assert by_name["甲"]["recent_form"] == ["L", "W"]
     assert by_name["丙"]["recent_form"] == ["W", "L"]
     assert by_name["甲"]["score_change"] < 0 < by_name["丙"]["score_change"]
+    assert by_name["甲"]["rating"] < 5.0 and by_name["丙"]["rating"] > 4.0
     assert by_name["管理員"]["recent_form"] == [] and by_name["管理員"]["score_change"] is None

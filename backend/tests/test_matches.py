@@ -38,7 +38,7 @@ def create_record(client, headers, players, **kwargs):
 
 def ratings(db):
     db.session.expire_all()
-    return {m.id: (m.mu, m.sigma) for m in db.session.query(Member)}
+    return {m.id: m.rating for m in db.session.query(Member)}
 
 
 def test_create_match_record_updates_ratings(client, db, coach_headers, players):
@@ -48,10 +48,10 @@ def test_create_match_record_updates_ratings(client, db, coach_headers, players)
     assert record["player1"]["name"] == "甲"
     assert record["has_detailed_scores"] is False
 
+    # 男生隊（起始 5.0）預期拿 7 成局數，只贏 4-2 比預期差；女生隊輸了但打得比預期好
     p1, _, p3, _ = (db.session.get(Member, p.id) for p in players)
-    assert p1.mu > 25.0
-    assert p3.mu < 25.0
-    assert p1.sigma < 25.0 / 3
+    assert p1.rating < 5.0
+    assert p3.rating > 4.0
 
 
 def test_regular_member_cannot_record_match(client, member_headers, players):
@@ -130,7 +130,7 @@ def test_update_record_flips_outcome(client, db, admin_headers, players):
         client.put(f"/api/match-records/{record_id}", headers=admin_headers, json={"a_games": 1, "b_games": 4})
     )
     assert record["side_a_outcome"] == "loss"
-    assert db.session.get(Member, players[0].id).mu < 25.0
+    assert db.session.get(Member, players[0].id).rating < 4.9
 
 
 def test_update_metadata_only(client, admin_headers, players):
@@ -175,9 +175,7 @@ def test_delete_record_removes_match_and_resets_ratings(client, db, admin_header
     assert data(client.delete(f"/api/match-records/{record_id}", headers=admin_headers)) is None
     assert db.session.get(MatchRecord, record_id) is None
     assert db.session.query(Match).count() == 0
-    for mu, sigma in ratings(db).values():
-        assert mu == pytest.approx(25.0)
-        assert sigma == pytest.approx(25.0 / 3)
+    assert all(value is None for value in ratings(db).values())
 
 
 def test_only_admin_deletes_record(client, admin_headers, coach_headers, players):
@@ -203,8 +201,7 @@ def test_editing_and_reverting_a_match_restores_all_ratings(client, db, admin_he
         )
 
     after = ratings(db)
-    for member_id, (mu, sigma) in before.items():
-        assert after[member_id] == (pytest.approx(mu), pytest.approx(sigma))
+    assert after == pytest.approx(before)
 
 
 def test_backdated_match_triggers_full_recalculation(client, db, admin_headers, players):
@@ -222,8 +219,7 @@ def test_backdated_match_triggers_full_recalculation(client, db, admin_headers, 
     create_record(client, admin_headers, players, **later)
     in_order = ratings(db)
 
-    for member_id, (mu, sigma) in in_order.items():
-        assert out_of_order[member_id] == (pytest.approx(mu), pytest.approx(sigma))
+    assert out_of_order == pytest.approx(in_order)
 
 
 def test_filter_by_multiple_players_and_result(client, admin_headers, players):
@@ -264,8 +260,7 @@ def test_batch_create_matches_in_order_ratings(client, db, coach_headers, admin_
         client.delete(f"/api/match-records/{record.id}", headers=admin_headers)
     create_record(client, admin_headers, players, match_date="2025-04-01", a_games=0, b_games=4)
     create_record(client, admin_headers, players, match_date="2025-05-01", a_games=4, b_games=1)
-    for member_id, (mu, sigma) in ratings(db).items():
-        assert batched[member_id] == (pytest.approx(mu), pytest.approx(sigma))
+    assert batched == pytest.approx(ratings(db))
 
 
 def test_batch_create_is_all_or_nothing(client, db, admin_headers, players):

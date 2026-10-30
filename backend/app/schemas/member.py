@@ -1,6 +1,5 @@
 from marshmallow import ValidationError, fields, validate, validates_schema
 
-from ..domain import rating as rating_domain
 from ..enums import BloodTypeEnum, GenderEnum, GuestRoleEnum, MatchPositionEnum, UserRoleEnum
 from .auth import PASSWORD_MIN_LENGTH
 from .common import PHONE_REGEX, BaseSchema, EnumField, InputSchema, OrganizationBriefSchema, UserBriefSchema
@@ -51,15 +50,8 @@ class MemberSchema(BaseSchema):
     last_used_at = fields.DateTime(allow_none=True)
     created_by_user_id = fields.Int(allow_none=True)
 
-    # 評分
-    mu = fields.Function(lambda m: round(m.mu, 3))
-    sigma = fields.Function(lambda m: round(m.sigma, 3))
-    conservative_score = fields.Function(lambda m: round(rating_domain.conservative_score(m.rating), 2))
-    potential_skill = fields.Function(lambda m: round(m.mu, 2))
-    consistency_rating = fields.Function(lambda m: rating_domain.consistency_rating(m.rating))
-    rating_confidence = fields.Function(lambda m: rating_domain.rating_confidence(m.rating))
-    experience_level = fields.Function(lambda m: rating_domain.experience_level(m.rating))
-    is_experienced_player = fields.Function(lambda m: rating_domain.is_experienced(m.rating))
+    # 分數（1–10）；還沒打過比賽時為起始分數
+    rating = fields.Function(lambda m: round(m.score, 2))
 
 
 class _MemberFieldsSchema(InputSchema):
@@ -104,9 +96,7 @@ class MemberQuerySchema(InputSchema):
     include_guests = fields.Bool(load_default=False)
     include_inactive = fields.Bool(load_default=False)
     organization_id = fields.Int()
-    sort_by = fields.Str(
-        load_default="name", validate=validate.OneOf(["name", "conservative_score", "joined_date", "created_at"])
-    )
+    sort_by = fields.Str(load_default="name", validate=validate.OneOf(["name", "rating", "joined_date", "created_at"]))
     sort_order = fields.Str(load_default="asc", validate=validate.OneOf(["asc", "desc"]))
     limit = fields.Int(validate=validate.Range(min=1, max=500))
 

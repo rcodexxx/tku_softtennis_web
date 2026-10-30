@@ -20,7 +20,7 @@
       <template v-else>
         <div class="stats-grid">
           <div class="rank-card">
-            <span class="rank-label">排行榜名次</span>
+            <span class="rank-label">{{ rankLabel }}</span>
             <template v-if="rank">
               <span class="rank-value num">#<CountUp :value="rank" /></span>
               <span class="rank-sub">共 {{ rankedCount }} 位上榜</span>
@@ -30,12 +30,7 @@
               <span class="rank-sub">再打 {{ matchesToQualify }} 場就能上榜</span>
             </template>
           </div>
-          <StatCard
-            label="排名分數"
-            :value="Math.round(member.conservative_score * 100)"
-            :icon="TrophyOutline"
-            accent="var(--gold-500)"
-          />
+          <StatCard label="分數" :value="member.rating" :decimals="1" :icon="TrophyOutline" accent="var(--gold-500)" />
           <StatCard
             label="勝率"
             :value="stats.win_rate"
@@ -48,8 +43,8 @@
         </div>
 
         <div class="content-grid">
-          <n-card class="panel" title="能力指標">
-            <AbilityBars :member="member" />
+          <n-card class="panel" title="分數">
+            <RatingMeter :rating="member.rating" :total-matches="stats.total_matches" :performances="performances" />
             <div class="form-row">
               <span class="form-label">最近 5 場</span>
               <RecentForm :form="stats.recent_form" />
@@ -57,7 +52,7 @@
           </n-card>
 
           <n-card class="panel" title="最近比賽">
-            <RecentMatchList :matches="recentMatches" />
+            <RecentMatchList :matches="recentMatches.slice(0, 5)" />
           </n-card>
 
           <n-card class="panel" title="球員檔案">
@@ -87,9 +82,9 @@
   import CountUp from '@/components/base/CountUp.vue'
   import StatCard from '@/components/base/StatCard.vue'
   import RecentForm from '@/components/leaderboard/RecentForm.vue'
-  import AbilityBars from '@/components/profile/AbilityBars.vue'
   import ProfileEditDrawer from '@/components/profile/ProfileEditDrawer.vue'
   import ProfileHero from '@/components/profile/ProfileHero.vue'
+  import RatingMeter from '@/components/profile/RatingMeter.vue'
   import RecentMatchList from '@/components/profile/RecentMatchList.vue'
   import { useOptions } from '@/composables/useOptions'
   import { useAuthStore } from '@/stores/authStore'
@@ -105,17 +100,26 @@
   const error = ref(null)
   const profile = ref(null)
   const stats = ref({ win_rate: 0, total_matches: 0, recent_form: [] })
-  const ranking = ref([])
+  // 校隊成員看校隊排名，其他人看綜合排名
+  const ranking = ref({ label: '綜合排名', items: [] })
   const recentMatches = ref([])
   const showEdit = ref(false)
   const showPassword = ref(false)
 
   const member = computed(() => profile.value?.member)
-  const rankedCount = computed(() => ranking.value.length)
+  const rankLabel = computed(() => ranking.value.label)
+  const rankedCount = computed(() => ranking.value.items.length)
   const rank = computed(() => {
-    const index = ranking.value.findIndex(entry => entry.id === member.value?.id)
+    const index = ranking.value.items.findIndex(entry => entry.id === member.value?.id)
     return index >= 0 ? index + 1 : null
   })
+  // 最近 20 場的本場表現（舊到新），畫成走勢圖
+  const performances = computed(() =>
+    recentMatches.value
+      .map(match => match.perspective?.performance)
+      .filter(value => typeof value === 'number')
+      .reverse()
+  )
   const matchesToQualify = computed(() => Math.max(0, MIN_MATCHES - stats.value.total_matches))
 
   const profileItems = computed(() => [
@@ -135,13 +139,16 @@
     try {
       profile.value = await profileApi.get()
       if (member.value) {
-        const [memberStats, board, matches] = await Promise.all([
+        const board = scope => leaderboardApi.list({ scope, min_matches: MIN_MATCHES, per_page: 500 })
+        const [memberStats, team, combined, matches] = await Promise.all([
           membersApi.stats(member.value.id),
-          leaderboardApi.list({ include_guests: false, min_matches: MIN_MATCHES, per_page: 500 }),
-          profileApi.matches({ per_page: 5 })
+          board('team'),
+          board('combined'),
+          profileApi.matches({ per_page: 20 })
         ])
         stats.value = memberStats
-        ranking.value = board.items
+        const inTeam = team.items.some(entry => entry.id === member.value.id)
+        ranking.value = inTeam ? { label: '校隊排名', items: team.items } : { label: '綜合排名', items: combined.items }
         recentMatches.value = matches.items
       }
     } catch (err) {

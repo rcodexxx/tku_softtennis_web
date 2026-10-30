@@ -38,8 +38,7 @@ def test_get_member(client, players):
     assert member["name"] == "甲"
     assert member["gender"] == "male"
     assert member["user"]["username"] == "0920000001"
-    assert member["conservative_score"] == round(25.0 - 2 * 25.0 / 3, 2)
-    assert member["experience_level"] == "新手"
+    assert member["rating"] == 5.0  # 男生的起始分數
 
 
 def test_get_member_not_found(client):
@@ -155,3 +154,11 @@ def test_member_stats(client, admin_headers, players):
     stats = data(client.get(f"/api/members/{players[0].id}/stats"))
     assert (stats["wins"], stats["losses"], stats["total_matches"]) == (1, 0, 1)
     assert stats["last_match_date"] == "2025-03-01"
+
+
+def test_changing_gender_recalculates_rating(client, db, admin_headers, players):
+    create_record(client, admin_headers, players)
+    before = db.session.get(Member, players[2].id).rating
+    member = data(client.put(f"/api/members/{players[2].id}", headers=admin_headers, json={"gender": "male"}))
+    # 起始分數從 4.0 變成 5.0
+    assert member["rating"] > before

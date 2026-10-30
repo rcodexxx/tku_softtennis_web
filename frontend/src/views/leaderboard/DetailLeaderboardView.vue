@@ -1,6 +1,6 @@
 <template>
   <div class="detail-page">
-    <PageHeader eyebrow="STATISTICS" title="詳細數據" subtitle="所有球員的評分、戰績與穩定度，點選球員可看完整分析。">
+    <PageHeader eyebrow="STATISTICS" title="詳細數據" subtitle="所有球員的分數、戰績與近況，點選球員可看完整分析。">
       <template #actions>
         <n-button secondary :disabled="!filteredPlayers.length" @click="exportCsv">
           <template #icon><n-icon :component="DownloadOutline" /></template>
@@ -23,9 +23,9 @@
         :icon="PieChartOutline"
         accent="var(--green-600)"
       />
-      <StatCard label="最高潛在實力" :value="topPotential" :icon="FlashOutline" accent="var(--gold-500)" />
+      <StatCard label="最高分數" :value="topRating" :decimals="1" :icon="FlashOutline" accent="var(--gold-500)" />
       <div class="distribution">
-        <span class="distribution-title">經驗等級分布</span>
+        <span class="distribution-title">分數分布</span>
         <div class="distribution-bar">
           <span
             v-for="level in distribution"
@@ -37,7 +37,7 @@
         </div>
         <div class="distribution-legend">
           <span v-for="level in distribution" :key="level.label">
-            {{ level.icon }} {{ level.label }} <b class="num">{{ level.count }}</b>
+            {{ level.label }} <b class="num">{{ level.count }}</b>
           </span>
         </div>
       </div>
@@ -48,6 +48,20 @@
         <template #prefix><n-icon :component="SearchOutline" /></template>
       </n-input>
       <div class="filters">
+        <n-select
+          v-model:value="scope"
+          :options="SCOPE_OPTIONS"
+          size="small"
+          class="filter-select"
+          @update:value="load"
+        />
+        <n-select
+          v-model:value="gender"
+          :options="GENDER_OPTIONS"
+          size="small"
+          class="filter-select"
+          @update:value="load"
+        />
         <label class="filter">
           <n-switch v-model:value="includeGuests" @update:value="load" />
           包含訪客
@@ -76,7 +90,7 @@
       :row-key="row => row.id"
       :row-props="row => ({ class: 'clickable-row', onClick: () => (selected = row) })"
       :pagination="{ pageSize: 20 }"
-      :scroll-x="1100"
+      :scroll-x="900"
       :bordered="false"
     />
 
@@ -103,10 +117,26 @@
   import PlayerDetailModal from '@/components/leaderboard/PlayerDetailModal.vue'
   import RatingGuide from '@/components/leaderboard/RatingGuide.vue'
   import { useAuthStore } from '@/stores/authStore'
-  import { EXPERIENCE_LEVELS } from '@/utils/experience'
   import { organizationLabel } from '@/utils/player'
+  import { formatRating } from '@/utils/rating'
 
-  const LEVEL_COLORS = ['#c7d7fb', '#5b8cf0', '#2e64d3', '#163a80', '#f2b705']
+  const SCOPE_OPTIONS = [
+    { label: '所有球員', value: 'all' },
+    { label: '校隊', value: 'team' },
+    { label: '綜合（校隊＋校友會）', value: 'combined' }
+  ]
+  const GENDER_OPTIONS = [
+    { label: '男女皆可', value: null },
+    { label: '男生', value: 'male' },
+    { label: '女生', value: 'female' }
+  ]
+  const RATING_BANDS = [
+    { label: '4 以下', max: 4, color: '#c7d7fb' },
+    { label: '4–5', max: 5, color: '#5b8cf0' },
+    { label: '5–6', max: 6, color: '#2e64d3' },
+    { label: '6–7', max: 7, color: '#163a80' },
+    { label: '7 以上', max: Infinity, color: '#f2b705' }
+  ]
 
   const authStore = useAuthStore()
 
@@ -114,6 +144,8 @@
   const error = ref(null)
   const players = ref([])
   const includeGuests = ref(false)
+  const scope = ref('all')
+  const gender = ref(null)
   const minMatches = ref(1)
   const keyword = ref('')
   const selected = ref(null)
@@ -131,12 +163,12 @@
     const list = filteredPlayers.value
     return list.length ? list.reduce((sum, p) => sum + p.win_rate, 0) / list.length : 0
   })
-  const topPotential = computed(() => Math.round(Math.max(0, ...filteredPlayers.value.map(p => p.mu)) * 100))
+  const topRating = computed(() => Math.max(0, ...filteredPlayers.value.map(p => p.rating)))
   const distribution = computed(() =>
-    EXPERIENCE_LEVELS.map((level, index) => ({
-      ...level,
-      color: LEVEL_COLORS[index],
-      count: filteredPlayers.value.filter(p => p.experience_level === level.label).length
+    RATING_BANDS.map((band, index) => ({
+      ...band,
+      count: filteredPlayers.value.filter(p => p.rating < band.max && p.rating >= (RATING_BANDS[index - 1]?.max ?? 0))
+        .length
     }))
   )
 
@@ -146,6 +178,8 @@
     try {
       const { items } = await leaderboardApi.list({
         include_guests: includeGuests.value,
+        scope: scope.value,
+        gender: gender.value || undefined,
         min_matches: minMatches.value ?? 0,
         per_page: 500
       })
@@ -158,35 +192,16 @@
   }
 
   const exportCsv = () => {
-    const header = [
-      '名次',
-      '姓名',
-      '組織',
-      '排名分數',
-      '潛在實力',
-      '勝',
-      '敗',
-      '勝率',
-      '穩定度',
-      '可信度',
-      '經驗等級',
-      'μ',
-      'σ'
-    ]
+    const header = ['名次', '姓名', '組織', '分數', '勝', '敗', '勝率', '最近比賽']
     const rows = filteredPlayers.value.map(p => [
       p.rank,
       p.name,
       p.organization_name,
-      Math.round(p.conservative_score * 100),
-      Math.round(p.mu * 100),
+      formatRating(p.rating),
       p.wins,
       p.losses,
       `${p.win_rate}%`,
-      `${p.consistency_rating}%`,
-      `${p.rating_confidence}%`,
-      p.experience_level,
-      p.mu,
-      p.sigma
+      p.last_match_date
     ])
     const escape = value => `"${String(value ?? '').replace(/"/g, '""')}"`
     const csv = [header, ...rows].map(row => row.map(escape).join(',')).join('\n')
@@ -258,7 +273,12 @@
   }
   .filters {
     display: flex;
-    gap: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px 20px;
+  }
+  .filter-select {
+    width: 170px;
   }
   .filter {
     display: flex;
@@ -336,6 +356,14 @@
     font-size: 22px;
     font-weight: 700;
     color: var(--blue-700);
+  }
+  .detail-table :deep(.cell-provisional) {
+    padding: 1px 8px;
+    border-radius: var(--radius-full);
+    background: var(--gold-100);
+    color: #92400e;
+    font-size: 12px;
+    font-weight: 700;
   }
   .detail-table :deep(.cell-number) {
     font-size: 18px;

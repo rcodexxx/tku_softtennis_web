@@ -19,7 +19,10 @@
       </div>
       <div class="match-score">
         <span class="num games">{{ match.perspective?.my_games }} : {{ match.perspective?.opponent_games }}</span>
-        <ScoreChange :change="match.perspective?.score_change ?? null" />
+        <span v-if="match.perspective?.performance != null" class="performance">
+          本場表現 <b class="num">{{ formatRating(match.perspective.performance) }}</b>
+          <ScoreChange :change="match.perspective.score_change" />
+        </span>
       </div>
     </li>
   </ol>
@@ -30,6 +33,7 @@
   import ScoreChange from '@/components/leaderboard/ScoreChange.vue'
   import { useOptions } from '@/composables/useOptions'
   import { formatDate } from '@/utils/format'
+  import { formatRating } from '@/utils/rating'
 
   /** 從某位球員角度看的比賽列表（profile/me/matches 的資料）。 */
   defineProps({ matches: { type: Array, required: true } })
@@ -123,5 +127,16 @@
     font-size: 24px;
     font-weight: 700;
     color: var(--gray-900);
+  }
+  .performance {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--color-text-muted);
+  }
+  .performance b {
+    font-size: 15px;
+    color: var(--blue-900);
   }
 </style>

@@ -25,6 +25,10 @@ class Config:
         os.environ.get("CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173")
     )
 
+    # 排行榜「校隊」與「綜合（校隊 + 校友會）」範圍用的組織
+    TEAM_ORGANIZATION_ID = int(os.environ.get("TEAM_ORGANIZATION_ID", "1"))
+    ALUMNI_ORGANIZATION_ID = int(os.environ.get("ALUMNI_ORGANIZATION_ID", "2"))
+
     # 未設定時放在 backend/instance/uploads
     UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER")
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024

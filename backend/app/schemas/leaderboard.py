@@ -1,16 +1,18 @@
 from marshmallow import fields, validate
 
-from ..domain.rating import EXPERIENCE_LEVELS
-from .common import InputSchema
+from ..enums import GenderEnum
+from .common import EnumField, InputSchema
 
-SORT_FIELDS = ["score", "win_rate", "total_matches", "wins", "experience", "recent_activity", "join_date"]
+SORT_FIELDS = ["score", "win_rate", "total_matches", "wins", "recent_activity", "join_date"]
 
 
 class LeaderboardQuerySchema(InputSchema):
     include_guests = fields.Bool(load_default=True)
     include_inactive = fields.Bool(load_default=False)
     organization_id = fields.Int()
-    experience_level = fields.Str(validate=validate.OneOf([level for level, _ in EXPERIENCE_LEVELS]))
+    # team：校隊；combined：校隊 + 校友會；all：不限
+    scope = fields.Str(load_default="all", validate=validate.OneOf(["all", "team", "combined"]))
+    gender = EnumField(GenderEnum)
     min_matches = fields.Int(load_default=0, validate=validate.Range(min=0))
     min_win_rate = fields.Float(validate=validate.Range(min=0, max=100))
     active_since = fields.Date()

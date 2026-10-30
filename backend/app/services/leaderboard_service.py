@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 
+from flask import current_app
 from sqlalchemy import func, select
 from sqlalchemy.orm import joinedload
 
@@ -81,8 +82,8 @@ def match_stats() -> dict[int, MatchStats]:
                 s.recent_results.append(won)
             if s.last_match_date is None or match_date > s.last_match_date:
                 s.last_match_date = match_date
-    for pid, change in rating_service.last_match_score_changes().items():
-        stats.setdefault(pid, MatchStats()).score_change = change
+    for pid, result in rating_service.last_match_results().items():
+        stats.setdefault(pid, MatchStats()).score_change = result.change
     return stats
 
 
@@ -99,11 +100,10 @@ def leaderboard(params: dict) -> Page:
         stmt = stmt.where(Member.active_clause())
     if params.get("organization_id"):
         stmt = stmt.where(Member.organization_id == params["organization_id"])
-    if params.get("experience_level"):
-        low, high = rating_domain.experience_sigma_range(params["experience_level"])
-        stmt = stmt.where(Member.sigma >= low)
-        if high != float("inf"):
-            stmt = stmt.where(Member.sigma < high)
+    if params["scope"] != "all":
+        stmt = stmt.where(Member.organization_id.in_(_scope_organizations(params["scope"])))
+    if params.get("gender"):
+        stmt = stmt.where(Member.gender == params["gender"])
     if params.get("joined_after"):
         stmt = stmt.where(Member.joined_date >= params["joined_after"])
 
@@ -121,14 +121,17 @@ def leaderboard(params: dict) -> Page:
     return paginate_list(entries, params["page"], params["per_page"])
 
 
+def _scope_organizations(scope: str) -> list[int]:
+    team = current_app.config["TEAM_ORGANIZATION_ID"]
+    return [team] if scope == "team" else [team, current_app.config["ALUMNI_ORGANIZATION_ID"]]
+
+
 def _sort_key(sort_by: str):
-    experience_order = {level: i for i, (level, _) in enumerate(rating_domain.EXPERIENCE_LEVELS)}
     return {
-        "score": lambda e: rating_domain.conservative_score(e.member.rating),
+        "score": lambda e: e.member.score,
         "win_rate": lambda e: (e.stats.win_rate, e.stats.total_matches),
         "total_matches": lambda e: e.stats.total_matches,
         "wins": lambda e: e.stats.wins,
-        "experience": lambda e: experience_order[rating_domain.experience_level(e.member.rating)],
         "recent_activity": lambda e: e.stats.last_match_date or date.min,
         "join_date": lambda e: e.member.joined_date or date.min,
     }[sort_by]
@@ -138,8 +141,7 @@ def compare(member1_id: int, member2_id: int) -> dict:
     member1 = get_or_404(Member, member1_id, "找不到指定的成員。")
     member2 = get_or_404(Member, member2_id, "找不到指定的成員。")
     stats = match_stats()
-    score1 = rating_domain.conservative_score(member1.rating)
-    score2 = rating_domain.conservative_score(member2.rating)
+    score1, score2 = member1.score, member2.score
     return {
         "member1": member1,
         "member1_stats": stats.get(member1.id, MatchStats()),
@@ -147,13 +149,9 @@ def compare(member1_id: int, member2_id: int) -> dict:
         "member2_stats": stats.get(member2.id, MatchStats()),
         "comparison": {
             "score_difference": round(score1 - score2, 2),
-            "mu_difference": round(member1.mu - member2.mu, 3),
-            "sigma_difference": round(member1.sigma - member2.sigma, 3),
             "is_likely_stronger": score1 > score2,
-            "predicted_win_probability": round(rating_domain.win_probability(member1.rating, member2.rating), 3),
-            "comparison_reliability": min(
-                rating_domain.rating_confidence(member1.rating), rating_domain.rating_confidence(member2.rating)
-            ),
+            # member1 對上 member2（搭檔實力相同時）預期拿下的局數比例
+            "expected_games_share": round(rating_domain.expected_share(score1, score2), 3),
         },
     }
 
@@ -164,7 +162,7 @@ def statistics() -> dict:
     total_guests = db.session.scalar(select(func.count()).where(Member.is_guest.is_(True)))
     total_matches = db.session.scalar(select(func.count(MatchRecord.id)))
     total_players = total_members + total_guests
-    scores = sorted(rating_domain.conservative_score(m.rating) for m in members)
+    scores = sorted(m.score for m in members)
 
     today = date.today()
 
@@ -172,11 +170,6 @@ def statistics() -> dict:
         return db.session.scalar(
             select(func.count(MatchRecord.id)).join(Match).where(Match.match_date >= today - timedelta(days=days))
         )
-
-    experience_distribution: dict[str, int] = {}
-    for m in members:
-        level = rating_domain.experience_level(m.rating)
-        experience_distribution[level] = experience_distribution.get(level, 0) + 1
 
     organization_distribution = dict(
         db.session.execute(
@@ -195,7 +188,6 @@ def statistics() -> dict:
         "total_matches": total_matches,
         "average_matches_per_player": round(total_matches / total_players, 2) if total_players else 0.0,
         "score_distribution": _distribution(scores),
-        "experience_distribution": experience_distribution,
         "organization_distribution": organization_distribution,
         "matches_last_week": matches_since(7),
         "matches_last_month": matches_since(30),

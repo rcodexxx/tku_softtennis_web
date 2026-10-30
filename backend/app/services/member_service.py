@@ -1,14 +1,14 @@
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import joinedload
 
 from ..core.auth import ADMIN_ROLES
 from ..core.db import get_or_404
 from ..core.errors import ConflictError, NotFoundError, PermissionDeniedError
-from ..domain.rating import CONSERVATIVE_K
+from ..domain.rating import DEFAULT_STARTING_RATING
 from ..enums import UserRoleEnum
 from ..extensions import db
 from ..models import Member, Organization, Racket, User
-from . import avatar_service
+from . import avatar_service, rating_service
 from ._queries import has_match_records
 
 USER_FIELDS = ("email", "display_name", "role", "is_active")
@@ -27,7 +27,7 @@ MEMBER_FIELDS = (
 
 _SORT_COLUMNS = {
     "name": Member.name,
-    "conservative_score": Member.mu - CONSERVATIVE_K * Member.sigma,
+    "rating": func.coalesce(Member.rating, DEFAULT_STARTING_RATING),
     "joined_date": Member.joined_date,
     "created_at": Member.created_at,
 }
@@ -95,6 +95,9 @@ def update_member(actor: User, member_id: int, data: dict) -> Member:
             if field in data:
                 setattr(member.user, field, data[field])
 
+    if "gender" in data:
+        # 起始分數依性別而定
+        rating_service.recalculate_all()
     db.session.commit()
     return member
 

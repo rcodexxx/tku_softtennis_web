@@ -43,9 +43,12 @@ def test_my_matches_include_perspective(client, admin_headers, players, p1_heade
         "my_games": 4,
         "opponent_games": 2,
         "opponent_names": ["丙", "丁"],
+        "performance": match["perspective"]["performance"],
         "score_change": match["perspective"]["score_change"],
     }
-    assert match["perspective"]["score_change"] > 0
+    # 男生隊對女生隊預期拿 7 成局數，4-2 比預期差，所以贏了也小幅扣分
+    assert match["perspective"]["performance"] < 5.0
+    assert match["perspective"]["score_change"] < 0
     assert resp.get_json()["meta"]["total"] == 1
 
 
@@ -54,4 +57,4 @@ def test_my_matches_from_side_b(client, admin_headers, players):
     headers = auth_header(login(client, "0920000003", "password")["access_token"])
     perspective = data(client.get("/api/profile/me/matches", headers=headers))[0]["perspective"]
     assert (perspective["side"], perspective["is_winner"], perspective["my_games"]) == ("B", False, 2)
-    assert perspective["score_change"] < 0
+    assert perspective["score_change"] > 0  # 女生隊輸了但比預期好

@@ -24,7 +24,7 @@
           <PlayerAvatar :id="player.id" :name="player.name" :src="player.avatar_url" :size="40" />
           <span class="player-text">
             <span class="player-name">{{ player.name }}</span>
-            <span class="player-sub">{{ player.organization_name || player.experience_level }}</span>
+            <span class="player-sub">{{ player.organization_name || (player.is_guest ? '訪客' : '隊員') }}</span>
           </span>
         </span>
         <span class="col-form"><RecentForm :form="player.recent_form" /></span>
@@ -34,7 +34,7 @@
         </span>
         <span class="col-matches num">{{ player.total_matches }}</span>
         <span class="col-score">
-          <span class="score num">{{ displayScore(player) }}</span>
+          <span class="score num">{{ formatRating(player.rating) }}</span>
           <ScoreChange :change="player.score_change" />
         </span>
       </li>
@@ -46,6 +46,7 @@
   import PlayerAvatar from '@/components/base/PlayerAvatar.vue'
   import RecentForm from './RecentForm.vue'
   import ScoreChange from './ScoreChange.vue'
+  import { formatRating } from '@/utils/rating'
 
   defineProps({
     players: { type: Array, required: true },
@@ -53,7 +54,6 @@
     highlightId: { type: Number, default: null }
   })
 
-  const displayScore = player => Math.round(player.conservative_score * 100)
   const rankClass = rank => (rank <= 10 ? 'top10' : rank <= 20 ? 'top20' : '')
 </script>
 

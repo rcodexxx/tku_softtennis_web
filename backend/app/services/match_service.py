@@ -83,7 +83,7 @@ def create_record(data: dict) -> MatchRecord:
     _apply_scores(record, data)
     db.session.add(record)
     _touch_guests(record)
-    rating_service.on_match_created(record)
+    rating_service.recalculate_all()
     db.session.commit()
     return record
 

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import Float, ForeignKey, String, Text, and_, exists, or_, select
 from sqlalchemy.orm import Mapped, aliased, mapped_column, relationship
 
-from ..domain.rating import DEFAULT_MU, DEFAULT_SIGMA, Rating
+from ..domain.rating import starting_rating
 from ..enums import BloodTypeEnum, GenderEnum, GuestRoleEnum, MatchPositionEnum
 from ..extensions import db
 from .base import enum_column, utcnow
@@ -51,9 +51,8 @@ class Member(db.Model):
     joined_date: Mapped[date | None] = mapped_column(comment="入隊日期")
     leaved_date: Mapped[date | None] = mapped_column(comment="離隊日期")
 
-    # TrueSkill
-    mu: Mapped[float] = mapped_column(Float, default=DEFAULT_MU, comment="TrueSkill μ 值")
-    sigma: Mapped[float] = mapped_column(Float, default=DEFAULT_SIGMA, comment="TrueSkill σ 值")
+    # 由 rating_service 依比賽紀錄重算；沒打過比賽時為 None
+    rating: Mapped[float | None] = mapped_column(Float, comment="分數（1–10）")
 
     notes: Mapped[str | None] = mapped_column(Text, comment="隊員備註")
     avatar_filename: Mapped[str | None] = mapped_column(String(255), comment="頭像檔名")
@@ -78,8 +77,9 @@ class Member(db.Model):
     match_stats_records: Mapped[list["PlayerStats"]] = relationship(cascade="all, delete-orphan")
 
     @property
-    def rating(self) -> Rating:
-        return Rating(self.mu, self.sigma)
+    def score(self) -> float:
+        """目前分數；還沒打過比賽時用起始分數。"""
+        return self.rating if self.rating is not None else starting_rating(self.gender)
 
     @property
     def is_active(self) -> bool:

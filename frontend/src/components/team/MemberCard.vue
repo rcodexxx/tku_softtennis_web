@@ -14,7 +14,7 @@
         <span v-if="member.student_id"> · {{ member.student_id }}</span>
       </p>
       <div class="stats">
-        <span class="score num">{{ Math.round(member.conservative_score * 100) }}</span>
+        <span class="score num">{{ formatRating(member.rating) }}</span>
         <span class="status">
           <span class="dot"></span>
           {{ member.is_active ? '在隊' : '已離隊／停用' }}
@@ -53,6 +53,7 @@
   import PlayerAvatar from '@/components/base/PlayerAvatar.vue'
   import { useOptions } from '@/composables/useOptions'
   import { organizationLabel } from '@/utils/player'
+  import { formatRating } from '@/utils/rating'
 
   const props = defineProps({
     member: { type: Object, required: true },

@@ -35,11 +35,11 @@ def my_matches():
     user = get_current_user()
     page = profile_service.my_matches(user, params["page"], params["per_page"])
     member_id = user.member_profile.id
-    changes = rating_service.score_changes_for(member_id)
+    results = rating_service.results_for(member_id)
     items = [
         {
             **record_schema.dump(record),
-            "perspective": profile_service.perspective(record, member_id, changes.get(record.id)),
+            "perspective": profile_service.perspective(record, member_id, results.get(record.id)),
         }
         for record in page.items
     ]

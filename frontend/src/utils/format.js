@@ -14,15 +14,3 @@ export function dateToTimestamp(dateString) {
   const [year, month, day] = dateString.split('-').map(Number)
   return new Date(year, month - 1, day).getTime()
 }
-
-/** 固定小數位數；非數字時回傳 0 的對應格式。 */
-export function formatScore(score, precision = 1) {
-  const value = typeof score === 'number' && !Number.isNaN(score) ? score : 0
-  return value.toFixed(precision)
-}
-
-/** 排行榜顯示用的分數：conservative_score × 100 取整數。 */
-export function formatDisplayScore(score) {
-  if (typeof score !== 'number' || Number.isNaN(score)) return '0'
-  return Math.round(score * 100).toString()
-}

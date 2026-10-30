@@ -1,17 +1,17 @@
 <template>
   <span v-if="points !== null" class="score-change num" :class="direction">
     <span class="arrow">{{ direction === 'up' ? '▲' : direction === 'down' ? '▼' : '–' }}</span>
-    {{ points === 0 ? '' : Math.abs(points) }}
+    {{ points === 0 ? '' : Math.abs(points).toFixed(1) }}
   </span>
 </template>
 
 <script setup>
   import { computed } from 'vue'
 
-  /** 最近一場比賽造成的分數變化（和排行榜分數一樣乘以 100）。 */
+  /** 比賽造成的分數變化，和分數一樣顯示到小數點一位。 */
   const props = defineProps({ change: { type: Number, default: null } })
 
-  const points = computed(() => (props.change === null ? null : Math.round(props.change * 100)))
+  const points = computed(() => (props.change === null ? null : Math.round(props.change * 10) / 10))
   const direction = computed(() => (points.value > 0 ? 'up' : points.value < 0 ? 'down' : 'flat'))
 </script>
 

@@ -96,6 +96,13 @@ def run_migrations_online():
     connectable = get_engine()
 
     with connectable.connect() as connection:
+        sqlite = connection.dialect.name == "sqlite"
+        if sqlite:
+            # batch 模式會重建資料表；外鍵開著時 DROP TABLE 會觸發 ON DELETE SET NULL，
+            # 把比賽紀錄裡的球員清掉。PRAGMA 只能在交易外切換，所以先 commit。
+            connection.exec_driver_sql("PRAGMA foreign_keys=OFF")
+            connection.commit()
+
         context.configure(
             connection=connection,
             target_metadata=get_metadata(),
@@ -104,6 +111,13 @@ def run_migrations_online():
 
         with context.begin_transaction():
             context.run_migrations()
+
+        if sqlite:
+            violations = connection.exec_driver_sql("PRAGMA foreign_key_check").fetchall()
+            connection.exec_driver_sql("PRAGMA foreign_keys=ON")
+            connection.commit()
+            if violations:
+                raise RuntimeError(f"遷移後有 {len(violations)} 筆資料違反外鍵：{violations[:5]}")
 
 
 if context.is_offline_mode():

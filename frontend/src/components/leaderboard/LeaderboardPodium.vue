@@ -19,7 +19,7 @@
         <h3 class="name">{{ entry.player.name }}</h3>
         <p v-if="entry.player.organization_name" class="org">{{ entry.player.organization_name }}</p>
         <div class="score">
-          <CountUp :value="displayScore(entry.player)" :duration="1200" />
+          <CountUp :value="entry.player.rating" :decimals="1" :duration="1200" />
           <ScoreChange :change="entry.player.score_change" />
         </div>
         <div class="meta">
@@ -53,8 +53,6 @@
   const ordered = computed(() =>
     [1, 0, 2].filter(index => props.players[index]).map(index => ({ player: props.players[index], place: index + 1 }))
   )
-
-  const displayScore = player => Math.round(player.conservative_score * 100)
 
   onMounted(() => {
     // 每個工作階段只灑一次彩帶

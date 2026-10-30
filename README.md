@@ -1,6 +1,6 @@
 # TKU Soft Tennis Stats
 
-淡江軟網隊的比賽紀錄與 TrueSkill 排行榜。前端 Vue 3 + Naive UI，後端 Flask + SQLAlchemy，資料存在本地 SQLite。
+淡江軟網隊的比賽紀錄與排行榜（類似 UTR 的 1–10 分數，依最近 20 場的局數表現計算）。前端 Vue 3 + Naive UI，後端 Flask + SQLAlchemy，資料存在本地 SQLite。
 
 ## 本地執行
 

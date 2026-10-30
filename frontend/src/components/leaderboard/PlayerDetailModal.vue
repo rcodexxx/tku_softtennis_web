@@ -15,7 +15,7 @@
           <RecentForm :form="player.recent_form" />
         </div>
         <div class="head-score">
-          <span class="num score">{{ Math.round(player.conservative_score * 100) }}</span>
+          <span class="num score">{{ formatRating(player.rating) }}</span>
           <ScoreChange :change="player.score_change" />
         </div>
       </div>
@@ -38,12 +38,12 @@
         </div>
       </div>
 
-      <AbilityBars :member="player" />
+      <RatingMeter :rating="player.rating" :total-matches="player.total_matches" />
 
       <div v-if="canCompare" class="compare">
         <n-button v-if="!comparison" secondary block :loading="comparing" @click="compare">與我比較</n-button>
         <div v-else class="compare-result">
-          <p class="compare-title">如果你們對打</p>
+          <p class="compare-title">如果你們搭配實力相同的搭檔對打，預期拿下的局數</p>
           <div class="probability">
             <span class="side me"
               >我 <b class="num">{{ myWinRate }}%</b></span
@@ -55,17 +55,9 @@
               ><b class="num">{{ 100 - myWinRate }}%</b> {{ player.name }}</span
             >
           </div>
-          <p class="compare-note">
-            依雙方目前的 TrueSkill 評分預測，參考可信度 {{ comparison.comparison_reliability }}%
-          </p>
+          <p class="compare-note">依雙方目前分數預測：差 1 分，強的一方預期拿下 7 成局數。</p>
         </div>
       </div>
-
-      <n-collapse class="raw">
-        <n-collapse-item title="原始 TrueSkill 數據" name="raw">
-          <span class="num">μ = {{ player.mu }}，σ = {{ player.sigma }}</span>
-        </n-collapse-item>
-      </n-collapse>
     </template>
   </n-modal>
 </template>
@@ -75,8 +67,9 @@
   import { useMessage } from 'naive-ui'
   import { leaderboardApi } from '@/api'
   import PlayerAvatar from '@/components/base/PlayerAvatar.vue'
-  import AbilityBars from '@/components/profile/AbilityBars.vue'
+  import RatingMeter from '@/components/profile/RatingMeter.vue'
   import { formatDate } from '@/utils/format'
+  import { formatRating } from '@/utils/rating'
   import RecentForm from './RecentForm.vue'
   import ScoreChange from './ScoreChange.vue'
 
@@ -92,7 +85,7 @@
 
   const ring = computed(() => ({ 1: 'gold', 2: 'silver', 3: 'bronze' })[props.player?.rank] || 'none')
   const canCompare = computed(() => props.myMemberId && props.player && props.myMemberId !== props.player.id)
-  const myWinRate = computed(() => Math.round((1 - comparison.value.predicted_win_probability) * 100))
+  const myWinRate = computed(() => Math.round((1 - comparison.value.expected_games_share) * 100))
 
   watch(
     () => props.player,
@@ -104,7 +97,7 @@
   const compare = async () => {
     comparing.value = true
     try {
-      // member1 是對方，所以 predicted_win_probability 是對方贏的機率
+      // member1 是對方，所以 expected_games_share 是對方預期拿下的局數比例
       comparison.value = (await leaderboardApi.compare(props.player.id, props.myMemberId)).comparison
     } catch (error) {
       message.error(error.response?.data?.message || '比較失敗')
@@ -226,8 +219,5 @@
     margin: 8px 0 0;
     font-size: 12px;
     color: var(--color-text-muted);
-  }
-  .raw {
-    margin-top: 16px;
   }
 </style>

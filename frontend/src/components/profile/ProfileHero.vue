@@ -20,9 +20,6 @@
         <span v-if="member?.organization" class="tag">{{
           member.organization.short_name || member.organization.name
         }}</span>
-        <span v-if="member" class="tag"
-          >{{ experienceIcon(member.experience_level) }} {{ member.experience_level }}</span
-        >
       </div>
     </div>
 
@@ -45,7 +42,6 @@
   import AvatarUploader from '@/components/base/AvatarUploader.vue'
   import PlayerAvatar from '@/components/base/PlayerAvatar.vue'
   import { useOptions } from '@/composables/useOptions'
-  import { experienceIcon } from '@/utils/experience'
 
   const props = defineProps({ profile: { type: Object, required: true } })
   const emit = defineEmits(['edit', 'change-password', 'avatar-updated'])
