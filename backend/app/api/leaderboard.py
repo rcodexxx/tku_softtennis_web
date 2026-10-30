@@ -3,25 +3,30 @@ from flask import Blueprint
 from ..core.errors import ValidationError
 from ..core.requests import load_args
 from ..core.responses import ok
-from ..schemas.leaderboard import LeaderboardQuerySchema
+from ..schemas.leaderboard import LeaderboardQuerySchema, SeasonQuerySchema
 from ..schemas.member import MemberSchema
-from ..services import leaderboard_service
+from ..schemas.season import SeasonSchema
+from ..services import leaderboard_service, season_service
 
 bp = Blueprint("leaderboard", __name__, url_prefix="/leaderboard")
 
 member_schema = MemberSchema()
+season_schema = SeasonSchema()
 
 
 @bp.get("")
 def get_leaderboard():
-    page = leaderboard_service.leaderboard(load_args(LeaderboardQuerySchema()))
-    rows = [{**member_schema.dump(e.member), **e.stats.to_dict(), "rank": e.rank} for e in page.items]
-    return ok(rows, meta=page.meta)
+    season, page = leaderboard_service.leaderboard(load_args(LeaderboardQuerySchema()))
+    rows = [
+        {**member_schema.dump(e.member), **e.stats.to_dict(), "rating": round(e.score, 2), "rank": e.rank}
+        for e in page.items
+    ]
+    return ok(rows, meta={**page.meta, "season": season_schema.dump(season_service.describe(season))})
 
 
 @bp.get("/statistics")
 def get_statistics():
-    return ok(leaderboard_service.statistics())
+    return ok(leaderboard_service.statistics(load_args(SeasonQuerySchema()).get("season_id")))
 
 
 @bp.get("/compare/<int:member1_id>/<int:member2_id>")

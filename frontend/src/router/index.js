@@ -94,6 +94,12 @@ const routes = [
     meta: { roles: STAFF }
   },
   {
+    path: '/management/seasons/new',
+    name: 'NewSeason',
+    component: () => import('@/views/team/NewSeasonView.vue'),
+    meta: { roles: ['admin'] }
+  },
+  {
     path: '/management/members/edit/:id',
     name: 'EditMember',
     component: () => import('@/views/team/MemberFormView.vue'),

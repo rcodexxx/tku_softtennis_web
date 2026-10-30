@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatRating, isRated, ratingPercent } from '../rating'
+import { formatRating, isRated, rankPlayers, ratingPercent } from '../rating'
 
 describe('rating', () => {
   it('formatRating 顯示到小數點一位', () => {
@@ -19,5 +19,31 @@ describe('rating', () => {
     expect(isRated(4)).toBe(false)
     expect(isRated(5)).toBe(true)
     expect(isRated(undefined)).toBe(false)
+  })
+})
+
+describe('rankPlayers', () => {
+  const players = [
+    { id: 1, rating: 5.2, total_matches: 6 },
+    { id: 2, rating: 5.0, total_matches: 0 },
+    { id: 3, rating: 6.1, total_matches: 8 },
+    { id: 4, rating: 4.4, total_matches: 2 }
+  ]
+
+  it('ranks only players with enough matches', () => {
+    const { ranked, unranked } = rankPlayers(players)
+    expect(ranked.map(p => [p.id, p.rank])).toEqual([
+      [3, 1],
+      [1, 2]
+    ])
+    expect(unranked.map(p => [p.id, p.rank])).toEqual([
+      [4, null],
+      [2, null]
+    ])
+  })
+
+  it('uses the given sort key', () => {
+    const { ranked } = rankPlayers(players, p => p.total_matches)
+    expect(ranked.map(p => p.id)).toEqual([3, 1])
   })
 })

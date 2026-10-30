@@ -1,6 +1,6 @@
 <template>
   <div class="team-page">
-    <PageHeader eyebrow="TEAM" title="團隊管理" subtitle="管理隊員、訪客與合作組織。">
+    <PageHeader eyebrow="TEAM" title="團隊管理" subtitle="管理隊員、訪客、合作組織與賽季。">
       <template #actions>
         <n-button type="primary" @click="router.push({ name: 'AddMember' })">
           <template #icon><n-icon :component="PersonAddOutline" /></template>
@@ -22,13 +22,16 @@
       <n-tab-pane name="organizations" tab="組織">
         <OrganizationList :organizations="organizations" :loading="loading" @changed="load" />
       </n-tab-pane>
+      <n-tab-pane name="seasons" tab="賽季" display-directive="show:lazy">
+        <SeasonList />
+      </n-tab-pane>
     </n-tabs>
   </div>
 </template>
 
 <script setup>
   import { computed, onMounted, ref } from 'vue'
-  import { useRouter } from 'vue-router'
+  import { useRoute, useRouter } from 'vue-router'
   import { useMessage } from 'naive-ui'
   import { BusinessOutline, PeopleOutline, PersonAddOutline, PersonOutline } from '@vicons/ionicons5'
   import { membersApi, organizationsApi } from '@/api'
@@ -36,11 +39,14 @@
   import StatCard from '@/components/base/StatCard.vue'
   import MemberDirectory from '@/components/team/MemberDirectory.vue'
   import OrganizationList from '@/components/team/OrganizationList.vue'
+  import SeasonList from '@/components/team/SeasonList.vue'
 
   const router = useRouter()
+  const route = useRoute()
   const message = useMessage()
 
-  const tab = ref('members')
+  const TABS = ['members', 'organizations', 'seasons']
+  const tab = ref(TABS.includes(route.query.tab) ? route.query.tab : 'members')
   const loading = ref(true)
   const members = ref([])
   const organizations = ref([])

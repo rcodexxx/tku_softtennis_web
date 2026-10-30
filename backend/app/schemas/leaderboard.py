@@ -6,7 +6,12 @@ from .common import EnumField, InputSchema
 SORT_FIELDS = ["score", "win_rate", "total_matches", "wins", "recent_activity", "join_date"]
 
 
-class LeaderboardQuerySchema(InputSchema):
+class SeasonQuerySchema(InputSchema):
+    # 沒指定時為目前賽季
+    season_id = fields.Int()
+
+
+class LeaderboardQuerySchema(SeasonQuerySchema):
     include_guests = fields.Bool(load_default=True)
     include_inactive = fields.Bool(load_default=False)
     organization_id = fields.Int()

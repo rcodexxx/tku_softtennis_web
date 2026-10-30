@@ -1,15 +1,25 @@
 <template>
-  <span class="player-avatar" :class="[`ring-${ring}`]" :style="{ '--size': `${size}px`, '--bg': color }">
+  <span class="player-avatar" :class="[`ring-${ring}`]" :style="{ '--size': `${size}px` }">
     <img v-if="src && !imageFailed" :src="src" :alt="name" @error="imageFailed = true" />
-    <span v-else class="initial">{{ initial }}</span>
+    <svg v-else viewBox="-1.25 -1.25 7.5 7.5" role="img" :aria-label="name" shape-rendering="crispEdges">
+      <rect
+        v-for="[x, y] in pattern.cells"
+        :key="`${x}-${y}`"
+        :x="x"
+        :y="y"
+        width="1.02"
+        height="1.02"
+        :fill="pattern.color"
+      />
+    </svg>
   </span>
 </template>
 
 <script setup>
   import { computed, ref, watch } from 'vue'
-  import { playerColor, playerInitial } from '@/utils/player'
+  import { identicon } from '@/utils/identicon'
 
-  /** 球員頭像：有照片顯示照片，沒有則顯示姓名第一個字。ring 可加上金銀銅外框。 */
+  /** 球員頭像：有照片顯示照片，沒有則顯示 GitHub 風格的幾何圖案（依球員 id 或姓名產生）。ring 可加上金銀銅外框。 */
   const props = defineProps({
     name: { type: String, default: '' },
     id: { type: Number, default: null },
@@ -24,8 +34,7 @@
     () => (imageFailed.value = false)
   )
 
-  const initial = computed(() => playerInitial(props.name))
-  const color = computed(() => playerColor(props.id ?? [...props.name].reduce((sum, ch) => sum + ch.charCodeAt(0), 0)))
+  const pattern = computed(() => identicon(props.id ?? props.name))
 </script>
 
 <style scoped>
@@ -38,11 +47,12 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    background: var(--bg);
-    color: #fff;
-    font-weight: 700;
-    font-size: calc(var(--size) * 0.42);
+    background: #f0f2f5;
     box-shadow: 0 0 0 2px #fff;
+  }
+  .player-avatar svg {
+    width: 100%;
+    height: 100%;
   }
   .player-avatar img {
     width: 100%;

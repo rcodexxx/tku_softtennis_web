@@ -16,6 +16,7 @@ export function usePermissions() {
     canEditMember: hasManagementAccess,
     canDeleteMember: isAdmin,
     canDeleteMatch: isAdmin,
-    canManageOrganization: isAdmin
+    canManageOrganization: isAdmin,
+    canStartSeason: isAdmin
   }
 }

@@ -10,8 +10,8 @@ from ..core.pagination import Page, paginate_list
 from ..domain import rating as rating_domain
 from ..enums import MatchOutcomeEnum
 from ..extensions import db
-from ..models import Match, MatchRecord, Member, Organization
-from . import rating_service
+from ..models import Match, MatchRecord, Member, Organization, Season
+from . import rating_service, season_service
 
 RECENT_FORM_SIZE = 5
 
@@ -49,12 +49,31 @@ class MatchStats:
 class LeaderboardEntry:
     member: Member
     stats: MatchStats
+    # 這個賽季的分數
+    score: float
     rank: int = field(default=0)
 
 
-def match_stats() -> dict[int, MatchStats]:
-    """一次查詢計算所有球員的勝敗場次、近況與最近一場的分數變化。"""
-    rows = db.session.execute(
+@dataclass
+class SeasonData:
+    period: rating_service.Period
+    replay: rating_service.Replay
+    stats: dict[int, MatchStats]
+
+    def score(self, member: Member) -> float:
+        return self.replay.ratings.get(member.id, member.score)
+
+
+def season_data(season: Season | None) -> SeasonData:
+    """某個賽季（None 為全部比賽）的分數重算結果與每位球員的戰績。"""
+    period = season_service.period(season)
+    replay = rating_service.replay(period)
+    return SeasonData(period, replay, match_stats(period, replay))
+
+
+def match_stats(period: rating_service.Period, replay: rating_service.Replay) -> dict[int, MatchStats]:
+    """一次查詢計算期間內所有球員的勝敗場次、近況與最近一場的分數變化。"""
+    stmt = (
         select(
             MatchRecord.player1_id,
             MatchRecord.player2_id,
@@ -67,8 +86,9 @@ def match_stats() -> dict[int, MatchStats]:
         .where(MatchRecord.side_a_outcome.in_([MatchOutcomeEnum.WIN, MatchOutcomeEnum.LOSS]))
         .order_by(Match.match_date.desc(), MatchRecord.id.desc())
     )
+    stmt = period.filter(stmt)
     stats: dict[int, MatchStats] = {}
-    for p1, p2, p3, p4, outcome, match_date in rows:
+    for p1, p2, p3, p4, outcome, match_date in db.session.execute(stmt):
         side_a_won = outcome == MatchOutcomeEnum.WIN
         for pid, won in ((p1, side_a_won), (p2, side_a_won), (p3, not side_a_won), (p4, not side_a_won)):
             if not pid:
@@ -82,34 +102,27 @@ def match_stats() -> dict[int, MatchStats]:
                 s.recent_results.append(won)
             if s.last_match_date is None or match_date > s.last_match_date:
                 s.last_match_date = match_date
-    for pid, result in rating_service.last_match_results().items():
+    for pid, result in replay.latest_results().items():
         stats.setdefault(pid, MatchStats()).score_change = result.change
     return stats
 
 
 def member_stats(member_id: int) -> tuple[Member, MatchStats]:
+    """目前賽季的戰績。"""
     member = get_or_404(Member, member_id, "找不到指定的成員。")
-    return member, match_stats().get(member_id, MatchStats())
+    data = season_data(season_service.current_season())
+    return member, data.stats.get(member_id, MatchStats())
 
 
-def leaderboard(params: dict) -> Page:
-    stmt = select(Member).options(joinedload(Member.user), joinedload(Member.organization))
-    if not params["include_guests"]:
-        stmt = stmt.where(Member.is_guest.is_(False))
-    if not params["include_inactive"]:
-        stmt = stmt.where(Member.active_clause())
-    if params.get("organization_id"):
-        stmt = stmt.where(Member.organization_id == params["organization_id"])
-    if params["scope"] != "all":
-        stmt = stmt.where(Member.organization_id.in_(_scope_organizations(params["scope"])))
-    if params.get("gender"):
-        stmt = stmt.where(Member.gender == params["gender"])
-    if params.get("joined_after"):
-        stmt = stmt.where(Member.joined_date >= params["joined_after"])
+def leaderboard(params: dict) -> tuple[Season | None, Page]:
+    season = season_service.resolve(params.get("season_id"))
+    current = season_service.is_current(season)
+    members = _leaderboard_members(params, season, current)
 
-    all_stats = match_stats()
-    entries = [LeaderboardEntry(m, all_stats.get(m.id, MatchStats())) for m in db.session.scalars(stmt).unique()]
-    entries = [e for e in entries if e.stats.total_matches >= params["min_matches"]]
+    data = season_data(season)
+    entries = [LeaderboardEntry(m, data.stats.get(m.id, MatchStats()), data.score(m)) for m in members]
+    min_matches = params["min_matches"] if current else max(1, params["min_matches"])
+    entries = [e for e in entries if e.stats.total_matches >= min_matches]
     if params.get("min_win_rate") is not None:
         entries = [e for e in entries if e.stats.win_rate >= params["min_win_rate"]]
     if params.get("active_since"):
@@ -118,7 +131,32 @@ def leaderboard(params: dict) -> Page:
     entries.sort(key=_sort_key(params["sort_by"]), reverse=params["sort_order"] == "desc")
     for rank, entry in enumerate(entries, start=1):
         entry.rank = rank
-    return paginate_list(entries, params["page"], params["per_page"])
+    return season, paginate_list(entries, params["page"], params["per_page"])
+
+
+def _leaderboard_members(params: dict, season: Season | None, current: bool) -> list[Member]:
+    # 舊賽季照封存的名單分組，並列出當時有上場的所有人（包含之後離隊的）
+    roster = {} if current else {r.member_id: r.organization_id for r in season.rosters}
+    stmt = select(Member).options(joinedload(Member.user), joinedload(Member.organization))
+    if not params["include_guests"]:
+        stmt = stmt.where(Member.is_guest.is_(False))
+    if current and not params["include_inactive"]:
+        stmt = stmt.where(Member.active_clause())
+    if params.get("gender"):
+        stmt = stmt.where(Member.gender == params["gender"])
+    if params.get("joined_after"):
+        stmt = stmt.where(Member.joined_date >= params["joined_after"])
+
+    def organization_of(member: Member) -> int | None:
+        return roster.get(member.id, member.organization_id)
+
+    members = list(db.session.scalars(stmt).unique())
+    if params["scope"] != "all":
+        allowed = _scope_organizations(params["scope"])
+        members = [m for m in members if organization_of(m) in allowed]
+    if params.get("organization_id"):
+        members = [m for m in members if organization_of(m) == params["organization_id"]]
+    return members
 
 
 def _scope_organizations(scope: str) -> list[int]:
@@ -128,7 +166,7 @@ def _scope_organizations(scope: str) -> list[int]:
 
 def _sort_key(sort_by: str):
     return {
-        "score": lambda e: e.member.score,
+        "score": lambda e: e.score,
         "win_rate": lambda e: (e.stats.win_rate, e.stats.total_matches),
         "total_matches": lambda e: e.stats.total_matches,
         "wins": lambda e: e.stats.wins,
@@ -140,7 +178,7 @@ def _sort_key(sort_by: str):
 def compare(member1_id: int, member2_id: int) -> dict:
     member1 = get_or_404(Member, member1_id, "找不到指定的成員。")
     member2 = get_or_404(Member, member2_id, "找不到指定的成員。")
-    stats = match_stats()
+    stats = season_data(season_service.current_season()).stats
     score1, score2 = member1.score, member2.score
     return {
         "member1": member1,
@@ -156,13 +194,16 @@ def compare(member1_id: int, member2_id: int) -> dict:
     }
 
 
-def statistics() -> dict:
+def statistics(season_id: int | None = None) -> dict:
+    """球員人數是目前的狀況；比賽數與分數分布只看指定的賽季（預設為目前賽季）。"""
+    data = season_data(season_service.resolve(season_id))
     members = list(db.session.scalars(select(Member).where(Member.active_clause())))
     total_members = db.session.scalar(select(func.count()).where(Member.is_guest.is_(False)))
     total_guests = db.session.scalar(select(func.count()).where(Member.is_guest.is_(True)))
-    total_matches = db.session.scalar(select(func.count(MatchRecord.id)))
+    total_matches = season_service.count_matches(data.period)
     total_players = total_members + total_guests
-    scores = sorted(m.score for m in members)
+    # 這個賽季有上場的球員
+    scores = sorted(data.replay.ratings[pid] for pid in data.replay.performances)
 
     today = date.today()
 

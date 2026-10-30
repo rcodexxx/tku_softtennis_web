@@ -23,11 +23,11 @@
             <span class="rank-label">{{ rankLabel }}</span>
             <template v-if="rank">
               <span class="rank-value num">#<CountUp :value="rank" /></span>
-              <span class="rank-sub">共 {{ rankedCount }} 位上榜</span>
+              <span class="rank-sub">{{ seasonPrefix }}共 {{ rankedCount }} 位上榜</span>
             </template>
             <template v-else>
               <span class="rank-value unranked">未上榜</span>
-              <span class="rank-sub">再打 {{ matchesToQualify }} 場就能上榜</span>
+              <span class="rank-sub">{{ seasonPrefix }}再打 {{ matchesToQualify }} 場就能上榜</span>
             </template>
           </div>
           <StatCard label="分數" :value="member.rating" :decimals="1" :icon="TrophyOutline" accent="var(--gold-500)" />
@@ -77,7 +77,7 @@
 <script setup>
   import { computed, onMounted, ref } from 'vue'
   import { PieChartOutline, TennisballOutline, TrophyOutline } from '@vicons/ionicons5'
-  import { leaderboardApi, membersApi, profileApi } from '@/api'
+  import { leaderboardApi, membersApi, profileApi, seasonsApi } from '@/api'
   import ChangePasswordForm from '@/components/auth/ChangePasswordForm.vue'
   import CountUp from '@/components/base/CountUp.vue'
   import StatCard from '@/components/base/StatCard.vue'
@@ -103,6 +103,7 @@
   // 校隊成員看校隊排名，其他人看綜合排名
   const ranking = ref({ label: '綜合排名', items: [] })
   const recentMatches = ref([])
+  const season = ref(null)
   const showEdit = ref(false)
   const showPassword = ref(false)
 
@@ -113,9 +114,11 @@
     const index = ranking.value.items.findIndex(entry => entry.id === member.value?.id)
     return index >= 0 ? index + 1 : null
   })
-  // 最近 20 場的本場表現（舊到新），畫成走勢圖
+  const seasonPrefix = computed(() => (season.value ? `${season.value.name}・` : ''))
+  // 這個賽季最近 20 場的本場表現（舊到新），畫成走勢圖
   const performances = computed(() =>
     recentMatches.value
+      .filter(match => !season.value || match.match_date >= season.value.start_date)
       .map(match => match.perspective?.performance)
       .filter(value => typeof value === 'number')
       .reverse()
@@ -140,12 +143,14 @@
       profile.value = await profileApi.get()
       if (member.value) {
         const board = scope => leaderboardApi.list({ scope, min_matches: MIN_MATCHES, per_page: 500 })
-        const [memberStats, team, combined, matches] = await Promise.all([
+        const [memberStats, team, combined, matches, seasons] = await Promise.all([
           membersApi.stats(member.value.id),
           board('team'),
           board('combined'),
-          profileApi.matches({ per_page: 20 })
+          profileApi.matches({ per_page: 20 }),
+          seasonsApi.list().catch(() => [])
         ])
+        season.value = seasons.find(item => item.is_current) ?? null
         stats.value = memberStats
         const inTeam = team.items.some(entry => entry.id === member.value.id)
         ranking.value = inTeam ? { label: '校隊排名', items: team.items } : { label: '綜合排名', items: combined.items }

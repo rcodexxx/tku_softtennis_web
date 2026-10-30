@@ -3,7 +3,7 @@
     <PageHeader
       eyebrow="TAMKANG SOFT TENNIS"
       title="淡江軟網排行榜"
-      :subtitle="`依最近 20 場的局數表現計分・至少 ${MIN_MATCHES} 場比賽才會上榜`"
+      :subtitle="`每個賽季重新計分，依最近 20 場的局數表現・至少 ${MIN_MATCHES} 場比賽才會上榜`"
     >
       <template #actions>
         <n-button v-if="authStore.isAuthenticated" secondary @click="router.push({ name: 'DetailLeaderboard' })">
@@ -43,12 +43,30 @@
         </button>
       </div>
       <span class="board-hint">{{ SCOPES[scopeIndex].hint }}</span>
+      <n-select
+        v-if="seasons.length > 1"
+        :value="selectedSeason?.id ?? null"
+        :options="seasonSelectOptions"
+        size="small"
+        class="season-select"
+        aria-label="賽季"
+        @update:value="id => setBoard({ season: id === currentSeason?.id ? null : id })"
+      />
+    </div>
+
+    <div v-if="viewingPast" class="past-banner">
+      <n-icon :component="ArchiveOutline" size="20" />
+      <span>
+        這是 <b>{{ selectedSeason.name }}</b
+        >（{{ seasonRangeLabel(selectedSeason) }}）的最終排行榜，名單照當時的隊籍分組。
+      </span>
+      <n-button size="small" secondary @click="setBoard({ season: null })">回到 {{ currentSeason.name }}</n-button>
     </div>
 
     <div class="stats-row">
-      <StatCard label="上榜球員" :value="players.length" :icon="PeopleOutline" />
+      <StatCard label="上榜球員" :value="rankedCount" :icon="PeopleOutline" />
       <StatCard
-        label="累計比賽"
+        :label="viewingPast ? '當季比賽' : selectedSeason ? '本季比賽' : '累計比賽'"
         :value="statistics?.total_matches ?? 0"
         :icon="TennisballOutline"
         accent="var(--red-500)"
@@ -70,10 +88,17 @@
       <n-skeleton v-for="n in 6" :key="n" height="60px" :sharp="false" class="row-skeleton" />
     </template>
 
-    <n-empty v-else-if="!players.length" description="目前還沒有球員達到上榜門檻" size="huge" class="empty" />
+    <n-empty v-else-if="!players.length" :description="emptyText" size="huge" class="empty">
+      <template v-if="previousSeason && !viewingPast" #extra>
+        <n-button secondary @click="setBoard({ season: previousSeason.id })"
+          >看 {{ previousSeason.name }} 排行榜</n-button
+        >
+      </template>
+    </n-empty>
 
     <div v-else :key="boardKey" class="board">
-      <LeaderboardPodium :players="players.slice(0, 3)" />
+      <LeaderboardPodium v-if="board.ranked.length" :players="board.ranked.slice(0, 3)" />
+      <p v-else class="qualify-hint">還沒有人打滿 {{ MIN_MATCHES }} 場；打滿之後就會出現名次。</p>
 
       <div class="list-toolbar">
         <n-radio-group v-model:value="sortBy" size="medium">
@@ -86,7 +111,7 @@
         </n-input>
       </div>
 
-      <RankingList :players="listedPlayers" :start-rank="1" :highlight-id="authStore.user?.member_id ?? null" />
+      <RankingList :players="listedPlayers" :highlight-id="authStore.user?.member_id ?? null" />
     </div>
 
     <RatingGuide class="guide" />
@@ -97,6 +122,7 @@
   import { computed, onMounted, ref, watch } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import {
+    ArchiveOutline,
     CalendarOutline,
     PeopleOutline,
     SearchOutline,
@@ -109,8 +135,11 @@
   import LeaderboardPodium from '@/components/leaderboard/LeaderboardPodium.vue'
   import RankingList from '@/components/leaderboard/RankingList.vue'
   import RatingGuide from '@/components/leaderboard/RatingGuide.vue'
+  import { useSeasons } from '@/composables/useSeasons'
   import { useAuthStore } from '@/stores/authStore'
   import { organizationLabel } from '@/utils/player'
+  import { rankPlayers } from '@/utils/rating'
+  import { seasonRangeLabel } from '@/utils/season'
 
   const MIN_MATCHES = 5
   const SCOPES = [
@@ -131,6 +160,13 @@
   const router = useRouter()
   const route = useRoute()
   const authStore = useAuthStore()
+  const {
+    seasons,
+    current: currentSeason,
+    options: seasonSelectOptions,
+    byId: seasonById,
+    load: loadSeasons
+  } = useSeasons()
 
   const loading = ref(true)
   const error = ref(null)
@@ -142,20 +178,44 @@
   // 目前的排行榜存在網址上，方便分享
   const scope = computed(() => (SCOPES.some(s => s.value === route.query.scope) ? route.query.scope : 'team'))
   const gender = computed(() => (['male', 'female'].includes(route.query.gender) ? route.query.gender : null))
+  // 沒指定賽季時看目前賽季
+  const seasonId = computed(() => Number(route.query.season) || null)
   const scopeIndex = computed(() => SCOPES.findIndex(option => option.value === scope.value))
-  const boardKey = computed(() => `${scope.value}-${gender.value}`)
+  const boardKey = computed(() => `${seasonId.value}-${scope.value}-${gender.value}`)
+
+  const selectedSeason = computed(() => (seasonId.value && seasonById(seasonId.value)) || currentSeason.value)
+  const viewingPast = computed(() => Boolean(selectedSeason.value && !selectedSeason.value.is_current))
+  // 新賽季剛開始還沒人上榜時，提供上個賽季的連結
+  const previousSeason = computed(() => seasons.value.find(season => !season.is_current) ?? null)
+  const emptyText = computed(() =>
+    selectedSeason.value?.is_current
+      ? `${selectedSeason.value.name}還沒有人打滿 ${MIN_MATCHES} 場，多記錄幾場比賽吧！`
+      : '目前還沒有球員達到上榜門檻'
+  )
 
   const setBoard = changes => {
-    const next = { scope: scope.value, gender: gender.value, ...changes }
-    router.replace({ query: { ...route.query, scope: next.scope, gender: next.gender || undefined } })
+    const next = { season: seasonId.value, scope: scope.value, gender: gender.value, ...changes }
+    router.replace({
+      query: {
+        ...route.query,
+        season: next.season || undefined,
+        scope: next.scope,
+        gender: next.gender || undefined
+      }
+    })
   }
 
-  /** 列表排序後依序顯示，排名欄位反映目前的排序方式。 */
+  // 打滿上榜場數的人才有名次，其他人（包含還沒比賽的）列在後面
+  const board = computed(() => rankPlayers(players.value))
+  const rankedCount = computed(() => board.value.ranked.length)
+
+  /** 列表排序後依序顯示，名次反映目前的排序方式。 */
   const listedPlayers = computed(() => {
     const key = SORT_OPTIONS.find(option => option.value === sortBy.value).key
-    const sorted = [...players.value].sort((a, b) => key(b) - key(a))
+    const { ranked, unranked } = rankPlayers(players.value, key)
     const term = keyword.value.trim().toLowerCase()
-    return term ? sorted.filter(p => p.name.toLowerCase().includes(term)) : sorted
+    const all = [...ranked, ...unranked]
+    return term ? all.filter(p => p.name.toLowerCase().includes(term)) : all
   })
 
   const loadPlayers = async () => {
@@ -163,9 +223,10 @@
     error.value = null
     try {
       const { items } = await leaderboardApi.list({
+        season_id: seasonId.value || undefined,
         scope: scope.value,
         gender: gender.value || undefined,
-        min_matches: MIN_MATCHES,
+        min_matches: 0,
         per_page: 500
       })
       players.value = items.map(player => ({ ...player, organization_name: organizationLabel(player) }))
@@ -176,15 +237,21 @@
     }
   }
 
-  watch(boardKey, loadPlayers)
-
-  onMounted(async () => {
-    loadPlayers()
+  const loadStatistics = async () => {
     try {
-      statistics.value = await leaderboardApi.statistics()
+      statistics.value = await leaderboardApi.statistics({ season_id: seasonId.value || undefined })
     } catch {
       // 統計數字只是輔助資訊，載入失敗時顯示 0
     }
+  }
+
+  watch(boardKey, loadPlayers)
+  watch(seasonId, loadStatistics)
+
+  onMounted(() => {
+    loadPlayers()
+    loadStatistics()
+    loadSeasons()
   })
 </script>
 
@@ -262,6 +329,28 @@
     font-size: 13px;
     color: var(--color-text-muted);
   }
+  .season-select {
+    width: 180px;
+    margin-left: auto;
+  }
+  .past-banner {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 12px 16px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--gold-300);
+    background: var(--gold-100);
+    color: #92400e;
+    font-size: 14px;
+    animation: board-in var(--duration-slow) var(--ease-out);
+  }
+  .past-banner span {
+    flex: 1;
+    min-width: 200px;
+  }
   .board {
     animation: board-in var(--duration-slow) var(--ease-out);
   }
@@ -294,6 +383,14 @@
   }
   .empty {
     padding: 64px 0;
+  }
+  .qualify-hint {
+    margin: 0 0 20px;
+    padding: 14px 18px;
+    border-radius: var(--radius-lg);
+    border: 1px dashed var(--color-border);
+    color: var(--color-text-muted);
+    text-align: center;
   }
   .list-toolbar {
     display: flex;

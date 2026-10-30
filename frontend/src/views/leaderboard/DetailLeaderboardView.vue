@@ -49,6 +49,14 @@
       </n-input>
       <div class="filters">
         <n-select
+          v-if="seasons.length"
+          v-model:value="seasonId"
+          :options="seasonSelectOptions"
+          size="small"
+          class="filter-select"
+          @update:value="load"
+        />
+        <n-select
           v-model:value="scope"
           :options="SCOPE_OPTIONS"
           size="small"
@@ -96,7 +104,12 @@
 
     <RatingGuide class="guide" />
 
-    <PlayerDetailModal :player="selected" :my-member-id="authStore.user?.member_id ?? null" @close="selected = null" />
+    <!-- 比較用的是目前賽季的分數，看舊賽季時不提供 -->
+    <PlayerDetailModal
+      :player="selected"
+      :my-member-id="viewingPast ? null : (authStore.user?.member_id ?? null)"
+      @close="selected = null"
+    />
   </div>
 </template>
 
@@ -116,6 +129,7 @@
   import { detailColumns } from '@/components/leaderboard/detailColumns'
   import PlayerDetailModal from '@/components/leaderboard/PlayerDetailModal.vue'
   import RatingGuide from '@/components/leaderboard/RatingGuide.vue'
+  import { useSeasons } from '@/composables/useSeasons'
   import { useAuthStore } from '@/stores/authStore'
   import { organizationLabel } from '@/utils/player'
   import { formatRating } from '@/utils/rating'
@@ -139,10 +153,13 @@
   ]
 
   const authStore = useAuthStore()
+  const { seasons, options: seasonSelectOptions, byId: seasonById, load: loadSeasons } = useSeasons()
 
   const loading = ref(true)
   const error = ref(null)
   const players = ref([])
+  // null 為目前賽季
+  const seasonId = ref(null)
   const includeGuests = ref(false)
   const scope = ref('all')
   const gender = ref(null)
@@ -150,6 +167,9 @@
   const keyword = ref('')
   const selected = ref(null)
   const columns = detailColumns()
+
+  const selectedSeason = computed(() => seasonById(seasonId.value))
+  const viewingPast = computed(() => Boolean(selectedSeason.value && !selectedSeason.value.is_current))
 
   const filteredPlayers = computed(() => {
     const term = keyword.value.trim().toLowerCase()
@@ -177,6 +197,7 @@
     error.value = null
     try {
       const { items } = await leaderboardApi.list({
+        season_id: seasonId.value || undefined,
         include_guests: includeGuests.value,
         scope: scope.value,
         gender: gender.value || undefined,
@@ -208,13 +229,17 @@
     const url = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }))
     const link = Object.assign(document.createElement('a'), {
       href: url,
-      download: `淡江軟網數據_${new Date().toISOString().slice(0, 10)}.csv`
+      download: `淡江軟網數據_${selectedSeason.value?.name ?? ''}_${new Date().toISOString().slice(0, 10)}.csv`
     })
     link.click()
     URL.revokeObjectURL(url)
   }
 
-  onMounted(load)
+  onMounted(async () => {
+    load()
+    await loadSeasons()
+    seasonId.value = seasons.value.find(season => season.is_current)?.id ?? null
+  })
 </script>
 
 <style scoped>

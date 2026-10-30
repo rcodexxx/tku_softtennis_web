@@ -19,3 +19,19 @@ export function ratingPercent(value) {
 export function isRated(totalMatches) {
   return (totalMatches ?? 0) >= RATED_MATCHES
 }
+
+/**
+ * 排行榜名單：打滿 RATED_MATCHES 場的人依 sortKey 排名（rank 從 1 開始）；
+ * 其他人排在後面、沒有名次，打過比較多場的在前。
+ */
+export function rankPlayers(players, sortKey = player => player.rating) {
+  const ranked = players
+    .filter(player => isRated(player.total_matches))
+    .sort((a, b) => sortKey(b) - sortKey(a))
+    .map((player, index) => ({ ...player, rank: index + 1 }))
+  const unranked = players
+    .filter(player => !isRated(player.total_matches))
+    .sort((a, b) => b.total_matches - a.total_matches || b.rating - a.rating)
+    .map(player => ({ ...player, rank: null }))
+  return { ranked, unranked }
+}

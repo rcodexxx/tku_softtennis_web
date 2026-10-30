@@ -18,7 +18,7 @@
         :style="{ '--i': Math.min(index, 20) }"
       >
         <span class="col-rank">
-          <span class="rank-badge num" :class="rankClass(startRank + index)">{{ startRank + index }}</span>
+          <span class="rank-badge num" :class="rankClass(player.rank)">{{ player.rank ?? '—' }}</span>
         </span>
         <span class="col-player">
           <PlayerAvatar :id="player.id" :name="player.name" :src="player.avatar_url" :size="40" />
@@ -34,8 +34,12 @@
         </span>
         <span class="col-matches num">{{ player.total_matches }}</span>
         <span class="col-score">
-          <span class="score num">{{ formatRating(player.rating) }}</span>
-          <ScoreChange :change="player.score_change" />
+          <template v-if="player.total_matches">
+            <span class="score num">{{ formatRating(player.rating) }}</span>
+            <span v-if="!isRated(player.total_matches)" class="provisional">評估中</span>
+            <ScoreChange v-else :change="player.score_change" />
+          </template>
+          <span v-else class="score num muted">—</span>
         </span>
       </li>
     </TransitionGroup>
@@ -46,15 +50,15 @@
   import PlayerAvatar from '@/components/base/PlayerAvatar.vue'
   import RecentForm from './RecentForm.vue'
   import ScoreChange from './ScoreChange.vue'
-  import { formatRating } from '@/utils/rating'
+  import { formatRating, isRated } from '@/utils/rating'
 
+  /** players 需帶 rank（沒有名次時為 null，顯示「—」）。 */
   defineProps({
     players: { type: Array, required: true },
-    startRank: { type: Number, default: 1 },
     highlightId: { type: Number, default: null }
   })
 
-  const rankClass = rank => (rank <= 10 ? 'top10' : rank <= 20 ? 'top20' : '')
+  const rankClass = rank => (!rank ? 'unranked' : rank <= 10 ? 'top10' : rank <= 20 ? 'top20' : '')
 </script>
 
 <style scoped>
@@ -189,6 +193,17 @@
     font-size: 26px;
     font-weight: 700;
     color: var(--blue-700);
+  }
+  .score.muted {
+    color: var(--gray-400);
+  }
+  .provisional {
+    padding: 1px 8px;
+    border-radius: var(--radius-full);
+    background: var(--gold-100);
+    color: #92400e;
+    font-size: 11px;
+    font-weight: 700;
   }
   .ranking-head .col-score {
     text-align: right;

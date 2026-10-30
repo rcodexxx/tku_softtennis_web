@@ -2,7 +2,7 @@
 
 角色權限對應前端 usePermissions.js：
 - STAFF（admin / coach / cadre）：管理會員、訪客、記錄與編輯比賽
-- ADMIN：刪除會員、刪除比賽、管理組織
+- ADMIN：刪除會員、刪除比賽、管理組織、開新賽季
 """
 
 from functools import wraps
