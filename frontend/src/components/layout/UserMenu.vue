@@ -16,7 +16,7 @@
     </n-dropdown>
   </div>
   <router-link v-else :to="{ name: 'Login' }" class="login-link">
-    <n-button type="primary" round :size="compact ? 'small' : 'medium'" :block="!compact">登入</n-button>
+    <n-button type="primary" :size="compact ? 'small' : 'medium'" :block="!compact">登入</n-button>
   </router-link>
 </template>
 
@@ -24,7 +24,7 @@
   import { computed, h } from 'vue'
   import { useRouter } from 'vue-router'
   import { NIcon } from 'naive-ui'
-  import { LogOutOutline, PersonCircleOutline } from '@vicons/ionicons5'
+  import { Logout, UserAvatar } from '@vicons/carbon'
   import PlayerAvatar from '@/components/base/PlayerAvatar.vue'
   import { useOptions } from '@/composables/useOptions'
   import { useAuthStore } from '@/stores/authStore'
@@ -39,9 +39,9 @@
   const icon = component => () => h(NIcon, null, { default: () => h(component) })
 
   const options = [
-    { label: '個人主控台', key: 'profile', icon: icon(PersonCircleOutline) },
+    { label: '我的', key: 'profile', icon: icon(UserAvatar) },
     { type: 'divider', key: 'divider' },
-    { label: '登出', key: 'logout', icon: icon(LogOutOutline) }
+    { label: '登出', key: 'logout', icon: icon(Logout) }
   ]
 
   const handleSelect = key => {
@@ -66,7 +66,7 @@
     transition: background var(--duration-fast);
   }
   .user-button:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--surface-sunk);
   }
   .compact .user-button {
     padding: 2px;
@@ -83,9 +83,14 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
+  .user-name {
+    color: var(--ink);
+  }
   .user-role {
-    font-size: 12px;
-    opacity: 0.7;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
   }
   .login-link {
     display: block;

@@ -30,16 +30,16 @@
               <span class="rank-sub">{{ seasonPrefix }}再打 {{ matchesToQualify }} 場就能上榜</span>
             </template>
           </div>
-          <StatCard label="分數" :value="member.rating" :decimals="1" :icon="TrophyOutline" accent="var(--gold-500)" />
+          <StatCard label="分數" :value="member.rating" :decimals="1" :icon="Trophy" accent="var(--gold-500)" />
           <StatCard
             label="勝率"
             :value="stats.win_rate"
             :decimals="1"
             suffix="%"
-            :icon="PieChartOutline"
+            :icon="ChartPie"
             accent="var(--green-600)"
           />
-          <StatCard label="比賽場次" :value="stats.total_matches" :icon="TennisballOutline" accent="var(--red-500)" />
+          <StatCard label="比賽場次" :value="stats.total_matches" :icon="TennisBall" accent="var(--red-500)" />
         </div>
 
         <div class="content-grid">
@@ -76,7 +76,7 @@
 
 <script setup>
   import { computed, onMounted, ref } from 'vue'
-  import { PieChartOutline, TennisballOutline, TrophyOutline } from '@vicons/ionicons5'
+  import { ChartPie, TennisBall, Trophy } from '@vicons/carbon'
   import { leaderboardApi, membersApi, profileApi, seasonsApi } from '@/api'
   import ChangePasswordForm from '@/components/auth/ChangePasswordForm.vue'
   import CountUp from '@/components/base/CountUp.vue'

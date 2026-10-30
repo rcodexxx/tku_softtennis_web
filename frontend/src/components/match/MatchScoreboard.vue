@@ -84,10 +84,8 @@
     overflow: hidden;
     padding: 22px 28px 30px;
     border-radius: var(--radius-xl);
-    background:
-      radial-gradient(circle at 50% 120%, rgba(91, 140, 240, 0.45), transparent 60%),
-      linear-gradient(135deg, var(--blue-900), var(--blue-700));
-    color: #fff;
+    background: var(--ink);
+    color: var(--bg);
     box-shadow: var(--shadow-lg);
   }
   .meta {
@@ -99,7 +97,7 @@
   .chip {
     padding: 2px 12px;
     border-radius: var(--radius-full);
-    background: rgba(255, 255, 255, 0.14);
+    background: color-mix(in srgb, var(--bg) 14%, transparent);
     font-size: 13px;
     font-weight: 600;
   }
@@ -149,12 +147,12 @@
     width: 64px;
     height: 64px;
     border-radius: 50%;
-    border: 2px dashed rgba(255, 255, 255, 0.4);
+    border: 2px dashed color-mix(in srgb, var(--bg) 40%, transparent);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 24px;
-    color: rgba(255, 255, 255, 0.6);
+    color: color-mix(in srgb, var(--bg) 60%, transparent);
   }
   .names {
     display: flex;
@@ -173,7 +171,7 @@
     font-size: 76px;
     font-weight: 700;
     line-height: 1;
-    color: rgba(255, 255, 255, 0.55);
+    color: color-mix(in srgb, var(--bg) 55%, transparent);
   }
   .score .won {
     color: var(--gold-300);

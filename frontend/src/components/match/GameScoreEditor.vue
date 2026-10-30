@@ -16,7 +16,7 @@
             :disabled="modelValue[side.field] <= 0"
             @click="adjust(side.field, -1)"
           >
-            <template #icon><n-icon :component="RemoveOutline" /></template>
+            <template #icon><n-icon :component="Subtract" /></template>
           </n-button>
           <span class="num">{{ modelValue[side.field] || 0 }}</span>
           <n-button
@@ -26,7 +26,7 @@
             :disabled="modelValue[side.field] >= toWin"
             @click="adjust(side.field, 1)"
           >
-            <template #icon><n-icon :component="AddOutline" /></template>
+            <template #icon><n-icon :component="Add" /></template>
           </n-button>
         </div>
         <span v-if="winner === side.key" class="winner-tag">🏆 獲勝</span>
@@ -90,7 +90,7 @@
 <script setup>
   import { computed, ref } from 'vue'
   import { useMessage } from 'naive-ui'
-  import { AddOutline, RemoveOutline } from '@vicons/ionicons5'
+  import { Add, Subtract } from '@vicons/carbon'
   import { useOptions } from '@/composables/useOptions'
   import { emptyGameFields, gameField, gameScoresFromForm, hasGameScores } from '@/utils/matchForm'
   import {
@@ -262,7 +262,7 @@
     right: 12px;
     font-size: 13px;
     font-weight: 800;
-    color: #92400e;
+    color: var(--accent-text);
     animation: stagger-in var(--duration-base) var(--ease-spring) both;
   }
   .rule {

@@ -100,7 +100,7 @@
     padding: 2px 10px;
     border-radius: var(--radius-full);
     background: var(--gold-100);
-    color: #92400e;
+    color: var(--accent-text);
     font-size: 12px;
     font-weight: 700;
   }
@@ -129,7 +129,7 @@
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background: #fff;
+    background: var(--surface-2);
     border: 4px solid var(--blue-700);
     box-shadow: var(--shadow-md);
     transform: translate(-50%, -50%);
@@ -172,7 +172,7 @@
   }
   .dot {
     fill: var(--red-500);
-    stroke: #fff;
+    stroke: var(--surface);
     stroke-width: 1.5;
     animation: fade-in var(--duration-base) var(--ease-out) both;
     animation-delay: calc(var(--i) * 40ms + 300ms);

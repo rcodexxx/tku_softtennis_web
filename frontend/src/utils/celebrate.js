@@ -1,6 +1,6 @@
 import confetti from 'canvas-confetti'
 
-const COLORS = ['#f2b705', '#ffd95a', '#163a80', '#e5383f', '#ffffff']
+const COLORS = ['#ff5a1f', '#ffb08f', '#15191c', '#9aa2a6', '#ffffff']
 let fire = null
 
 /** 灑彩帶。不用 Web Worker：有些瀏覽器環境的 OffscreenCanvas 不完整。 */

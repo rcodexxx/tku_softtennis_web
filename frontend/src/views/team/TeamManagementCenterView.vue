@@ -3,16 +3,16 @@
     <PageHeader eyebrow="TEAM" title="團隊管理" subtitle="管理隊員、訪客、合作組織與賽季。">
       <template #actions>
         <n-button type="primary" @click="router.push({ name: 'AddMember' })">
-          <template #icon><n-icon :component="PersonAddOutline" /></template>
+          <template #icon><n-icon :component="UserFollow" /></template>
           新增成員
         </n-button>
       </template>
     </PageHeader>
 
     <div class="stats">
-      <StatCard label="在隊隊員" :value="counts.active" :icon="PeopleOutline" />
-      <StatCard label="訪客" :value="counts.guests" :icon="PersonOutline" accent="var(--gold-500)" />
-      <StatCard label="組織" :value="organizations.length" :icon="BusinessOutline" accent="var(--red-500)" />
+      <StatCard label="在隊隊員" :value="counts.active" :icon="UserMultiple" />
+      <StatCard label="訪客" :value="counts.guests" :icon="User" accent="var(--gold-500)" />
+      <StatCard label="組織" :value="organizations.length" :icon="Building" accent="var(--red-500)" />
     </div>
 
     <n-tabs v-model:value="tab" type="line" size="large" animated>
@@ -33,7 +33,7 @@
   import { computed, onMounted, ref } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import { useMessage } from 'naive-ui'
-  import { BusinessOutline, PeopleOutline, PersonAddOutline, PersonOutline } from '@vicons/ionicons5'
+  import { Building, User, UserFollow, UserMultiple } from '@vicons/carbon'
   import { membersApi, organizationsApi } from '@/api'
   import PageHeader from '@/components/base/PageHeader.vue'
   import StatCard from '@/components/base/StatCard.vue'

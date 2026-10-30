@@ -1,5 +1,7 @@
 const GRID = 5
 const HALF = Math.ceil(GRID / 2)
+// 對應 tokens.css 的 --avatar-0 到 --avatar-7（淺色、深色各有一組）
+export const AVATAR_TONES = 8
 
 /** FNV-1a：把字串轉成 32 位元的雜湊值。 */
 function hash(text) {
@@ -24,12 +26,12 @@ function random(seed) {
 }
 
 /**
- * GitHub 風格的預設頭像：5×5 左右對稱的方塊圖案與一個主色。
- * 回傳 { color, cells }，cells 是要上色的 [x, y] 格子。
+ * GitHub 風格的預設頭像：5×5 左右對稱的方塊圖案。
+ * 回傳 { tone, cells }：tone 是主題色票的編號，cells 是要上色的 [x, y] 格子。
  */
 export function identicon(seed) {
   const next = random(hash(String(seed ?? '')))
-  const color = `hsl(${Math.floor(next() * 360)}, ${55 + Math.floor(next() * 15)}%, ${48 + Math.floor(next() * 10)}%)`
+  const tone = Math.floor(next() * AVATAR_TONES)
   const cells = []
   for (let y = 0; y < GRID; y++) {
     for (let x = 0; x < HALF; x++) {
@@ -42,5 +44,5 @@ export function identicon(seed) {
   if (cells.length < 4) {
     for (let y = 1; y < GRID - 1; y++) cells.push([HALF - 1, y])
   }
-  return { color, cells }
+  return { tone, cells }
 }

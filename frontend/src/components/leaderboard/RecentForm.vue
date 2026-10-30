@@ -1,8 +1,12 @@
 <template>
   <span class="recent-form" :aria-label="`最近 ${form.length} 場：${form.join('')}`">
-    <span v-for="(result, index) in slots" :key="index" class="dot" :class="result ? result.toLowerCase() : 'empty'">
-      {{ result === 'W' ? '勝' : result === 'L' ? '敗' : '' }}
-    </span>
+    <span
+      v-for="(result, index) in slots"
+      :key="index"
+      class="dot"
+      :class="result ? result.toLowerCase() : 'empty'"
+      :title="result === 'W' ? '勝' : result === 'L' ? '敗' : '尚無比賽'"
+    ></span>
   </span>
 </template>
 
@@ -21,26 +25,20 @@
 <style scoped>
   .recent-form {
     display: inline-flex;
-    gap: 4px;
+    gap: 3px;
   }
+  /* 勝：實心綠方塊；敗：實心紅方塊；沒比賽：空框 */
   .dot {
-    width: 20px;
-    height: 20px;
-    border-radius: 6px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: 700;
-    color: #fff;
+    width: 10px;
+    height: 10px;
   }
   .w {
-    background: var(--color-win);
+    background: var(--win);
   }
   .l {
-    background: var(--color-loss);
+    background: var(--loss);
   }
   .empty {
-    background: var(--gray-200);
+    border: 1px solid var(--line);
   }
 </style>

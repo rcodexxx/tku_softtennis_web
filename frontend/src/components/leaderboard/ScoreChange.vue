@@ -1,5 +1,5 @@
 <template>
-  <span v-if="points !== null" class="score-change num" :class="direction">
+  <span v-if="points" class="score-change num" :class="direction">
     <span class="arrow">{{ direction === 'up' ? '▲' : direction === 'down' ? '▼' : '–' }}</span>
     {{ points === 0 ? '' : Math.abs(points).toFixed(1) }}
   </span>

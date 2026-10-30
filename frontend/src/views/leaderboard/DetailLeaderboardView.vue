@@ -3,27 +3,27 @@
     <PageHeader eyebrow="STATISTICS" title="詳細數據" subtitle="所有球員的分數、戰績與近況，點選球員可看完整分析。">
       <template #actions>
         <n-button secondary :disabled="!filteredPlayers.length" @click="exportCsv">
-          <template #icon><n-icon :component="DownloadOutline" /></template>
+          <template #icon><n-icon :component="Download" /></template>
           匯出 CSV
         </n-button>
         <n-button secondary :loading="loading" @click="load">
-          <template #icon><n-icon :component="RefreshOutline" /></template>
+          <template #icon><n-icon :component="Renew" /></template>
           重新整理
         </n-button>
       </template>
     </PageHeader>
 
     <div class="insights">
-      <StatCard label="符合條件的球員" :value="filteredPlayers.length" :icon="PeopleOutline" />
+      <StatCard label="符合條件的球員" :value="filteredPlayers.length" :icon="UserMultiple" />
       <StatCard
         label="平均勝率"
         :value="averageWinRate"
         :decimals="1"
         suffix="%"
-        :icon="PieChartOutline"
+        :icon="ChartPie"
         accent="var(--green-600)"
       />
-      <StatCard label="最高分數" :value="topRating" :decimals="1" :icon="FlashOutline" accent="var(--gold-500)" />
+      <StatCard label="最高分數" :value="topRating" :decimals="1" :icon="Flash" accent="var(--gold-500)" />
       <div class="distribution">
         <span class="distribution-title">分數分布</span>
         <div class="distribution-bar">
@@ -45,7 +45,7 @@
 
     <div class="toolbar">
       <n-input v-model:value="keyword" placeholder="搜尋球員或組織" clearable round class="search">
-        <template #prefix><n-icon :component="SearchOutline" /></template>
+        <template #prefix><n-icon :component="Search" /></template>
       </n-input>
       <div class="filters">
         <n-select
@@ -115,14 +115,7 @@
 
 <script setup>
   import { computed, onMounted, ref } from 'vue'
-  import {
-    DownloadOutline,
-    FlashOutline,
-    PeopleOutline,
-    PieChartOutline,
-    RefreshOutline,
-    SearchOutline
-  } from '@vicons/ionicons5'
+  import { ChartPie, Download, Flash, Renew, Search, UserMultiple } from '@vicons/carbon'
   import { leaderboardApi } from '@/api'
   import PageHeader from '@/components/base/PageHeader.vue'
   import StatCard from '@/components/base/StatCard.vue'
@@ -145,11 +138,11 @@
     { label: '女生', value: 'female' }
   ]
   const RATING_BANDS = [
-    { label: '4 以下', max: 4, color: '#c7d7fb' },
-    { label: '4–5', max: 5, color: '#5b8cf0' },
-    { label: '5–6', max: 6, color: '#2e64d3' },
-    { label: '6–7', max: 7, color: '#163a80' },
-    { label: '7 以上', max: Infinity, color: '#f2b705' }
+    { label: '4 以下', max: 4, color: 'var(--line)' },
+    { label: '4–5', max: 5, color: 'var(--ink-4)' },
+    { label: '5–6', max: 6, color: 'var(--ink-3)' },
+    { label: '6–7', max: 7, color: 'var(--ink)' },
+    { label: '7 以上', max: Infinity, color: 'var(--accent)' }
   ]
 
   const authStore = useAuthStore()
@@ -368,7 +361,7 @@
     padding: 0 6px;
     border-radius: var(--radius-full);
     background: var(--gold-100);
-    color: #92400e;
+    color: var(--accent-text);
     font-size: 11px;
   }
   .detail-table :deep(.cell-score) {
@@ -386,7 +379,7 @@
     padding: 1px 8px;
     border-radius: var(--radius-full);
     background: var(--gold-100);
-    color: #92400e;
+    color: var(--accent-text);
     font-size: 12px;
     font-weight: 700;
   }

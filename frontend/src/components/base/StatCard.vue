@@ -1,6 +1,6 @@
 <template>
-  <div class="stat-card" :style="{ '--accent': accent }">
-    <span class="icon"><n-icon :component="icon" size="22" /></span>
+  <div class="stat-card">
+    <span class="icon"><n-icon :component="icon" size="18" /></span>
     <div class="body">
       <span class="label">{{ label }}</span>
       <CountUp class="value" :value="value" :decimals="decimals" :suffix="suffix" />
@@ -15,53 +15,46 @@
     label: { type: String, required: true },
     value: { type: Number, default: 0 },
     icon: { type: [Object, Function], required: true },
-    accent: { type: String, default: 'var(--blue-600)' },
+    // 舊參數，HUD 風格統一用重點色，保留以免呼叫端出錯
+    accent: { type: String, default: null },
     decimals: { type: Number, default: 0 },
     suffix: { type: String, default: '' }
   })
 </script>
 
 <style scoped>
+  /* HUD 讀數：細框、等寬數字，圖示只當作小記號 */
   .stat-card {
     display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 16px 18px;
-    border-radius: var(--radius-lg);
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    box-shadow: var(--shadow-sm);
-    transition:
-      transform var(--duration-base) var(--ease-spring),
-      box-shadow var(--duration-base);
-  }
-  .stat-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-md);
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--surface);
+    border: 1px solid var(--line-soft);
+    border-top: 2px solid var(--accent);
   }
   .icon {
-    width: 44px;
-    height: 44px;
-    border-radius: var(--radius-md);
+    order: 2;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    color: var(--ink-4);
   }
   .body {
     display: flex;
     flex-direction: column;
+    gap: 4px;
+    min-width: 0;
   }
   .label {
-    font-size: 13px;
-    color: var(--color-text-muted);
-    font-weight: 600;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
   }
   .value {
-    font-size: 30px;
-    font-weight: 700;
+    font-size: 28px;
+    font-weight: 500;
     line-height: 1.1;
-    color: var(--blue-900);
+    color: var(--ink);
   }
 </style>

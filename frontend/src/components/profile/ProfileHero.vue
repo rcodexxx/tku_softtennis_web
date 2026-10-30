@@ -25,11 +25,11 @@
 
     <div class="hero-actions">
       <n-button secondary strong class="hero-button" @click="emit('edit')">
-        <template #icon><n-icon :component="CreateOutline" /></template>
+        <template #icon><n-icon :component="Edit" /></template>
         編輯資料
       </n-button>
       <n-button secondary strong class="hero-button" @click="emit('change-password')">
-        <template #icon><n-icon :component="KeyOutline" /></template>
+        <template #icon><n-icon :component="Password" /></template>
         修改密碼
       </n-button>
     </div>
@@ -38,7 +38,7 @@
 
 <script setup>
   import { computed } from 'vue'
-  import { CreateOutline, KeyOutline } from '@vicons/ionicons5'
+  import { Edit, Password } from '@vicons/carbon'
   import AvatarUploader from '@/components/base/AvatarUploader.vue'
   import PlayerAvatar from '@/components/base/PlayerAvatar.vue'
   import { useOptions } from '@/composables/useOptions'
@@ -64,8 +64,8 @@
     gap: 24px;
     padding: 28px 32px;
     border-radius: var(--radius-xl);
-    background: linear-gradient(120deg, var(--blue-800), var(--blue-600));
-    color: #fff;
+    background: var(--ink);
+    color: var(--bg);
     box-shadow: var(--shadow-lg);
     margin-bottom: 24px;
   }
@@ -76,7 +76,7 @@
     width: 320px;
     height: 320px;
     border-radius: 50%;
-    border: 40px solid rgba(255, 255, 255, 0.06);
+    border: 40px solid color-mix(in srgb, var(--bg) 6%, transparent);
   }
   .hero-avatar {
     position: relative;
@@ -105,7 +105,7 @@
   .tag {
     padding: 3px 12px;
     border-radius: var(--radius-full);
-    background: rgba(255, 255, 255, 0.14);
+    background: color-mix(in srgb, var(--bg) 14%, transparent);
     font-size: 13px;
     font-weight: 600;
   }
@@ -119,12 +119,12 @@
     gap: 8px;
   }
   .hero-button {
-    --n-color: rgba(255, 255, 255, 0.14) !important;
-    --n-color-hover: rgba(255, 255, 255, 0.22) !important;
-    --n-color-pressed: rgba(255, 255, 255, 0.28) !important;
-    --n-text-color: #fff !important;
-    --n-text-color-hover: #fff !important;
-    --n-text-color-pressed: #fff !important;
+    --n-color: color-mix(in srgb, var(--bg) 14%, transparent) !important;
+    --n-color-hover: color-mix(in srgb, var(--bg) 22%, transparent) !important;
+    --n-color-pressed: color-mix(in srgb, var(--bg) 28%, transparent) !important;
+    --n-text-color: var(--bg) !important;
+    --n-text-color-hover: var(--bg) !important;
+    --n-text-color-pressed: var(--bg) !important;
   }
 
   @media (max-width: 720px) {

@@ -1,7 +1,7 @@
 <template>
   <header class="page-header">
     <div class="titles">
-      <p v-if="eyebrow" class="eyebrow">{{ eyebrow }}</p>
+      <p v-if="eyebrow" class="eyebrow hud-label">{{ eyebrow }}</p>
       <h1 class="title">{{ title }}</h1>
       <p v-if="subtitle" class="subtitle">{{ subtitle }}</p>
     </div>
@@ -29,18 +29,24 @@
     margin-bottom: 24px;
   }
   .eyebrow {
-    margin: 0 0 6px;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    color: var(--color-accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 8px;
+  }
+  /* 標籤前的小方塊，像 HUD 的狀態燈 */
+  .eyebrow::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
   }
   .title {
     margin: 0;
     font-size: clamp(24px, 3vw, 32px);
-    font-weight: 800;
-    color: var(--blue-900);
-    letter-spacing: 0.01em;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: 0.04em;
   }
   .subtitle {
     margin: 6px 0 0;

@@ -1,11 +1,16 @@
 <template>
-  <n-config-provider :theme-overrides="themeOverrides" :locale="zhTW" :date-locale="dateZhTW">
+  <n-config-provider
+    :theme="isDark ? darkTheme : null"
+    :theme-overrides="overrides"
+    :locale="zhTW"
+    :date-locale="dateZhTW"
+  >
     <n-message-provider>
       <n-notification-provider>
         <n-dialog-provider>
           <router-view v-if="route.meta.fullscreen" />
 
-          <div v-else class="app-shell" :class="{ mobile: isMobile }">
+          <div v-else class="app-shell" :class="{ mobile: isMobile, 'with-tabs': showTabs }">
             <AppSidebar v-if="!isMobile" />
             <AppTopBar v-else />
 
@@ -17,10 +22,9 @@
                   </transition>
                 </router-view>
               </div>
-              <footer class="app-footer">© {{ currentYear }} TKU Soft Tennis</footer>
             </main>
 
-            <AppBottomNav v-if="isMobile" />
+            <AppBottomNav v-if="showTabs" />
           </div>
         </n-dialog-provider>
       </n-notification-provider>
@@ -31,12 +35,14 @@
 <script setup>
   import { computed, onMounted } from 'vue'
   import { useRoute } from 'vue-router'
-  import { dateZhTW, zhTW } from 'naive-ui'
+  import { darkTheme, dateZhTW, zhTW } from 'naive-ui'
   import { useWindowSize } from '@vueuse/core'
   import AppBottomNav from '@/components/layout/AppBottomNav.vue'
   import AppSidebar from '@/components/layout/AppSidebar.vue'
   import AppTopBar from '@/components/layout/AppTopBar.vue'
-  import { themeOverrides } from '@/config/theme'
+  import { useNavItems } from '@/composables/useNavItems'
+  import { useTheme } from '@/composables/useTheme'
+  import { themeOverridesFor } from '@/config/theme'
   import { useAuthStore } from '@/stores/authStore'
   import '@/styles/base.css'
 
@@ -45,9 +51,14 @@
   const route = useRoute()
   const authStore = useAuthStore()
   const { width } = useWindowSize()
+  const { theme, isDark } = useTheme()
+  const overrides = computed(() => themeOverridesFor(theme.value))
+
+  const { items: navItems } = useNavItems()
 
   const isMobile = computed(() => width.value < MOBILE_BREAKPOINT)
-  const currentYear = new Date().getFullYear()
+  // 只有一個入口（一般成員、未登入）時不需要底部分頁列
+  const showTabs = computed(() => isMobile.value && navItems.value.length > 1)
 
   onMounted(() => {
     // 用伺服器上的最新資料更新本地快取的使用者
@@ -72,14 +83,10 @@
     margin: 0 auto;
     padding: 32px 32px 24px;
   }
-  .app-footer {
-    padding: 20px;
-    text-align: center;
-    font-size: 12px;
-    color: var(--gray-400);
-  }
   .mobile .app-main {
     margin-left: 0;
+  }
+  .with-tabs .app-main {
     padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
   }
   .mobile .app-content {

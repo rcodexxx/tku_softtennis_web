@@ -1,17 +1,30 @@
 <template>
   <div class="matches-page">
-    <PageHeader eyebrow="MATCHES" title="比賽管理" :subtitle="`共 ${total} 場比賽紀錄`">
-      <template #actions>
-        <n-button v-if="canRecord" secondary @click="router.push({ name: 'BatchRecordMatch' })">
-          <template #icon><n-icon :component="AlbumsOutline" /></template>
-          批次記錄
-        </n-button>
-        <n-button v-if="canRecord" type="primary" @click="router.push({ name: 'RecordMatch' })">
-          <template #icon><n-icon :component="AddOutline" /></template>
-          記錄新比賽
-        </n-button>
-      </template>
-    </PageHeader>
+    <PageHeader eyebrow="Record" title="記錄" />
+
+    <nav v-if="canRecord" class="actions-grid" aria-label="記錄方式">
+      <router-link
+        v-for="(action, index) in RECORD_ACTIONS"
+        :key="action.name"
+        :to="{ name: action.name }"
+        class="action hud-frame"
+        :class="{ primary: index === 0 }"
+      >
+        <span class="corner tl"></span>
+        <span class="corner br"></span>
+        <span class="hud-label">{{ action.code }}</span>
+        <span class="action-title">
+          <n-icon :component="action.icon" size="20" />
+          {{ action.title }}
+          <span v-if="action.beta" class="beta">Beta</span>
+        </span>
+      </router-link>
+    </nav>
+
+    <div class="section-head">
+      <span class="hud-label">{{ total }} 場紀錄</span>
+      <span class="rule"></span>
+    </div>
 
     <MatchFilters
       v-model:filters="filters"
@@ -68,7 +81,7 @@
   import { onMounted, onUnmounted, ref, watch } from 'vue'
   import { useRouter } from 'vue-router'
   import { useDialog, useMessage } from 'naive-ui'
-  import { AddOutline, AlbumsOutline } from '@vicons/ionicons5'
+  import { Add, Layers, Timer } from '@vicons/carbon'
   import { matchesApi, membersApi } from '@/api'
   import PageHeader from '@/components/base/PageHeader.vue'
   import MatchCard from '@/components/match/MatchCard.vue'
@@ -77,6 +90,27 @@
   import { formatDate } from '@/utils/format'
 
   const SEARCH_DEBOUNCE_DELAY = 400
+  const RECORD_ACTIONS = [
+    {
+      name: 'RecordMatch',
+      code: 'A // Single',
+      title: '記錄一場',
+      icon: Add
+    },
+    {
+      name: 'BatchRecordMatch',
+      code: 'B // Batch',
+      title: '批次補登',
+      icon: Layers
+    },
+    {
+      name: 'RefereeMode',
+      code: 'C // Referee',
+      title: '裁判模式',
+      icon: Timer,
+      beta: true
+    }
+  ]
   const emptyFilters = () => ({ player_ids: [], match_type: null, match_format: null, result: null, date_range: null })
 
   const router = useRouter()
@@ -191,6 +225,98 @@
 </script>
 
 <style scoped>
+  .actions-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .action {
+    --corner-color: var(--ink);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px 18px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    transition:
+      border-color var(--duration-fast),
+      background var(--duration-fast);
+  }
+  .action .corner {
+    opacity: 0;
+  }
+  .action:hover {
+    border-color: var(--ink);
+  }
+  .action:hover .corner {
+    opacity: 1;
+  }
+  .action:hover .corner.tl {
+    transform: translate(-3px, -3px);
+  }
+  .action:hover .corner.br {
+    transform: translate(3px, 3px);
+  }
+  /* 最常用的「記錄一場」反白，視線先看到它 */
+  .action.primary {
+    --corner-color: var(--accent);
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--bg);
+  }
+  .action.primary .hud-label {
+    color: var(--accent);
+  }
+  .action-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .beta {
+    padding: 0 6px;
+    border: 1px solid var(--accent-soft);
+    color: var(--accent-text);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .section-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .rule {
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+  }
+  /* 手機：三個入口排成一列，只留圖示和名稱 */
+  @media (max-width: 760px) {
+    .actions-grid {
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .action {
+      align-items: center;
+      padding: 12px 6px;
+    }
+    .action .hud-label,
+    .beta {
+      display: none;
+    }
+    .action-title {
+      flex-direction: column;
+      gap: 6px;
+      font-size: 14px;
+    }
+  }
+
   .filters,
   .block {
     margin-bottom: 18px;

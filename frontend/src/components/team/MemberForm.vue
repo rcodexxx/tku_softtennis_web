@@ -1,7 +1,7 @@
 <template>
   <div class="member-form">
     <n-button quaternary class="back" @click="goBack">
-      <template #icon><n-icon :component="ArrowBackOutline" /></template>
+      <template #icon><n-icon :component="ArrowLeft" /></template>
       返回團隊管理
     </n-button>
     <PageHeader :eyebrow="isEdit ? 'EDIT MEMBER' : 'NEW MEMBER'" :title="isEdit ? '編輯成員' : '新增成員'" />
@@ -119,7 +119,7 @@
   import { computed, onMounted, reactive, ref } from 'vue'
   import { useRouter } from 'vue-router'
   import { useMessage } from 'naive-ui'
-  import { ArrowBackOutline } from '@vicons/ionicons5'
+  import { ArrowLeft } from '@vicons/carbon'
   import { membersApi } from '@/api'
   import AvatarUploader from '@/components/base/AvatarUploader.vue'
   import PageHeader from '@/components/base/PageHeader.vue'
@@ -283,7 +283,7 @@
     align-items: center;
     gap: 20px;
     padding-bottom: 20px;
-    background: linear-gradient(120deg, var(--blue-50), #fff);
+    background: var(--surface-sunk);
   }
   .identity-name {
     margin: 0;

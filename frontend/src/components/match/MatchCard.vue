@@ -7,7 +7,7 @@
       <span v-if="record.has_detailed_scores" class="chip detail">每局比分</span>
       <span class="actions" @click.stop>
         <n-button v-if="canEdit" quaternary circle size="small" title="編輯" @click="emit('edit', record)">
-          <template #icon><n-icon :component="CreateOutline" /></template>
+          <template #icon><n-icon :component="Edit" /></template>
         </n-button>
         <n-button
           v-if="canDelete"
@@ -18,7 +18,7 @@
           title="刪除"
           @click="emit('delete', record)"
         >
-          <template #icon><n-icon :component="TrashOutline" /></template>
+          <template #icon><n-icon :component="TrashCan" /></template>
         </n-button>
       </span>
     </header>
@@ -61,7 +61,7 @@
 
 <script setup>
   import { computed } from 'vue'
-  import { CreateOutline, TrashOutline } from '@vicons/ionicons5'
+  import { Edit, TrashCan } from '@vicons/carbon'
   import PlayerAvatar from '@/components/base/PlayerAvatar.vue'
   import { useOptions } from '@/composables/useOptions'
   import { tiebreakScore } from '@/utils/matchRules'
@@ -128,7 +128,7 @@
   }
   .chip.detail {
     background: var(--gold-100);
-    color: #92400e;
+    color: var(--accent-text);
   }
   .actions {
     margin-left: auto;

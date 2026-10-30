@@ -30,7 +30,7 @@
         title="編輯"
         @click="emit('edit', member)"
       >
-        <template #icon><n-icon :component="CreateOutline" /></template>
+        <template #icon><n-icon :component="Edit" /></template>
       </n-button>
       <n-button
         v-if="canDelete"
@@ -41,7 +41,7 @@
         title="刪除"
         @click="emit('delete', member)"
       >
-        <template #icon><n-icon :component="TrashOutline" /></template>
+        <template #icon><n-icon :component="TrashCan" /></template>
       </n-button>
     </div>
   </article>
@@ -49,7 +49,7 @@
 
 <script setup>
   import { computed } from 'vue'
-  import { CreateOutline, TrashOutline } from '@vicons/ionicons5'
+  import { Edit, TrashCan } from '@vicons/carbon'
   import PlayerAvatar from '@/components/base/PlayerAvatar.vue'
   import { useOptions } from '@/composables/useOptions'
   import { organizationLabel } from '@/utils/player'
@@ -128,7 +128,7 @@
   }
   .role.cadre {
     background: var(--gold-100);
-    color: #92400e;
+    color: var(--accent-text);
   }
   .role.guest {
     background: var(--gray-100);

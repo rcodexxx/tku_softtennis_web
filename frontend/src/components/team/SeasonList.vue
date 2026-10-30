@@ -3,7 +3,7 @@
     <div class="toolbar">
       <p class="intro">每個賽季重新計分；比賽依日期自動歸到所屬的賽季。</p>
       <n-button v-if="canStartSeason" type="primary" @click="router.push({ name: 'NewSeason' })">
-        <template #icon><n-icon :component="FlagOutline" /></template>
+        <template #icon><n-icon :component="Flag" /></template>
         開新賽季
       </n-button>
     </div>
@@ -29,7 +29,7 @@
           <p class="range num">{{ seasonRangeLabel(season) }}・{{ season.match_count }} 場比賽</p>
           <n-button text type="primary" @click="openBoard(season)">
             看排行榜
-            <template #icon><n-icon :component="ArrowForwardOutline" /></template>
+            <template #icon><n-icon :component="ArrowRight" /></template>
           </n-button>
         </div>
       </li>
@@ -40,7 +40,7 @@
 <script setup>
   import { onMounted, ref } from 'vue'
   import { useRouter } from 'vue-router'
-  import { ArrowForwardOutline, FlagOutline } from '@vicons/ionicons5'
+  import { ArrowRight, Flag } from '@vicons/carbon'
   import { usePermissions } from '@/composables/usePermissions'
   import { useSeasons } from '@/composables/useSeasons'
   import { seasonRangeLabel } from '@/utils/season'
@@ -109,7 +109,7 @@
   }
   .current .dot {
     border-color: var(--red-500);
-    box-shadow: 0 0 0 4px rgba(229, 56, 63, 0.18);
+    box-shadow: 0 0 0 4px var(--accent-tint);
   }
   .card {
     padding: 14px 18px;
@@ -143,7 +143,7 @@
   }
   .current .chip {
     background: var(--red-500);
-    color: #fff;
+    color: var(--on-accent);
   }
   .range {
     margin: 4px 0 6px;

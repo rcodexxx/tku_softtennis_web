@@ -1,33 +1,96 @@
-// Naive UI 主題；顏色與 styles/tokens.css 一致
-const blue = { 700: '#163a80', 600: '#1f4fa8', 800: '#10306f' }
-const red = '#e5383f'
+// Naive UI 主題；顏色與 styles/tokens.css 一致（淺色與深色各一組）
 const fontSans = "'Noto Sans TC Variable', 'PingFang TC', 'Microsoft JhengHei', -apple-system, sans-serif"
+const fontMono = "'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace"
 
-export const themeOverrides = {
-  common: {
-    primaryColor: blue[700],
-    primaryColorHover: blue[600],
-    primaryColorPressed: blue[800],
-    primaryColorSuppl: blue[600],
-    errorColor: red,
-    errorColorHover: '#ec5a60',
-    errorColorPressed: '#d6232a',
-    successColor: '#16a34a',
-    warningColor: '#f2b705',
-    bodyColor: '#f4f6fb',
-    textColorBase: '#111827',
-    textColor1: '#111827',
-    textColor2: '#374151',
-    textColor3: '#6b7280',
-    borderColor: '#e5e9f2',
-    dividerColor: '#e5e9f2',
-    borderRadius: '10px',
-    borderRadiusSmall: '8px',
-    fontFamily: fontSans,
-    fontSize: '14px'
+const palettes = {
+  light: {
+    ink: '#15191c',
+    ink2: '#3a4247',
+    ink3: '#6b7378',
+    line: '#c9cecf',
+    lineSoft: '#dde1e2',
+    bg: '#eceeed',
+    surface: '#f6f7f7',
+    surface2: '#ffffff',
+    sunk: '#e3e6e6',
+    accent: '#ff5a1f',
+    accentHover: '#ff7440',
+    accentPressed: '#e04a12',
+    win: '#1f9d55',
+    loss: '#d93b3b'
   },
-  Card: { borderRadius: '18px', borderColor: '#e5e9f2' },
-  Button: { fontWeight: '600', borderRadiusMedium: '10px', borderRadiusLarge: '12px' },
-  Tag: { borderRadius: '999px' },
-  DataTable: { thColor: '#f3f6fd', thTextColor: '#374151', thFontWeight: '600' }
+  dark: {
+    ink: '#e6eaec',
+    ink2: '#c3cacd',
+    ink3: '#7d8a92',
+    line: '#2b3640',
+    lineSoft: '#1f2830',
+    bg: '#0e1215',
+    surface: '#141a1f',
+    surface2: '#1a2128',
+    sunk: '#10161a',
+    accent: '#ff7a45',
+    accentHover: '#ff9166',
+    accentPressed: '#e8622c',
+    win: '#3ccf7f',
+    loss: '#ff6b6b'
+  }
+}
+
+export function themeOverridesFor(mode) {
+  const c = palettes[mode] ?? palettes.light
+  return {
+    common: {
+      // 主要按鈕用墨色，重點色只留給強調
+      primaryColor: c.ink,
+      primaryColorHover: c.ink2,
+      primaryColorPressed: c.ink,
+      primaryColorSuppl: c.ink2,
+      infoColor: c.ink2,
+      errorColor: c.loss,
+      errorColorHover: c.loss,
+      errorColorPressed: c.loss,
+      successColor: c.win,
+      warningColor: c.accent,
+      warningColorHover: c.accentHover,
+      warningColorPressed: c.accentPressed,
+      bodyColor: c.bg,
+      cardColor: c.surface,
+      modalColor: c.surface,
+      popoverColor: c.surface2,
+      tableColor: c.surface,
+      inputColor: c.surface2,
+      textColorBase: c.ink,
+      textColor1: c.ink,
+      textColor2: c.ink2,
+      textColor3: c.ink3,
+      borderColor: c.line,
+      dividerColor: c.lineSoft,
+      borderRadius: '3px',
+      borderRadiusSmall: '2px',
+      fontFamily: fontSans,
+      fontFamilyMono: fontMono,
+      fontSize: '14px'
+    },
+    Button: {
+      fontWeight: '500',
+      borderRadiusMedium: '3px',
+      borderRadiusLarge: '3px',
+      textColorPrimary: c.bg,
+      textColorHoverPrimary: c.bg,
+      textColorPressedPrimary: c.bg,
+      textColorFocusPrimary: c.bg
+    },
+    Card: { borderRadius: '4px', borderColor: c.lineSoft },
+    Tag: { borderRadius: '2px' },
+    DataTable: {
+      thColor: c.sunk,
+      thTextColor: c.ink2,
+      thFontWeight: '500',
+      tdColor: c.surface,
+      borderColor: c.lineSoft
+    },
+    Tabs: { tabTextColorActiveLine: c.ink, barColor: c.accent },
+    Radio: { buttonColorActive: c.ink, buttonTextColorActive: c.bg, buttonBorderColorActive: c.ink }
+  }
 }

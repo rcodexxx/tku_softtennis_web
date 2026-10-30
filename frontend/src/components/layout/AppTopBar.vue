@@ -1,14 +1,16 @@
 <template>
   <header class="topbar">
-    <router-link :to="{ name: 'Leaderboard' }" class="brand">
-      <span class="brand-ball" aria-hidden="true"></span>
-      <span class="brand-title">TKU 軟網</span>
-    </router-link>
-    <UserMenu compact />
+    <BrandMark compact />
+    <div class="actions">
+      <ThemeToggle />
+      <UserMenu compact />
+    </div>
   </header>
 </template>
 
 <script setup>
+  import BrandMark from './BrandMark.vue'
+  import ThemeToggle from './ThemeToggle.vue'
   import UserMenu from './UserMenu.vue'
 </script>
 
@@ -20,25 +22,14 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 16px;
-    background: linear-gradient(90deg, var(--blue-900), var(--blue-700));
-    color: #fff;
-    box-shadow: var(--shadow-md);
+    padding: 10px 14px;
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line-soft);
   }
-  .brand {
+  .actions {
     display: flex;
     align-items: center;
     gap: 10px;
-  }
-  .brand-ball {
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #fff 0 18%, var(--gold-300) 19% 100%);
-  }
-  .brand-title {
-    font-weight: 800;
-    font-size: 17px;
-    letter-spacing: 0.04em;
   }
 </style>

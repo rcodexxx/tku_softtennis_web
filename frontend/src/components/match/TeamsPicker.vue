@@ -12,7 +12,7 @@
             :disabled="disabled"
             @click="open(slot.field)"
           >
-            <n-icon :component="AddOutline" />
+            <n-icon :component="Add" />
             選擇球員
           </button>
           <div v-else class="picked" :class="{ disabled }" @click="open(slot.field)">
@@ -29,7 +29,7 @@
               }}</span>
             </span>
             <n-button v-if="!disabled" quaternary circle size="small" @click.stop="setPlayers({ [slot.field]: null })">
-              <template #icon><n-icon :component="CloseOutline" /></template>
+              <template #icon><n-icon :component="Close" /></template>
             </n-button>
           </div>
         </div>
@@ -37,7 +37,7 @@
     </section>
 
     <button v-if="!disabled" type="button" class="swap" title="交換兩隊" @click="swapTeams">
-      <n-icon :component="SwapHorizontalOutline" size="20" />
+      <n-icon :component="ArrowsHorizontal" size="20" />
     </button>
 
     <PlayerPickerModal
@@ -52,7 +52,7 @@
 <script setup>
   import { computed, onMounted, ref, watch } from 'vue'
   import { useMessage } from 'naive-ui'
-  import { AddOutline, CloseOutline, SwapHorizontalOutline } from '@vicons/ionicons5'
+  import { Add, ArrowsHorizontal, Close } from '@vicons/carbon'
   import { membersApi } from '@/api'
   import PlayerAvatar from '@/components/base/PlayerAvatar.vue'
   import { organizationLabel } from '@/utils/player'
@@ -185,7 +185,7 @@
     gap: 6px;
     border: 2px dashed var(--gray-300);
     border-radius: var(--radius-md);
-    background: rgba(255, 255, 255, 0.7);
+    background: color-mix(in srgb, var(--surface) 70%, transparent);
     color: var(--gray-500);
     font: inherit;
     font-weight: 700;

@@ -1,74 +1,111 @@
-/* 設計變數：顏色、字型、間距、圓角、陰影、動畫 */
+/*
+ * 設計變數：抬頭顯示器（HUD）風格。黑白灰為主，只有一個橘色重點色。
+ * 淺色是預設；<html data-theme="dark"> 時換成深色，元件只要用這裡的變數就會跟著切換。
+ */
 :root {
-  /* 淡江藍 */
-  --blue-950: #071433;
-  --blue-900: #0b1f4d;
-  --blue-800: #10306f;
-  --blue-700: #163a80;
-  --blue-600: #1f4fa8;
-  --blue-500: #2e64d3;
-  --blue-400: #5b8cf0;
-  --blue-200: #c7d7fb;
-  --blue-100: #e6edfb;
-  --blue-50: #f3f6fd;
+  /* 基礎色：墨色（文字）、線條、底色 */
+  --ink: #15191c;
+  --ink-2: #3a4247;
+  --ink-3: #6b7378;
+  --ink-4: #9aa2a6;
+  --line: #c9cecf;
+  --line-soft: #dde1e2;
+  --bg: #eceeed;
+  --surface: #f6f7f7;
+  --surface-2: #ffffff;
+  --surface-sunk: #e3e6e6;
 
-  /* 點綴色 */
-  --red-600: #d6232a;
-  --red-500: #e5383f;
-  --red-100: #fde4e5;
-  --gold-500: #f2b705;
-  --gold-300: #ffd95a;
-  --gold-100: #fff5d1;
-  --silver-500: #9aa7bb;
-  --silver-100: #eef1f6;
-  --bronze-500: #c77d3a;
-  --bronze-100: #f8e7d6;
-  --green-600: #16a34a;
-  --green-500: #22c55e;
-  --green-100: #dcfce7;
+  /* 重點色：線條與填色用 --accent，小字用對比較高的 --accent-text */
+  --accent: #ff5a1f;
+  --accent-soft: #ffb08f;
+  --accent-tint: #ffe7dc;
+  --accent-text: #c2410c;
+  --on-accent: #ffffff;
+  --on-ink: #f6f7f7;
 
-  /* 中性色 */
-  --gray-900: #111827;
-  --gray-700: #374151;
-  --gray-500: #6b7280;
-  --gray-400: #9ca3af;
-  --gray-300: #d1d5db;
-  --gray-200: #e5e9f2;
-  --gray-100: #f1f4f9;
+  /* 勝敗 */
+  --win: #1f9d55;
+  --win-tint: #dcf3e5;
+  --loss: #d93b3b;
+  --loss-tint: #fbe2e2;
+
+  /* 頭像配色：比原色稍微壓低彩度，和黑白灰的介面放在一起不會太跳 */
+  --avatar-bg: #e2e5e5;
+  --avatar-0: #e8552a;
+  --avatar-1: #1f9a8f;
+  --avatar-2: #3a73c9;
+  --avatar-3: #c9932a;
+  --avatar-4: #7457d6;
+  --avatar-5: #cf4472;
+  --avatar-6: #5f9a2e;
+  --avatar-7: #2496b8;
+
+  /* 舊元件使用的變數，對應到新色票 */
+  --blue-950: var(--ink);
+  --blue-900: var(--ink);
+  --blue-800: var(--ink);
+  --blue-700: var(--ink);
+  --blue-600: var(--ink-2);
+  --blue-500: var(--accent);
+  --blue-400: var(--accent-soft);
+  --blue-200: var(--line);
+  --blue-100: var(--line-soft);
+  --blue-50: var(--surface-sunk);
+  --red-600: var(--accent-text);
+  --red-500: var(--accent);
+  --red-100: var(--accent-tint);
+  --gold-500: var(--accent);
+  --gold-300: var(--accent-soft);
+  --gold-100: var(--accent-tint);
+  --silver-500: var(--ink-3);
+  --silver-100: var(--surface-sunk);
+  --bronze-500: var(--ink-4);
+  --bronze-100: var(--surface-sunk);
+  --green-600: var(--win);
+  --green-500: var(--win);
+  --green-100: var(--win-tint);
+  --gray-900: var(--ink);
+  --gray-700: var(--ink-2);
+  --gray-500: var(--ink-3);
+  --gray-400: var(--ink-4);
+  --gray-300: var(--line);
+  --gray-200: var(--line-soft);
+  --gray-100: var(--surface-sunk);
 
   /* 語意化 */
-  --color-primary: var(--blue-700);
-  --color-primary-hover: var(--blue-600);
-  --color-accent: var(--red-500);
-  --color-win: var(--green-600);
-  --color-loss: var(--red-500);
-  --color-bg: #f4f6fb;
-  --color-surface: #ffffff;
-  --color-border: var(--gray-200);
-  --color-text: var(--gray-900);
-  --color-text-muted: var(--gray-500);
+  --color-primary: var(--ink);
+  --color-primary-hover: var(--ink-2);
+  --color-accent: var(--accent);
+  --color-win: var(--win);
+  --color-loss: var(--loss);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-border: var(--line-soft);
+  --color-text: var(--ink);
+  --color-text-muted: var(--ink-3);
 
-  /* 字型 */
+  /* 字型：內文黑體，標籤與數字用等寬字 */
   --font-sans:
     'Noto Sans TC Variable', 'PingFang TC', 'Microsoft JhengHei', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-number: 'Barlow Condensed', 'Noto Sans TC Variable', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-number: var(--font-mono);
 
   /* 版面 */
-  --sidebar-width: 248px;
+  --sidebar-width: 232px;
   --bottom-nav-height: 64px;
   --content-max-width: 1200px;
 
-  /* 圓角 */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
-  --radius-xl: 24px;
+  /* 圓角：HUD 風格以直角為主 */
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 4px;
+  --radius-xl: 4px;
   --radius-full: 999px;
 
-  /* 陰影 */
-  --shadow-sm: 0 1px 2px rgba(11, 31, 77, 0.06), 0 1px 3px rgba(11, 31, 77, 0.08);
-  --shadow-md: 0 4px 12px rgba(11, 31, 77, 0.08), 0 2px 4px rgba(11, 31, 77, 0.05);
-  --shadow-lg: 0 16px 40px rgba(11, 31, 77, 0.14), 0 4px 10px rgba(11, 31, 77, 0.06);
+  /* 陰影：幾乎不用，靠細線分層 */
+  --shadow-sm: none;
+  --shadow-md: 0 1px 0 var(--line-soft);
+  --shadow-lg: 0 12px 32px rgba(21, 25, 28, 0.14);
 
   /* 動畫 */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -76,4 +113,45 @@
   --duration-fast: 160ms;
   --duration-base: 280ms;
   --duration-slow: 600ms;
+
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --ink: #e6eaec;
+  --ink-2: #c3cacd;
+  --ink-3: #7d8a92;
+  --ink-4: #56636b;
+  --line: #2b3640;
+  --line-soft: #1f2830;
+  --bg: #0e1215;
+  --surface: #141a1f;
+  --surface-2: #1a2128;
+  --surface-sunk: #10161a;
+
+  --accent: #ff7a45;
+  --accent-soft: #a8502e;
+  --accent-tint: #2e1d16;
+  --accent-text: #ff8f62;
+  --on-accent: #0e1215;
+  --on-ink: #0e1215;
+
+  --win: #3ccf7f;
+  --win-tint: #12291d;
+  --loss: #ff6b6b;
+  --loss-tint: #2e1616;
+
+  --avatar-bg: #1d252b;
+  --avatar-0: #ff7a4d;
+  --avatar-1: #3cc2b5;
+  --avatar-2: #6b9cf0;
+  --avatar-3: #e6b450;
+  --avatar-4: #9a82f0;
+  --avatar-5: #ef6c96;
+  --avatar-6: #8cc456;
+  --avatar-7: #4cc0e0;
+
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
+
+  color-scheme: dark;
 }

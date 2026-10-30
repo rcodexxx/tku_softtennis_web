@@ -7,7 +7,7 @@
     >
       <template #actions>
         <n-button quaternary @click="router.push({ name: 'RecordMatch' })">
-          <template #icon><n-icon :component="FootstepsOutline" /></template>
+          <template #icon><n-icon :component="Pedestrian" /></template>
           改用單場精靈
         </n-button>
       </template>
@@ -21,7 +21,7 @@
         </span>
         <n-button text type="primary" @click="router.push({ name: 'MatchManagement' })">到比賽管理查看 →</n-button>
         <n-button text class="banner-close" aria-label="關閉" @click="lastSaved = 0">
-          <n-icon :component="CloseOutline" />
+          <n-icon :component="Close" />
         </n-button>
       </div>
     </Transition>
@@ -148,7 +148,7 @@
             @update:value="value => setField(row, 'match_format', value)"
           />
           <n-button size="small" :type="hasGameScores(row) ? 'primary' : 'default'" secondary @click="openGames(row)">
-            <template #icon><n-icon :component="GridOutline" /></template>
+            <template #icon><n-icon :component="Grid" /></template>
             {{ hasGameScores(row) ? '已填每局比分' : '每局比分（選填）' }}
           </n-button>
 
@@ -159,10 +159,10 @@
 
           <div class="row-actions">
             <n-button size="small" quaternary circle title="複製這一列" @click="duplicateRow(index)">
-              <template #icon><n-icon :component="CopyOutline" /></template>
+              <template #icon><n-icon :component="Copy" /></template>
             </n-button>
             <n-button size="small" quaternary circle title="刪除這一列" @click="removeRow(index)">
-              <template #icon><n-icon :component="TrashOutline" /></template>
+              <template #icon><n-icon :component="TrashCan" /></template>
             </n-button>
           </div>
         </div>
@@ -170,7 +170,7 @@
     </TransitionGroup>
 
     <button type="button" class="add-row" @click="addRow(rows.length - 1)">
-      <n-icon :component="AddOutline" :size="20" />
+      <n-icon :component="Add" :size="20" />
       新增一列
       <kbd>Enter</kbd>
     </button>
@@ -228,17 +228,17 @@
   import { useRouter } from 'vue-router'
   import { useDialog, useMessage } from 'naive-ui'
   import {
-    AddOutline,
-    AlertCircleOutline,
-    CheckmarkCircle,
-    CloseOutline,
-    CopyOutline,
-    EllipseOutline,
-    FootstepsOutline,
-    GridOutline,
-    TimeOutline,
-    TrashOutline
-  } from '@vicons/ionicons5'
+    Add,
+    CheckmarkFilled,
+    CircleDash,
+    Close,
+    Copy,
+    Grid,
+    Pedestrian,
+    Time,
+    TrashCan,
+    WarningAlt
+  } from '@vicons/carbon'
   import { matchesApi, membersApi } from '@/api'
   import CountUp from '@/components/base/CountUp.vue'
   import PageHeader from '@/components/base/PageHeader.vue'
@@ -263,10 +263,10 @@
 
   const DRAFT_KEY = 'tkust:batch-record-draft'
   const STATUS_ICONS = {
-    empty: EllipseOutline,
-    incomplete: TimeOutline,
-    invalid: AlertCircleOutline,
-    ready: CheckmarkCircle
+    empty: CircleDash,
+    incomplete: Time,
+    invalid: WarningAlt,
+    ready: CheckmarkFilled
   }
   const STATUS_TEXT = { empty: '空白列，儲存時略過', incomplete: '', invalid: '', ready: '可以儲存' }
 
@@ -526,7 +526,7 @@
     padding: 14px 18px;
     margin-bottom: 16px;
     border-radius: var(--radius-lg);
-    background: linear-gradient(120deg, var(--green-100), #f0fdf4);
+    background: var(--win-tint);
     border: 1px solid #bbf7d0;
     color: #14532d;
     font-weight: 600;
@@ -681,7 +681,7 @@
   }
   .row.won-a .side-a,
   .row.won-b .side-b {
-    background: linear-gradient(120deg, var(--gold-100), #fffbeb);
+    background: var(--accent-tint);
     box-shadow: inset 0 0 0 1px var(--gold-300);
   }
 
@@ -714,7 +714,7 @@
   }
   .score-input:focus {
     border-color: var(--blue-500);
-    background: #fff;
+    background: var(--surface-2);
     transform: scale(1.04);
   }
   .score-input:disabled {
@@ -724,7 +724,7 @@
   }
   .row.is-ready .score-input {
     border-color: var(--green-500);
-    background: #fff;
+    background: var(--surface-2);
   }
   .score-caption {
     font-size: 11px;
@@ -834,7 +834,7 @@
     margin-top: 20px;
     padding: 12px 14px 12px 20px;
     border-radius: var(--radius-xl);
-    background: rgba(255, 255, 255, 0.92);
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
     backdrop-filter: blur(10px);
     border: 1px solid var(--color-border);
     box-shadow: var(--shadow-lg);
@@ -870,12 +870,12 @@
     display: block;
     height: 100%;
     border-radius: inherit;
-    background: linear-gradient(90deg, var(--green-500), var(--green-600));
+    background: var(--win);
     transition: width var(--duration-slow) var(--ease-spring);
   }
   .save-kbd {
     margin-left: 8px;
-    border-color: rgba(255, 255, 255, 0.6);
+    border-color: var(--line);
   }
   .save-button.pulse {
     animation: pulse 2s infinite;

@@ -1,32 +1,23 @@
 <template>
   <nav class="bottom-nav">
     <router-link
-      v-for="item in bottomItems"
+      v-for="item in items"
       :key="item.name"
       :to="{ name: item.name }"
       class="tab"
-      :class="{ primary: item.name === 'RecordMatch' }"
-      active-class="active"
+      :class="{ active: isActive(item) }"
     >
-      <span class="icon-wrap">
-        <n-icon :component="item.icon" :size="item.name === 'RecordMatch' ? 28 : 22" />
-      </span>
+      <n-icon :component="item.icon" size="20" />
       <span class="label">{{ item.label }}</span>
-    </router-link>
-    <router-link v-if="!authStore.isAuthenticated" :to="{ name: 'Login' }" class="tab" active-class="active">
-      <span class="icon-wrap"><n-icon :component="LogInOutline" size="22" /></span>
-      <span class="label">登入</span>
     </router-link>
   </nav>
 </template>
 
 <script setup>
-  import { LogInOutline } from '@vicons/ionicons5'
   import { useNavItems } from '@/composables/useNavItems'
-  import { useAuthStore } from '@/stores/authStore'
 
-  const authStore = useAuthStore()
-  const { bottomItems } = useNavItems()
+  /** 手機底部分頁列；只有幹部有多個入口，所以只在幹部登入時顯示（見 App.vue）。 */
+  const { items, isActive } = useNavItems()
 </script>
 
 <style scoped>
@@ -37,46 +28,36 @@
     padding-bottom: env(safe-area-inset-bottom);
     display: flex;
     align-items: stretch;
-    background: rgba(255, 255, 255, 0.96);
+    background: color-mix(in srgb, var(--surface) 94%, transparent);
     backdrop-filter: blur(12px);
-    border-top: 1px solid var(--color-border);
-    box-shadow: 0 -6px 20px rgba(11, 31, 77, 0.06);
+    border-top: 1px solid var(--line-soft);
     z-index: 20;
   }
   .tab {
+    position: relative;
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
-    color: var(--gray-500);
+    gap: 4px;
+    color: var(--ink-3);
     font-size: 11px;
     font-weight: 600;
+    letter-spacing: 0.06em;
     transition: color var(--duration-fast);
   }
   .tab.active {
-    color: var(--color-primary);
+    color: var(--ink);
   }
-  .tab.active .icon-wrap {
-    transform: translateY(-2px) scale(1.08);
-  }
-  .icon-wrap {
-    display: flex;
-    transition: transform var(--duration-base) var(--ease-spring);
-  }
-  .tab.primary .icon-wrap {
-    width: 52px;
-    height: 52px;
-    margin-top: -22px;
-    border-radius: 50%;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    background: linear-gradient(135deg, var(--red-500), var(--red-600));
-    box-shadow: 0 8px 18px rgba(214, 35, 42, 0.35);
-  }
-  .tab.primary.active {
-    color: var(--red-600);
+  /* 目前位置：上方一條重點色 */
+  .tab.active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 30%;
+    right: 30%;
+    height: 2px;
+    background: var(--accent);
   }
 </style>

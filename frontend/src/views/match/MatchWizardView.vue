@@ -7,7 +7,7 @@
     >
       <template v-if="!isEdit" #actions>
         <n-button quaternary @click="router.push({ name: 'BatchRecordMatch' })">
-          <template #icon><n-icon :component="AlbumsOutline" /></template>
+          <template #icon><n-icon :component="Layers" /></template>
           補登很多場？改用批次記錄
         </n-button>
       </template>
@@ -129,7 +129,7 @@
 
     <footer class="nav">
       <n-button v-if="step > 0" size="large" @click="goTo(step - 1)">
-        <template #icon><n-icon :component="ArrowBackOutline" /></template>
+        <template #icon><n-icon :component="ArrowLeft" /></template>
         上一步
       </n-button>
       <n-button v-else size="large" quaternary @click="router.back()">取消</n-button>
@@ -142,7 +142,7 @@
         @click="goTo(step + 1)"
       >
         下一步
-        <template #icon><n-icon :component="ArrowForwardOutline" /></template>
+        <template #icon><n-icon :component="ArrowRight" /></template>
       </n-button>
       <n-button v-else type="primary" size="large" :loading="submitting" @click="submit">
         {{ isEdit ? '儲存變更' : '送出比賽' }}
@@ -155,7 +155,7 @@
   import { computed, onMounted, ref, watch } from 'vue'
   import { useRouter } from 'vue-router'
   import { useMessage } from 'naive-ui'
-  import { AlbumsOutline, ArrowBackOutline, ArrowForwardOutline } from '@vicons/ionicons5'
+  import { ArrowLeft, ArrowRight, Layers } from '@vicons/carbon'
   import { matchesApi, membersApi } from '@/api'
   import PageHeader from '@/components/base/PageHeader.vue'
   import GameScoreEditor from '@/components/match/GameScoreEditor.vue'

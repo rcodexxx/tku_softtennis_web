@@ -2,7 +2,7 @@
   <div class="directory">
     <div class="toolbar">
       <n-input v-model:value="keyword" placeholder="搜尋姓名、學號或組織" clearable round class="search">
-        <template #prefix><n-icon :component="SearchOutline" /></template>
+        <template #prefix><n-icon :component="Search" /></template>
       </n-input>
       <n-radio-group v-model:value="kind" size="small">
         <n-radio-button value="members">隊員</n-radio-button>
@@ -47,7 +47,7 @@
   import { computed, ref } from 'vue'
   import { useRouter } from 'vue-router'
   import { useDialog, useMessage } from 'naive-ui'
-  import { SearchOutline } from '@vicons/ionicons5'
+  import { Search } from '@vicons/carbon'
   import { membersApi } from '@/api'
   import { usePermissions } from '@/composables/usePermissions'
   import { organizationLabel } from '@/utils/player'

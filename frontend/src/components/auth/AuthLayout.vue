@@ -47,22 +47,20 @@
     display: flex;
     align-items: flex-end;
     padding: 56px;
-    background:
-      radial-gradient(circle at 20% 15%, rgba(91, 140, 240, 0.35), transparent 45%),
-      linear-gradient(160deg, var(--blue-800), var(--blue-950));
-    color: #fff;
+    background: var(--ink);
+    color: var(--bg);
   }
   .court {
     position: absolute;
     inset: 12% 10% 28% 10%;
-    border: 2px solid rgba(255, 255, 255, 0.16);
+    border: 2px solid color-mix(in srgb, var(--bg) 16%, transparent);
     border-radius: 6px;
     transform: perspective(700px) rotateX(48deg);
     transform-origin: bottom;
   }
   .line {
     position: absolute;
-    background: rgba(255, 255, 255, 0.16);
+    background: color-mix(in srgb, var(--bg) 16%, transparent);
   }
   .service {
     left: 0;
@@ -88,13 +86,17 @@
     right: -4%;
     top: 50%;
     height: 10px;
-    background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.35) 0 2px, transparent 2px 10px);
-    border-top: 3px solid rgba(255, 255, 255, 0.6);
+    background: repeating-linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--bg) 35%, transparent) 0 2px,
+      transparent 2px 10px
+    );
+    border-top: 3px solid color-mix(in srgb, var(--bg) 60%, transparent);
   }
   .ball {
     position: absolute;
     border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #fff 0 16%, var(--gold-300) 17% 100%);
+    background: var(--accent);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
   }
   .ball-1 {

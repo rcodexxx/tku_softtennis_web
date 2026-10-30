@@ -17,7 +17,7 @@
             <!-- 1. 基本資料 -->
             <template v-if="step === 0">
               <div v-if="currentSeason" class="archive-card">
-                <n-icon :component="ArchiveOutline" size="28" />
+                <n-icon :component="Archive" size="28" />
                 <div>
                   <b>{{ currentSeason.name }}</b> 將會封存
                   <p>
@@ -52,7 +52,7 @@
                   </span>
                 </div>
                 <n-input v-model:value="keyword" placeholder="搜尋隊員" clearable round size="small" class="search">
-                  <template #prefix><n-icon :component="SearchOutline" /></template>
+                  <template #prefix><n-icon :component="Search" /></template>
                 </n-input>
               </div>
               <p class="note">畢業的人轉到校友會；不再打球的設為離隊，比賽紀錄會保留，但不會出現在新排行榜。</p>
@@ -112,7 +112,7 @@
 
     <footer class="nav">
       <n-button v-if="step > 0" size="large" @click="goTo(step - 1)">
-        <template #icon><n-icon :component="ArrowBackOutline" /></template>
+        <template #icon><n-icon :component="ArrowLeft" /></template>
         上一步
       </n-button>
       <n-button v-else size="large" quaternary @click="router.back()">取消</n-button>
@@ -125,10 +125,10 @@
         @click="goTo(step + 1)"
       >
         下一步
-        <template #icon><n-icon :component="ArrowForwardOutline" /></template>
+        <template #icon><n-icon :component="ArrowRight" /></template>
       </n-button>
       <n-button v-else type="primary" size="large" :loading="submitting" @click="submit">
-        <template #icon><n-icon :component="FlagOutline" /></template>
+        <template #icon><n-icon :component="Flag" /></template>
         開始 {{ name }}
       </n-button>
     </footer>
@@ -139,7 +139,7 @@
   import { computed, onMounted, ref } from 'vue'
   import { useRouter } from 'vue-router'
   import { useMessage } from 'naive-ui'
-  import { ArchiveOutline, ArrowBackOutline, ArrowForwardOutline, FlagOutline, SearchOutline } from '@vicons/ionicons5'
+  import { Archive, ArrowLeft, ArrowRight, Flag, Search } from '@vicons/carbon'
   import { seasonsApi } from '@/api'
   import PageHeader from '@/components/base/PageHeader.vue'
   import PlayerAvatar from '@/components/base/PlayerAvatar.vue'
@@ -264,8 +264,8 @@
     margin-bottom: 20px;
     padding: 16px 18px;
     border-radius: var(--radius-lg);
-    background: linear-gradient(135deg, var(--blue-900), var(--blue-700));
-    color: #fff;
+    background: var(--ink);
+    color: var(--bg);
   }
   .archive-card p {
     margin: 2px 0 0;

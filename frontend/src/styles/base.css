@@ -1,7 +1,6 @@
 @import '@fontsource-variable/noto-sans-tc';
-@import '@fontsource/barlow-condensed/500.css';
-@import '@fontsource/barlow-condensed/600.css';
-@import '@fontsource/barlow-condensed/700.css';
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/500.css';
 @import './tokens.css';
 
 *,
@@ -26,11 +25,62 @@ a {
   text-decoration: none;
 }
 
-/* 數字一律用窄體等寬數字，數據對齊比較好看 */
+/* 數字一律用等寬字，數據對齊得像儀表讀數 */
 .num {
   font-family: var(--font-number);
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.01em;
+  letter-spacing: 0;
+}
+
+/* HUD 標籤：等寬小字、字距加寬，例如「RK-01」「S-115」 */
+.hud-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* 四角括號框：外層加 .hud-frame，需要的角放 <span class="corner tl"></span> 等 */
+.hud-frame {
+  position: relative;
+}
+.hud-frame > .corner {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-color: var(--corner-color, var(--ink));
+  border-style: solid;
+  border-width: 0;
+  pointer-events: none;
+  transition:
+    transform var(--duration-base) var(--ease-out),
+    border-color var(--duration-fast);
+}
+.hud-frame > .corner.tl {
+  top: -1px;
+  left: -1px;
+  border-top-width: var(--corner-width, 2px);
+  border-left-width: var(--corner-width, 2px);
+}
+.hud-frame > .corner.tr {
+  top: -1px;
+  right: -1px;
+  border-top-width: var(--corner-width, 2px);
+  border-right-width: var(--corner-width, 2px);
+}
+.hud-frame > .corner.bl {
+  bottom: -1px;
+  left: -1px;
+  border-bottom-width: var(--corner-width, 2px);
+  border-left-width: var(--corner-width, 2px);
+}
+.hud-frame > .corner.br {
+  bottom: -1px;
+  right: -1px;
+  border-bottom-width: var(--corner-width, 2px);
+  border-right-width: var(--corner-width, 2px);
 }
 
 /* 頁面切換動畫 */
@@ -83,4 +133,11 @@ a {
   background: var(--gray-300);
   border-radius: var(--radius-full);
   border: 2px solid var(--color-bg);
+}
+
+/* 主題切換時顏色平滑過渡 */
+body {
+  transition:
+    background-color var(--duration-base),
+    color var(--duration-base);
 }

@@ -12,7 +12,7 @@
           placeholder="手機號碼或 Email"
           :input-props="{ autocomplete: 'username' }"
         >
-          <template #prefix><n-icon :component="PersonOutline" /></template>
+          <template #prefix><n-icon :component="User" /></template>
         </n-input>
       </n-form-item>
       <n-form-item path="password" label="密碼">
@@ -24,7 +24,7 @@
           :input-props="{ autocomplete: 'current-password' }"
           @keyup.enter="handleLogin"
         >
-          <template #prefix><n-icon :component="LockClosedOutline" /></template>
+          <template #prefix><n-icon :component="Locked" /></template>
         </n-input>
       </n-form-item>
       <n-checkbox v-model:checked="rememberMe" class="remember">記住帳號</n-checkbox>
@@ -43,7 +43,7 @@
 <script setup>
   import { onMounted, reactive, ref } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
-  import { LockClosedOutline, PersonOutline } from '@vicons/ionicons5'
+  import { Locked, User } from '@vicons/carbon'
   import AuthLayout from '@/components/auth/AuthLayout.vue'
   import { useAuthStore } from '@/stores/authStore'
 

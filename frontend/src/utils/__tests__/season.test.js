@@ -20,13 +20,13 @@ describe('seasonRangeLabel', () => {
 })
 
 describe('seasonOptions', () => {
-  it('marks the current season', () => {
+  it('lists seasons by name', () => {
     const options = seasonOptions([
       { id: 2, name: '115 學年度', is_current: true },
       { id: 1, name: '113 學年度', is_current: false }
     ])
     expect(options).toEqual([
-      { label: '115 學年度（進行中）', value: 2 },
+      { label: '115 學年度', value: 2 },
       { label: '113 學年度', value: 1 }
     ])
   })

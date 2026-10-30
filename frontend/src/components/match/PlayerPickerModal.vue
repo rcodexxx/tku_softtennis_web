@@ -124,7 +124,7 @@
 <script setup>
   import { computed, ref, watch } from 'vue'
   import { useMessage } from 'naive-ui'
-  import { AddOutline as AddIcon, CheckmarkOutline as CheckIcon, SearchOutline as SearchIcon } from '@vicons/ionicons5'
+  import { Add as AddIcon, Checkmark as CheckIcon, Search as SearchIcon } from '@vicons/carbon'
   import { guestsApi } from '@/api'
   import PlayerAvatar from '@/components/base/PlayerAvatar.vue'
   import { organizationLabel } from '@/utils/player'
@@ -336,7 +336,7 @@
     padding: 0 6px;
     border-radius: var(--radius-full);
     background: var(--gold-100);
-    color: #92400e;
+    color: var(--accent-text);
     font-size: 11px;
     font-weight: 600;
   }

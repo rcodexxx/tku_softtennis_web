@@ -12,7 +12,7 @@
           maxlength="10"
           @keyup.enter="handleRegister"
         >
-          <template #prefix><n-icon :component="PhonePortraitOutline" /></template>
+          <template #prefix><n-icon :component="Mobile" /></template>
         </n-input>
       </n-form-item>
       <n-alert type="warning" :show-icon="false" class="hint">
@@ -34,7 +34,7 @@
   import { reactive, ref } from 'vue'
   import { useRouter } from 'vue-router'
   import { useMessage } from 'naive-ui'
-  import { PhonePortraitOutline } from '@vicons/ionicons5'
+  import { Mobile } from '@vicons/carbon'
   import AuthLayout from '@/components/auth/AuthLayout.vue'
   import { useAuthStore } from '@/stores/authStore'
 

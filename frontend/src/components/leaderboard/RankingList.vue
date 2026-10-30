@@ -16,12 +16,15 @@
         class="row stagger-in"
         :class="{ me: player.id === highlightId }"
         :style="{ '--i': Math.min(index, 20) }"
+        tabindex="0"
+        @click="emit('select', player)"
+        @keydown.enter="emit('select', player)"
       >
         <span class="col-rank">
-          <span class="rank-badge num" :class="rankClass(player.rank)">{{ player.rank ?? '—' }}</span>
+          <span class="rank num" :class="rankClass(player.rank)">{{ formatRank(player.rank) }}</span>
         </span>
         <span class="col-player">
-          <PlayerAvatar :id="player.id" :name="player.name" :src="player.avatar_url" :size="40" />
+          <PlayerAvatar :id="player.id" :name="player.name" :src="player.avatar_url" :size="34" />
           <span class="player-text">
             <span class="player-name">{{ player.name }}</span>
             <span class="player-sub">{{ player.organization_name || (player.is_guest ? '訪客' : '隊員') }}</span>
@@ -57,33 +60,32 @@
     players: { type: Array, required: true },
     highlightId: { type: Number, default: null }
   })
+  const emit = defineEmits(['select'])
 
-  const rankClass = rank => (!rank ? 'unranked' : rank <= 10 ? 'top10' : rank <= 20 ? 'top20' : '')
+  const rankClass = rank => (!rank ? 'unranked' : rank <= 10 ? 'top10' : '')
+  const formatRank = rank => (rank ? String(rank).padStart(2, '0') : '—')
 </script>
 
 <style scoped>
   .ranking {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-sm);
-    overflow: hidden;
+    background: var(--surface);
+    border: 1px solid var(--line-soft);
   }
   .ranking-head,
   .row {
     display: grid;
-    grid-template-columns: 56px minmax(0, 2.4fr) 150px minmax(110px, 1.2fr) 64px 130px;
+    grid-template-columns: 52px minmax(0, 2.4fr) 90px minmax(110px, 1.2fr) 56px 120px;
     align-items: center;
     gap: 12px;
-    padding: 0 20px;
+    padding: 0 18px;
   }
   .ranking-head {
-    height: 44px;
-    background: var(--blue-50);
-    color: var(--gray-500);
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
+    height: 36px;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
   }
   .rows {
     list-style: none;
@@ -91,37 +93,52 @@
     padding: 0;
   }
   .row {
-    min-height: 68px;
-    border-top: 1px solid var(--gray-100);
+    position: relative;
+    min-height: 58px;
+    border-top: 1px solid var(--line-soft);
+    cursor: pointer;
+    outline: none;
     transition: background var(--duration-fast);
   }
-  .row:hover {
-    background: var(--blue-50);
+  .rows > .row:first-child {
+    border-top: 0;
+  }
+  /* 滑過：左邊出現重點色游標，像選單選取 */
+  .row::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 10px;
+    bottom: 10px;
+    width: 3px;
+    background: var(--accent);
+    transform: scaleY(0);
+    transition: transform var(--duration-fast) var(--ease-out);
+  }
+  .row:hover,
+  .row:focus-visible {
+    background: var(--surface-sunk);
+  }
+  .row:hover::before,
+  .row:focus-visible::before {
+    transform: scaleY(1);
   }
   .row.me {
-    background: var(--gold-100);
+    background: var(--accent-tint);
   }
   .row-move {
     transition: transform var(--duration-slow) var(--ease-out);
   }
-  .rank-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 34px;
-    height: 34px;
-    border-radius: var(--radius-sm);
-    font-size: 19px;
-    font-weight: 700;
-    color: var(--gray-500);
-    background: var(--gray-100);
+  .rank {
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--ink-3);
   }
-  .rank-badge.top10 {
-    color: var(--blue-700);
-    background: var(--blue-100);
+  .rank.top10 {
+    color: var(--ink);
   }
-  .rank-badge.top20 {
-    color: var(--blue-500);
+  .rank.unranked {
+    color: var(--ink-4);
   }
   .col-player {
     display: flex;
@@ -135,15 +152,18 @@
     min-width: 0;
   }
   .player-name {
-    font-weight: 700;
-    color: var(--blue-900);
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    color: var(--ink);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .player-sub {
-    font-size: 12px;
-    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--ink-3);
   }
   .col-rate {
     display: flex;
@@ -152,16 +172,13 @@
   }
   .rate-bar {
     flex: 1;
-    height: 8px;
-    border-radius: var(--radius-full);
-    background: var(--gray-100);
-    overflow: hidden;
+    height: 2px;
+    background: var(--line);
   }
   .rate-fill {
     display: block;
     height: 100%;
-    border-radius: inherit;
-    background: linear-gradient(90deg, var(--blue-400), var(--blue-600));
+    background: var(--ink);
     animation: grow 900ms var(--ease-out) both;
     animation-delay: 200ms;
     transform-origin: left;
@@ -174,13 +191,14 @@
   .rate-text {
     width: 38px;
     text-align: right;
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--gray-700);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--ink-2);
   }
   .col-matches {
-    font-size: 18px;
-    color: var(--gray-700);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--ink-2);
     text-align: center;
   }
   .col-score {
@@ -190,33 +208,32 @@
     gap: 8px;
   }
   .score {
-    font-size: 26px;
-    font-weight: 700;
-    color: var(--blue-700);
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--ink);
   }
   .score.muted {
-    color: var(--gray-400);
+    color: var(--ink-4);
   }
   .provisional {
-    padding: 1px 8px;
-    border-radius: var(--radius-full);
-    background: var(--gold-100);
-    color: #92400e;
+    padding: 1px 6px;
+    border: 1px solid var(--accent-soft);
+    color: var(--accent-text);
+    font-family: var(--font-mono);
     font-size: 11px;
-    font-weight: 700;
   }
   .ranking-head .col-score {
     text-align: right;
   }
   .ranking-head .col-matches {
-    font-size: 12px;
+    font-size: 11px;
     color: inherit;
   }
 
   @media (max-width: 900px) {
     .ranking-head,
     .row {
-      grid-template-columns: 44px minmax(0, 1fr) 96px;
+      grid-template-columns: 36px minmax(0, 1fr) 96px;
       padding: 0 12px;
     }
     .col-form,

@@ -4,11 +4,11 @@
       <PlayerAvatar :id="memberId" :name="name" :src="src" :size="size" />
       <span class="overlay">
         <n-spin v-if="uploading" size="small" stroke="#fff" />
-        <n-icon v-else :component="CameraOutline" size="22" />
+        <n-icon v-else :component="Camera" size="22" />
       </span>
     </button>
     <button v-if="src && !uploading" type="button" class="remove" title="移除頭像" @click="remove">
-      <n-icon :component="CloseOutline" size="14" />
+      <n-icon :component="Close" size="14" />
     </button>
     <input ref="input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden @change="upload" />
   </div>
@@ -17,7 +17,7 @@
 <script setup>
   import { ref } from 'vue'
   import { useDialog, useMessage } from 'naive-ui'
-  import { CameraOutline, CloseOutline } from '@vicons/ionicons5'
+  import { Camera, Close } from '@vicons/carbon'
   import { membersApi } from '@/api'
   import PlayerAvatar from './PlayerAvatar.vue'
 
@@ -111,13 +111,13 @@
     right: 2px;
     width: 24px;
     height: 24px;
-    border: 2px solid #fff;
+    border: 2px solid var(--surface);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     background: var(--red-500);
-    color: #fff;
+    color: var(--on-accent);
     cursor: pointer;
   }
 </style>

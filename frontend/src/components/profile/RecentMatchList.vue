@@ -85,7 +85,7 @@
     align-items: center;
     justify-content: center;
     font-weight: 800;
-    color: #fff;
+    color: var(--on-accent);
   }
   .win .result {
     background: var(--color-win);

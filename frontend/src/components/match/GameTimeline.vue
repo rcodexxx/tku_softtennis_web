@@ -105,7 +105,7 @@
     border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   }
   .bar.won span {
-    color: #fff;
+    color: var(--on-accent);
   }
   .bar.a.won span {
     background: linear-gradient(90deg, var(--blue-400), var(--blue-700));

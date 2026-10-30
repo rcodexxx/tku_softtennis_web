@@ -2,10 +2,10 @@
   <div class="organizations">
     <div class="toolbar">
       <n-input v-model:value="keyword" placeholder="搜尋組織" clearable round class="search">
-        <template #prefix><n-icon :component="SearchOutline" /></template>
+        <template #prefix><n-icon :component="Search" /></template>
       </n-input>
       <n-button v-if="canManageOrganization" type="primary" @click="openForm()">
-        <template #icon><n-icon :component="AddOutline" /></template>
+        <template #icon><n-icon :component="Add" /></template>
         新增組織
       </n-button>
     </div>
@@ -24,10 +24,10 @@
           </div>
           <div v-if="canManageOrganization" class="actions">
             <n-button quaternary circle size="small" title="編輯" @click="openForm(org)">
-              <template #icon><n-icon :component="CreateOutline" /></template>
+              <template #icon><n-icon :component="Edit" /></template>
             </n-button>
             <n-button quaternary circle size="small" type="error" title="刪除" @click="confirmDelete(org)">
-              <template #icon><n-icon :component="TrashOutline" /></template>
+              <template #icon><n-icon :component="TrashCan" /></template>
             </n-button>
           </div>
         </header>
@@ -84,7 +84,7 @@
 <script setup>
   import { computed, reactive, ref } from 'vue'
   import { useDialog, useMessage } from 'naive-ui'
-  import { AddOutline, CreateOutline, SearchOutline, TrashOutline } from '@vicons/ionicons5'
+  import { Add, Edit, Search, TrashCan } from '@vicons/carbon'
   import { organizationsApi } from '@/api'
   import { usePermissions } from '@/composables/usePermissions'
 
@@ -209,8 +209,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, var(--blue-600), var(--blue-800));
-    color: #fff;
+    background: var(--ink);
+    color: var(--bg);
     font-weight: 800;
   }
   .org-title {

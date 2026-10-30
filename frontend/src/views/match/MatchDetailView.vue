@@ -2,16 +2,16 @@
   <div class="match-detail">
     <div class="topbar">
       <n-button quaternary @click="router.push({ name: canManage ? 'MatchManagement' : 'Leaderboard' })">
-        <template #icon><n-icon :component="ArrowBackOutline" /></template>
+        <template #icon><n-icon :component="ArrowLeft" /></template>
         返回
       </n-button>
       <div v-if="record" class="actions">
         <n-button v-if="canManage" secondary @click="router.push({ name: 'EditMatch', params: { id: record.id } })">
-          <template #icon><n-icon :component="CreateOutline" /></template>
+          <template #icon><n-icon :component="Edit" /></template>
           編輯
         </n-button>
         <n-button v-if="canDeleteMatch" secondary type="error" @click="confirmDelete">
-          <template #icon><n-icon :component="TrashOutline" /></template>
+          <template #icon><n-icon :component="TrashCan" /></template>
           刪除
         </n-button>
       </div>
@@ -61,7 +61,7 @@
             </div>
           </dl>
           <a v-if="record.youtube_url" :href="record.youtube_url" target="_blank" rel="noopener" class="video-link">
-            <n-icon :component="LogoYoutube" size="20" />
+            <n-icon :component="Video" size="20" />
             觀看比賽影片
           </a>
           <p v-if="record.notes" class="notes">{{ record.notes }}</p>
@@ -75,7 +75,7 @@
   import { computed, onMounted, ref } from 'vue'
   import { useRouter } from 'vue-router'
   import { useDialog, useMessage } from 'naive-ui'
-  import { ArrowBackOutline, CreateOutline, LogoYoutube, TrashOutline } from '@vicons/ionicons5'
+  import { ArrowLeft, Edit, TrashCan, Video } from '@vicons/carbon'
   import { matchesApi } from '@/api'
   import GameTimeline from '@/components/match/GameTimeline.vue'
   import MatchScoreboard from '@/components/match/MatchScoreboard.vue'

@@ -4,12 +4,9 @@ export function seasonRangeLabel(season) {
   return season.end_date ? `${season.start_date} – ${season.end_date}` : `${season.start_date} 起`
 }
 
-/** 下拉選單用的選項，進行中的賽季標在名稱後面。 */
+/** 下拉選單用的選項。 */
 export function seasonOptions(seasons) {
-  return seasons.map(season => ({
-    label: season.is_current ? `${season.name}（進行中）` : season.name,
-    value: season.id
-  }))
+  return seasons.map(season => ({ label: season.name, value: season.id }))
 }
 
 /** 學年從 8 月開始：2026-10 與 2027-03 都屬於 2026 年開始的學年。 */

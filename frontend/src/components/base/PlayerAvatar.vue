@@ -9,7 +9,7 @@
         :y="y"
         width="1.02"
         height="1.02"
-        :fill="pattern.color"
+        :fill="`var(--avatar-${pattern.tone})`"
       />
     </svg>
   </span>
@@ -19,7 +19,7 @@
   import { computed, ref, watch } from 'vue'
   import { identicon } from '@/utils/identicon'
 
-  /** 球員頭像：有照片顯示照片，沒有則顯示 GitHub 風格的幾何圖案（依球員 id 或姓名產生）。ring 可加上金銀銅外框。 */
+  /** 球員頭像：有照片顯示照片，沒有則顯示 GitHub 風格的幾何圖案（依球員 id 或姓名產生）。ring 加上名次外框（gold 為重點色準星）。 */
   const props = defineProps({
     name: { type: String, default: '' },
     id: { type: Number, default: null },
@@ -39,39 +39,49 @@
 
 <style scoped>
   .player-avatar {
+    position: relative;
     width: var(--size);
     height: var(--size);
     flex-shrink: 0;
-    border-radius: 50%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    background: #f0f2f5;
-    box-shadow: 0 0 0 2px #fff;
+    border-radius: 3px;
+    background: var(--avatar-bg);
   }
-  .player-avatar svg {
+  .player-avatar svg,
+  .player-avatar img {
     width: 100%;
     height: 100%;
   }
   .player-avatar img {
-    width: 100%;
-    height: 100%;
     object-fit: cover;
   }
+  /* 名次外框：第一名重點色、二三名墨色，外圈留一點間距像準星 */
+  .ring-gold,
+  .ring-silver,
+  .ring-bronze {
+    overflow: visible;
+    outline: 1px solid var(--ring-color);
+    outline-offset: 3px;
+  }
   .ring-gold {
-    box-shadow:
-      0 0 0 3px #fff,
-      0 0 0 6px var(--gold-500);
+    --ring-color: var(--accent);
+    outline-width: 2px;
   }
   .ring-silver {
-    box-shadow:
-      0 0 0 3px #fff,
-      0 0 0 6px var(--silver-500);
+    --ring-color: var(--ink);
   }
   .ring-bronze {
-    box-shadow:
-      0 0 0 3px #fff,
-      0 0 0 6px var(--bronze-500);
+    --ring-color: var(--ink-3);
+  }
+  .ring-gold img,
+  .ring-silver img,
+  .ring-bronze img,
+  .ring-gold svg,
+  .ring-silver svg,
+  .ring-bronze svg {
+    border-radius: 3px;
   }
 </style>
