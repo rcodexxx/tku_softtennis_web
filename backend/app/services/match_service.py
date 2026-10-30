@@ -88,6 +88,24 @@ def create_record(data: dict) -> MatchRecord:
     return record
 
 
+def create_records(items: list[dict]) -> list[MatchRecord]:
+    """一次建立多場比賽；全部成功才寫入，最後依日期重算一次分數。"""
+    for item in items:
+        _ensure_players_exist(item)
+    records = []
+    for item in items:
+        record = MatchRecord(match=Match())
+        _apply_match_fields(record.match, item)
+        _apply_players(record, item)
+        _apply_scores(record, item)
+        db.session.add(record)
+        _touch_guests(record)
+        records.append(record)
+    rating_service.recalculate_all()
+    db.session.commit()
+    return records
+
+
 def update_record(record_id: int, data: dict) -> MatchRecord:
     record = get_record(record_id)
     merged = _merge_for_validation(record, data)

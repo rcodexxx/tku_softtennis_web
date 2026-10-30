@@ -3,7 +3,12 @@ from flask import Blueprint
 from ..core.auth import admin_required, staff_required
 from ..core.requests import load_args, load_json
 from ..core.responses import created, ok
-from ..schemas.match import MatchQuerySchema, MatchRecordInputSchema, MatchRecordSchema
+from ..schemas.match import (
+    MatchQuerySchema,
+    MatchRecordBatchInputSchema,
+    MatchRecordInputSchema,
+    MatchRecordSchema,
+)
 from ..services import match_service
 
 bp = Blueprint("matches", __name__, url_prefix="/match-records")
@@ -27,6 +32,13 @@ def get_record(record_id: int):
 def create_record():
     record = match_service.create_record(load_json(MatchRecordInputSchema()))
     return created(record_schema.dump(record), message="比賽紀錄已建立。")
+
+
+@bp.post("/batch")
+@staff_required
+def create_records():
+    records = match_service.create_records(load_json(MatchRecordBatchInputSchema())["records"])
+    return created(record_schema.dump(records, many=True), message=f"已建立 {len(records)} 場比賽紀錄。")
 
 
 @bp.put("/<int:record_id>")

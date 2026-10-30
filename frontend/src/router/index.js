@@ -49,6 +49,12 @@ const routes = [
     meta: { roles: STAFF }
   },
   {
+    path: '/match-records/batch',
+    name: 'BatchRecordMatch',
+    component: () => import('@/views/match/BatchRecordView.vue'),
+    meta: { roles: STAFF }
+  },
+  {
     path: '/match-records/view/:id',
     name: 'ViewMatch',
     component: () => import('@/views/match/MatchDetailView.vue'),

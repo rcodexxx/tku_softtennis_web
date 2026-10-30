@@ -246,3 +246,41 @@ def test_filter_by_multiple_players_and_result(client, admin_headers, players):
 
 def test_filter_rejects_bad_player_ids(client):
     error(client.get("/api/match-records", query_string={"player_ids": "1,abc"}), 400)
+
+
+def test_batch_create_matches_in_order_ratings(client, db, coach_headers, admin_headers, players):
+    """批次建立（日期亂序）的結果要和照時間順序一場一場建立相同。"""
+    later = doubles_payload(players, match_date="2025-05-01", a_games=4, b_games=1)
+    earlier = doubles_payload(players, match_date="2025-04-01", a_games=0, b_games=4)
+
+    resp = client.post("/api/match-records/batch", headers=coach_headers, json={"records": [later, earlier]})
+    created = data(resp, 201)
+    assert [r["match_date"] for r in created] == ["2025-05-01", "2025-04-01"]
+    assert created[1]["side_a_outcome"] == "loss"
+    assert "2 場" in resp.get_json()["message"]
+    batched = ratings(db)
+
+    for record in db.session.query(MatchRecord).all():
+        client.delete(f"/api/match-records/{record.id}", headers=admin_headers)
+    create_record(client, admin_headers, players, match_date="2025-04-01", a_games=0, b_games=4)
+    create_record(client, admin_headers, players, match_date="2025-05-01", a_games=4, b_games=1)
+    for member_id, (mu, sigma) in ratings(db).items():
+        assert batched[member_id] == (pytest.approx(mu), pytest.approx(sigma))
+
+
+def test_batch_create_is_all_or_nothing(client, db, admin_headers, players):
+    good = doubles_payload(players)
+    bad = doubles_payload(players, player4_id=players[0].id)
+    body = error(client.post("/api/match-records/batch", headers=admin_headers, json={"records": [good, bad]}), 400)
+    assert "1" in body["details"]["records"]
+    assert db.session.query(MatchRecord).count() == 0
+
+    missing = doubles_payload(players, player4_id=9999)
+    error(client.post("/api/match-records/batch", headers=admin_headers, json={"records": [good, missing]}), 404)
+    assert db.session.query(MatchRecord).count() == 0
+
+
+def test_batch_create_requires_staff_and_records(client, admin_headers, member_headers, players):
+    body = {"records": [doubles_payload(players)]}
+    error(client.post("/api/match-records/batch", headers=member_headers, json=body), 403)
+    error(client.post("/api/match-records/batch", headers=admin_headers, json={"records": []}), 400)

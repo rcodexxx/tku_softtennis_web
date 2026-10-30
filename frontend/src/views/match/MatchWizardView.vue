@@ -4,7 +4,14 @@
       :eyebrow="isEdit ? 'EDIT MATCH' : 'NEW MATCH'"
       :title="isEdit ? '編輯比賽' : '記錄比賽'"
       :subtitle="isEdit ? '修改後所有球員的分數會依時間重新計算。' : '四個步驟完成一場比賽紀錄。'"
-    />
+    >
+      <template v-if="!isEdit" #actions>
+        <n-button quaternary @click="router.push({ name: 'BatchRecordMatch' })">
+          <template #icon><n-icon :component="AlbumsOutline" /></template>
+          補登很多場？改用批次記錄
+        </n-button>
+      </template>
+    </PageHeader>
 
     <n-steps
       :current="step + 1"
@@ -148,7 +155,7 @@
   import { computed, onMounted, ref, watch } from 'vue'
   import { useRouter } from 'vue-router'
   import { useMessage } from 'naive-ui'
-  import { ArrowBackOutline, ArrowForwardOutline } from '@vicons/ionicons5'
+  import { AlbumsOutline, ArrowBackOutline, ArrowForwardOutline } from '@vicons/ionicons5'
   import { matchesApi, membersApi } from '@/api'
   import PageHeader from '@/components/base/PageHeader.vue'
   import GameScoreEditor from '@/components/match/GameScoreEditor.vue'

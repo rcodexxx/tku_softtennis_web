@@ -2,6 +2,10 @@
   <div class="matches-page">
     <PageHeader eyebrow="MATCHES" title="比賽管理" :subtitle="`共 ${total} 場比賽紀錄`">
       <template #actions>
+        <n-button v-if="canRecord" secondary @click="router.push({ name: 'BatchRecordMatch' })">
+          <template #icon><n-icon :component="AlbumsOutline" /></template>
+          批次記錄
+        </n-button>
         <n-button v-if="canRecord" type="primary" @click="router.push({ name: 'RecordMatch' })">
           <template #icon><n-icon :component="AddOutline" /></template>
           記錄新比賽
@@ -64,7 +68,7 @@
   import { onMounted, onUnmounted, ref, watch } from 'vue'
   import { useRouter } from 'vue-router'
   import { useDialog, useMessage } from 'naive-ui'
-  import { AddOutline } from '@vicons/ionicons5'
+  import { AddOutline, AlbumsOutline } from '@vicons/ionicons5'
   import { matchesApi, membersApi } from '@/api'
   import PageHeader from '@/components/base/PageHeader.vue'
   import MatchCard from '@/components/match/MatchCard.vue'

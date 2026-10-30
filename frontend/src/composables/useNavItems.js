@@ -1,6 +1,7 @@
 import { computed } from 'vue'
 import {
   AddCircleOutline,
+  AlbumsOutline,
   ListOutline,
   PeopleOutline,
   PersonCircleOutline,
@@ -23,6 +24,7 @@ export function useNavItems() {
       { name: 'Leaderboard', label: '排行榜', icon: PodiumOutline, show: true },
       { name: 'DetailLeaderboard', label: '詳細數據', icon: StatsChartOutline, show: loggedIn },
       { name: 'RecordMatch', label: '記錄比賽', icon: AddCircleOutline, show: staff },
+      { name: 'BatchRecordMatch', label: '批次記錄', icon: AlbumsOutline, show: staff },
       { name: 'RefereeMode', label: '裁判模式', icon: StopwatchOutline, show: staff, beta: true },
       { name: 'MatchManagement', label: '比賽管理', icon: ListOutline, show: staff },
       { name: 'ManagementCenter', label: '團隊管理', icon: PeopleOutline, show: staff },

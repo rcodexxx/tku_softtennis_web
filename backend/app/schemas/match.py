@@ -14,6 +14,8 @@ from ..models.match_record import MAX_GAMES
 from .common import BaseSchema, EnumField, InputSchema, IntList, PageQuerySchema
 from .member import PlayerBriefSchema
 
+MAX_BATCH_SIZE = 50
+
 
 class GameScoreSchema(InputSchema):
     a_score = fields.Int(required=True, validate=validate.Range(min=0))
@@ -51,6 +53,12 @@ class MatchRecordInputSchema(InputSchema):
             return
         validate_players(data)
         validate_scores(data)
+
+
+class MatchRecordBatchInputSchema(InputSchema):
+    records = fields.List(
+        fields.Nested(MatchRecordInputSchema), required=True, validate=validate.Length(min=1, max=MAX_BATCH_SIZE)
+    )
 
 
 def validate_players(data: dict) -> None:
