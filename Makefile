@@ -1,4 +1,4 @@
-.PHONY: setup backend frontend test lint format format-backend format-frontend
+.PHONY: setup backend frontend demo demo-seed test lint format format-backend format-frontend
 
 BACKEND_PY = backend/.venv/bin/python
 
@@ -10,6 +10,13 @@ setup:
 # 啟動後端（http://localhost:8000，前端的 Vite proxy 會轉發 /api）
 backend:
 	cd backend && .venv/bin/flask --app run.py run --port 8000 --debug
+
+# 示範資料：產生 backend/instance/demo.db 並用它啟動後端（不會動到真實資料）
+demo-seed:
+	cd backend && DATABASE_URL=sqlite:///demo.db .venv/bin/flask --app run.py demo-seed --yes
+
+demo: demo-seed
+	cd backend && DATABASE_URL=sqlite:///demo.db .venv/bin/flask --app run.py run --port 8000 --debug
 
 # 啟動前端（http://localhost:5173）
 frontend:

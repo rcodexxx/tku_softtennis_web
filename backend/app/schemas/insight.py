@@ -11,6 +11,7 @@ class HeadToHeadSchema(BaseSchema):
     losses = fields.Int()
     win_rate = fields.Float()
     last_date = fields.Date(allow_none=True)
+    chemistry = fields.Function(lambda e: round(e.chemistry, 2) if e.chemistry is not None else None)
 
 
 class TrendPointSchema(BaseSchema):

@@ -31,6 +31,16 @@ make frontend   # http://localhost:5173（/api 會轉發到後端）
 - 修改 models 後產生 migration：`cd backend && .venv/bin/flask --app run.py db migrate -m "..."`，再 `db upgrade`
 - 從 PostgreSQL 備份（`pg_dump -Fc`）重新匯入：見 `backend/scripts/pg_to_sqlite.py` 開頭的說明
 
+## 示範資料
+
+資料少的時候很多數據（組合榜、默契值、練習日戰報）看不出差異，可以用示範資料看效果：
+
+```bash
+make demo
+```
+
+會重建 `backend/instance/demo.db`（50 位球員、600 多場比賽、40 多個練習日）並用它啟動後端，真實的 `tkust.db` 不受影響。示範資料的登入帳號是 `demo`，密碼是 `demo-password`。只想重新產生資料用 `make demo-seed`。
+
 ## 常用指令
 
 ```bash

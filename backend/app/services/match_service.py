@@ -7,13 +7,13 @@ from ..core.pagination import Page, paginate
 from ..domain import scoring
 from ..enums import MatchCategoryEnum, MatchOutcomeEnum
 from ..extensions import db
-from ..models import Event, Match, MatchRecord, Member
+from ..models import Event, Match, MatchRecord, Member, PracticeSession
 from ..models.base import utcnow
-from ..schemas.match import validate_players, validate_scores
+from ..schemas.match import validate_fronts, validate_players, validate_scores
 from . import rating_service
 from ._queries import involves_player
 
-PLAYER_FIELDS = ("player1_id", "player2_id", "player3_id", "player4_id")
+PLAYER_FIELDS = ("player1_id", "player2_id", "player3_id", "player4_id", "a_front_id", "b_front_id")
 
 # API 欄位 -> Match 欄位
 MATCH_FIELDS = {
@@ -29,6 +29,7 @@ MATCH_FIELDS = {
     "notes": "notes",
     "category": "category",
     "event_id": "event_id",
+    "session_id": "session_id",
 }
 
 _LOAD_OPTIONS = (
@@ -54,6 +55,8 @@ def list_records(params: dict) -> Page:
         stmt = stmt.where(Match.category == params["category"])
     if params.get("event_id"):
         stmt = stmt.where(Match.event_id == params["event_id"])
+    if params.get("session_id"):
+        stmt = stmt.where(Match.session_id == params["session_id"])
     player_ids = params.get("player_ids") or ([params["player_id"]] if params.get("player_id") else [])
     for player_id in player_ids:
         stmt = stmt.where(involves_player(player_id))
@@ -116,6 +119,7 @@ def update_record(record_id: int, data: dict) -> MatchRecord:
     record = get_record(record_id)
     merged = _merge_for_validation(record, data)
     validate_players(merged)
+    validate_fronts(merged)
     if {"games", "a_games", "b_games"} & data.keys():
         validate_scores(merged)
     _ensure_players_exist(data)
@@ -144,6 +148,8 @@ def _apply_match_fields(match: Match, data: dict) -> None:
     for field, column in MATCH_FIELDS.items():
         if field in data:
             setattr(match, column, data[field])
+    if data.get("session_id") and db.session.get(PracticeSession, data["session_id"]) is None:
+        raise NotFoundError("找不到指定的練習日。")
     # 有賽事就是賽事分類；改成其他分類時拿掉賽事
     if "event_id" in data and data["event_id"]:
         if db.session.get(Event, data["event_id"]) is None:

@@ -1,7 +1,8 @@
 from marshmallow import fields, validate
 
 from ..enums import GenderEnum
-from .common import EnumField, InputSchema
+from .common import BaseSchema, EnumField, InputSchema
+from .member import PlayerBriefSchema
 
 SORT_FIELDS = ["score", "win_rate", "total_matches", "wins", "recent_activity", "join_date"]
 
@@ -28,3 +29,20 @@ class LeaderboardQuerySchema(SeasonQuerySchema):
     sort_order = fields.Str(load_default="desc", validate=validate.OneOf(["asc", "desc"]))
     page = fields.Int(load_default=1, validate=validate.Range(min=1))
     per_page = fields.Int(load_default=50, validate=validate.Range(min=1, max=500))
+
+
+class PairQuerySchema(SeasonQuerySchema):
+    min_matches = fields.Int(load_default=1, validate=validate.Range(min=1))
+    # chemistry：默契值；rating：組合表現
+    sort_by = fields.Str(load_default="rating", validate=validate.OneOf(["rating", "chemistry"]))
+
+
+class PairSchema(BaseSchema):
+    players = fields.List(fields.Nested(PlayerBriefSchema))
+    matches = fields.Int()
+    wins = fields.Int()
+    losses = fields.Int()
+    win_rate = fields.Float()
+    rating = fields.Function(lambda e: round(e.rating, 2))
+    chemistry = fields.Function(lambda e: round(e.chemistry, 2))
+    fronts = fields.Dict(keys=fields.Str(), values=fields.Int())

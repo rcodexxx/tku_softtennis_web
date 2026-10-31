@@ -31,11 +31,15 @@ class MatchRecordInputSchema(InputSchema):
     # 隊內／校外友誼／賽事；選了賽事時分類自動為 event
     category = EnumField(MatchCategoryEnum)
     event_id = fields.Int(allow_none=True, validate=validate.Range(min=1))
+    session_id = fields.Int(allow_none=True, validate=validate.Range(min=1))
 
     player1_id = fields.Int(required=True, validate=validate.Range(min=1))
     player2_id = fields.Int(allow_none=True, validate=validate.Range(min=1))
     player3_id = fields.Int(required=True, validate=validate.Range(min=1))
     player4_id = fields.Int(allow_none=True, validate=validate.Range(min=1))
+    # 雙打的前衛（網前）是誰，可以不填
+    a_front_id = fields.Int(allow_none=True, validate=validate.Range(min=1))
+    b_front_id = fields.Int(allow_none=True, validate=validate.Range(min=1))
 
     # 只給總局數，或給每局比分（此時總局數由比分計算）
     a_games = fields.Int(validate=validate.Range(min=0))
@@ -57,6 +61,7 @@ class MatchRecordInputSchema(InputSchema):
         if partial:
             return
         validate_players(data)
+        validate_fronts(data)
         validate_scores(data)
 
 
@@ -78,6 +83,14 @@ def validate_players(data: dict) -> None:
         raise ValidationError("雙打必須選擇 4 位球員。")
 
 
+def validate_fronts(data: dict) -> None:
+    """前衛必須是那一隊的球員。"""
+    for field, team in (("a_front_id", ("player1_id", "player2_id")), ("b_front_id", ("player3_id", "player4_id"))):
+        front = data.get(field)
+        if front and front not in (data.get(team[0]), data.get(team[1])):
+            raise ValidationError("前衛必須是該隊的球員。", field_name=field)
+
+
 def validate_scores(data: dict) -> None:
     games = data.get("games")
     if games and scoring.has_detailed_scores([(g["a_score"], g["b_score"]) for g in games]):
@@ -97,6 +110,7 @@ class MatchRecordSchema(BaseSchema):
     match_format = EnumField(MatchFormatEnum, attribute="match.match_format")
     category = EnumField(MatchCategoryEnum, attribute="match.category")
     event = fields.Nested(EventBriefSchema, attribute="match.event", allow_none=True)
+    session_id = fields.Int(attribute="match.session_id", allow_none=True)
     time_slot = EnumField(MatchTimeSlotEnum, attribute="match.match_time_slot", allow_none=True)
     court_surface = EnumField(CourtSurfaceEnum, attribute="match.court_surface", allow_none=True)
     court_environment = EnumField(CourtEnvironmentEnum, attribute="match.court_environment", allow_none=True)
@@ -114,6 +128,8 @@ class MatchRecordSchema(BaseSchema):
     player3 = fields.Nested(PlayerBriefSchema)
     player4 = fields.Nested(PlayerBriefSchema, allow_none=True)
 
+    a_front_id = fields.Int(allow_none=True)
+    b_front_id = fields.Int(allow_none=True)
     a_games = fields.Int()
     b_games = fields.Int()
     side_a_outcome = EnumField(MatchOutcomeEnum)
@@ -131,6 +147,7 @@ class MatchQuerySchema(PageQuerySchema):
     match_format = EnumField(MatchFormatEnum)
     category = EnumField(MatchCategoryEnum)
     event_id = fields.Int(validate=validate.Range(min=1))
+    session_id = fields.Int(validate=validate.Range(min=1))
     player_id = fields.Int(validate=validate.Range(min=1))
     # 比賽必須包含所有指定球員
     player_ids = IntList()

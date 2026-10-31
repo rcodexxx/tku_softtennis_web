@@ -80,7 +80,7 @@
   import { onMounted, onUnmounted, ref, watch } from 'vue'
   import { useRouter } from 'vue-router'
   import { useDialog, useMessage } from 'naive-ui'
-  import { Add, Layers, Trophy } from '@vicons/carbon'
+  import { Add, Calendar, Layers, Trophy } from '@vicons/carbon'
   import { matchesApi, membersApi } from '@/api'
   import PageHeader from '@/components/base/PageHeader.vue'
   import MatchCard from '@/components/match/MatchCard.vue'
@@ -90,21 +90,22 @@
 
   const SEARCH_DEBOUNCE_DELAY = 400
   const RECORD_ACTIONS = [
+    { name: 'Practice', code: 'A // Practice', title: '練習日', icon: Calendar },
     {
       name: 'RecordMatch',
-      code: 'A // Single',
+      code: 'B // Single',
       title: '記錄一場',
       icon: Add
     },
     {
       name: 'BatchRecordMatch',
-      code: 'B // Batch',
+      code: 'C // Batch',
       title: '批次補登',
       icon: Layers
     },
     {
       name: 'Events',
-      code: 'C // Events',
+      code: 'D // Events',
       title: '賽事',
       icon: Trophy
     }
@@ -233,7 +234,7 @@
 <style scoped>
   .actions-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 12px;
     margin-bottom: 28px;
   }

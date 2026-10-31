@@ -22,7 +22,17 @@ const ITEMS = [
     label: '記錄',
     icon: SoftTennisRacket,
     staff: true,
-    routes: ['MatchManagement', 'RecordMatch', 'BatchRecordMatch', 'ViewMatch', 'EditMatch', 'Events', 'EventDetail']
+    routes: [
+      'MatchManagement',
+      'RecordMatch',
+      'BatchRecordMatch',
+      'ViewMatch',
+      'EditMatch',
+      'Events',
+      'EventDetail',
+      'Practice',
+      'PracticeSession'
+    ]
   },
   {
     name: 'ManagementCenter',

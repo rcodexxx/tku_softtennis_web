@@ -22,7 +22,24 @@
       </div>
     </header>
 
-    <div class="controls">
+    <div class="views" role="tablist" aria-label="排行榜種類">
+      <button
+        v-for="option in VIEWS"
+        :key="option.value"
+        type="button"
+        role="tab"
+        class="view"
+        :class="{ active: view === option.value }"
+        :aria-selected="view === option.value"
+        @click="setView(option.value)"
+      >
+        {{ option.label }}
+      </button>
+    </div>
+
+    <PairBoard v-if="view === 'pairs'" :season-id="selectedSeason?.id ?? null" />
+
+    <div v-if="view === 'players'" class="controls">
       <div class="scopes" role="tablist" aria-label="排行榜範圍">
         <button
           v-for="option in scopeTabs"
@@ -61,9 +78,10 @@
       <n-button size="small" @click="setBoard({ season: null })">回到 {{ currentSeason.name }}</n-button>
     </div>
 
-    <n-alert v-if="error" type="error" :title="error" class="block" />
+    <n-alert v-if="error && view === 'players'" type="error" :title="error" class="block" />
 
-    <template v-if="loading">
+    <template v-if="view === 'pairs'"></template>
+    <template v-else-if="loading">
       <div class="skeleton-top">
         <n-skeleton height="300px" />
         <div class="skeleton-runners">
@@ -114,6 +132,7 @@
   import { Analytics, Archive, Search } from '@vicons/carbon'
   import { boardsApi, leaderboardApi } from '@/api'
   import RankingList from '@/components/leaderboard/RankingList.vue'
+  import PairBoard from '@/components/leaderboard/PairBoard.vue'
   import TopThree from '@/components/leaderboard/TopThree.vue'
   import { usePermissions } from '@/composables/usePermissions'
   import { useSeasons } from '@/composables/useSeasons'
@@ -124,6 +143,10 @@
   const SCOPES = [
     { value: 'team', label: '校隊' },
     { value: 'combined', label: '綜合' }
+  ]
+  const VIEWS = [
+    { value: 'players', label: '個人' },
+    { value: 'pairs', label: '組合' }
   ]
   const GENDERS = [
     { value: null, label: '全部' },
@@ -172,6 +195,10 @@
   const viewingPast = computed(() => Boolean(selectedSeason.value && !selectedSeason.value.is_current))
   // 新賽季剛開始還沒人上榜時，提供上個賽季的連結
   const previousSeason = computed(() => seasons.value.find(season => !season.is_current) ?? null)
+
+  // 個人排行或雙打組合榜，存在網址上
+  const view = computed(() => (route.query.view === 'pairs' ? 'pairs' : 'players'))
+  const setView = value => router.replace({ query: { ...route.query, view: value === 'pairs' ? 'pairs' : undefined } })
 
   const setBoard = changes => {
     const next = { season: seasonId.value, scope: scope.value, gender: gender.value, ...changes }
@@ -272,6 +299,27 @@
     width: 170px;
   }
 
+  .views {
+    display: inline-flex;
+    margin-bottom: 16px;
+    border: 1px solid var(--ink);
+  }
+  .view {
+    min-width: 88px;
+    padding: 7px 18px;
+    border: 0;
+    background: transparent;
+    color: var(--ink-2);
+    font: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+  }
+  .view.active {
+    background: var(--ink);
+    color: var(--bg);
+  }
   .controls {
     display: flex;
     align-items: center;

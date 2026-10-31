@@ -5,10 +5,10 @@ from ..core.auth import get_current_user, is_staff
 from ..core.errors import PermissionDeniedError, ValidationError
 from ..core.requests import load_args
 from ..core.responses import ok
-from ..schemas.leaderboard import LeaderboardQuerySchema, SeasonQuerySchema
+from ..schemas.leaderboard import LeaderboardQuerySchema, PairQuerySchema, PairSchema, SeasonQuerySchema
 from ..schemas.member import MemberSchema
 from ..schemas.season import SeasonSchema
-from ..services import leaderboard_service, season_service
+from ..services import leaderboard_service, pair_service, season_service
 
 bp = Blueprint("leaderboard", __name__, url_prefix="/leaderboard")
 
@@ -27,6 +27,18 @@ def get_leaderboard():
         for e in page.items
     ]
     return ok(rows, meta={**page.meta, "season": season_schema.dump(season_service.describe(season))})
+
+
+@bp.get("/pairs")
+def get_pairs():
+    """組合榜：雙打搭檔的戰績、組合表現與默契值（預設目前賽季）。"""
+    params = load_args(PairQuerySchema())
+    season = season_service.resolve(params.get("season_id"))
+    entries = pair_service.pairs(season, params["min_matches"])
+    entries.sort(key=lambda e: (-e.chemistry if params["sort_by"] == "chemistry" else -e.rating, -e.matches))
+    return ok(
+        PairSchema().dump(entries, many=True), meta={"season": season_schema.dump(season_service.describe(season))}
+    )
 
 
 @bp.get("/statistics")

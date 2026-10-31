@@ -5,6 +5,7 @@ from .match_record import MatchRecord
 from .member import Member
 from .organization import Organization
 from .player_stats import PlayerStats
+from .practice import PracticeSession
 from .racket import Racket
 from .season import Season, SeasonRoster
 from .user import User
@@ -17,6 +18,7 @@ __all__ = [
     "Member",
     "Organization",
     "PlayerStats",
+    "PracticeSession",
     "Racket",
     "Season",
     "SeasonRoster",

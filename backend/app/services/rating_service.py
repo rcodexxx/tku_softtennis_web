@@ -151,6 +151,18 @@ def recalculate_all() -> None:
         member.rating = result.ratings[member.id] if member.id in result.performances else None
 
 
+def results_for_records(record_ids: set[int]) -> dict[int, dict[int, MatchResult]]:
+    """指定比賽（以 MatchRecord.id 為鍵）裡每位球員的分數變化，各賽季分開計算。"""
+    if not record_ids:
+        return {}
+    return {
+        rid: by_player
+        for period in all_periods()
+        for rid, by_player in replay(period).results.items()
+        if rid in record_ids
+    }
+
+
 def results_for(member_id: int) -> dict[int, MatchResult]:
     """某位球員每場比賽（以 MatchRecord.id 為鍵）的分數變化，各賽季分開計算。"""
     return {

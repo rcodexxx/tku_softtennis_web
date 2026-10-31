@@ -18,6 +18,7 @@ from .base import enum_column
 if TYPE_CHECKING:
     from .event import Event
     from .match_record import MatchRecord
+    from .practice import PracticeSession
 
 
 class Match(db.Model):
@@ -58,7 +59,14 @@ class Match(db.Model):
         ForeignKey("events.id", name="fk_matches_event_id", ondelete="SET NULL"), index=True, comment="所屬賽事ID"
     )
 
+    session_id: Mapped[int | None] = mapped_column(
+        ForeignKey("practice_sessions.id", name="fk_matches_session_id", ondelete="SET NULL"),
+        index=True,
+        comment="所屬練習日ID",
+    )
+
     event: Mapped["Event | None"] = relationship(back_populates="matches")
+    session: Mapped["PracticeSession | None"] = relationship(back_populates="matches")
     results: Mapped[list["MatchRecord"]] = relationship(back_populates="match", cascade="all, delete-orphan")
 
     @property

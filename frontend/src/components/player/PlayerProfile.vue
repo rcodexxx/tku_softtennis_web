@@ -54,7 +54,12 @@
       <div class="grid">
         <section class="panel">
           <h2 class="hud-label">搭檔</h2>
-          <HeadToHeadList :entries="data.partners" :tags="partnerTags" empty-text="這個賽季還沒有雙打紀錄" />
+          <HeadToHeadList
+            :entries="data.partners"
+            :tags="partnerTags"
+            show-chemistry
+            empty-text="這個賽季還沒有雙打紀錄"
+          />
         </section>
         <section class="panel">
           <h2 class="hud-label">對手</h2>

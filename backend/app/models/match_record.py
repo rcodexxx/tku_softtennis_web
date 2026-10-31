@@ -66,6 +66,14 @@ class MatchRecord(db.Model):
     game9_a_score: Mapped[int | None] = _game_score(9, "A")
     game9_b_score: Mapped[int | None] = _game_score(9, "B")
 
+    # 雙打的前衛（網前）是誰；另一位就是後衛。可以不填
+    a_front_id: Mapped[int | None] = mapped_column(
+        ForeignKey("members.id", name="fk_match_records_a_front_id", ondelete="SET NULL"), comment="A方前衛"
+    )
+    b_front_id: Mapped[int | None] = mapped_column(
+        ForeignKey("members.id", name="fk_match_records_b_front_id", ondelete="SET NULL"), comment="B方前衛"
+    )
+
     match: Mapped["Match | None"] = relationship(back_populates="results")
     player1: Mapped["Member"] = relationship(foreign_keys=[player1_id])
     player2: Mapped["Member | None"] = relationship(foreign_keys=[player2_id])

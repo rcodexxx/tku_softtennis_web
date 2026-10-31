@@ -1,6 +1,19 @@
 from flask import Blueprint, Flask
 
-from . import auth, boards, events, guests, leaderboard, matches, members, organizations, profile, seasons, uploads
+from . import (
+    auth,
+    boards,
+    events,
+    guests,
+    leaderboard,
+    matches,
+    members,
+    organizations,
+    practice,
+    profile,
+    seasons,
+    uploads,
+)
 
 
 def register_blueprints(app: Flask) -> None:
@@ -12,6 +25,7 @@ def register_blueprints(app: Flask) -> None:
         members,
         guests,
         matches,
+        practice,
         events,
         leaderboard,
         seasons,

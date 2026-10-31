@@ -74,6 +74,19 @@ const routes = [
     meta: { roles: STAFF }
   },
   {
+    path: '/practice',
+    name: 'Practice',
+    component: () => import('@/views/practice/PracticeListView.vue'),
+    meta: { roles: STAFF }
+  },
+  {
+    path: '/practice/:id',
+    name: 'PracticeSession',
+    component: () => import('@/views/practice/PracticeSessionView.vue'),
+    props: true,
+    meta: { roles: STAFF }
+  },
+  {
     path: '/events',
     name: 'Events',
     component: () => import('@/views/match/EventsView.vue'),

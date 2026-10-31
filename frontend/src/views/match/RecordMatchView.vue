@@ -53,6 +53,19 @@
             :organizations="organizations"
             @created="loadPlayers"
           />
+          <div v-if="form.match_type !== 'singles' && fieldsOf(side).every(f => form[f])" class="front-pick">
+            <span class="hud-label">前衛</span>
+            <button
+              v-for="field in side.fields"
+              :key="field"
+              type="button"
+              class="front-option"
+              :class="{ active: form[side.front] === form[field] }"
+              @click="form[side.front] = form[side.front] === form[field] ? null : form[field]"
+            >
+              {{ playerName(form[field]) }}
+            </button>
+          </div>
         </div>
       </section>
 
@@ -136,11 +149,11 @@
   import { quickResults } from '@/utils/matchRules'
 
   const SIDES = [
-    { key: 'a', label: 'A 隊', short: 'A ', fields: ['player1_id', 'player2_id'] },
-    { key: 'b', label: 'B 隊', short: 'B ', fields: ['player3_id', 'player4_id'] }
+    { key: 'a', label: 'A 隊', short: 'A ', fields: ['player1_id', 'player2_id'], front: 'a_front_id' },
+    { key: 'b', label: 'B 隊', short: 'B ', fields: ['player3_id', 'player4_id'], front: 'b_front_id' }
   ]
   // 連續記錄時保留的設定
-  const KEEP_FIELDS = ['match_date_ts', 'match_type', 'match_format', 'category', 'event_id', 'time_slot']
+  const KEEP_FIELDS = ['match_date_ts', 'match_type', 'match_format', 'category', 'event_id', 'session_id', 'time_slot']
 
   const props = defineProps({
     mode: { type: String, default: 'add', validator: value => ['add', 'edit'].includes(value) },
@@ -160,6 +173,7 @@
   const players = ref([])
   const organizations = ref([])
 
+  const playerName = id => players.value.find(player => player.id === id)?.name ?? ''
   const fieldsOf = side => (form.value.match_type === 'singles' ? side.fields.slice(0, 1) : side.fields)
   const chosenIds = computed(() =>
     SIDES.flatMap(fieldsOf)
@@ -313,6 +327,26 @@
     color: var(--accent-text);
   }
 
+  .front-pick {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .front-option {
+    padding: 4px 10px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--ink-2);
+    font: inherit;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .front-option.active {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--on-accent);
+  }
   .quick {
     display: flex;
     flex-direction: column;

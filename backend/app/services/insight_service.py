@@ -10,7 +10,7 @@ from ..core.db import get_or_404
 from ..enums import MatchOutcomeEnum
 from ..extensions import db
 from ..models import Match, MatchRecord, Member, Season
-from . import rating_service, season_service
+from . import pair_service, rating_service, season_service
 from ._queries import involves_player
 
 
@@ -22,6 +22,8 @@ class HeadToHead:
     wins: int = 0
     losses: int = 0
     last_date: date | None = None
+    # 搭檔才有：兩人同隊時打得比各自平常好多少
+    chemistry: float | None = None
 
     @property
     def matches(self) -> int:
@@ -79,6 +81,9 @@ def insights(member_id: int, season_id: int | None = None) -> Insights:
                 {"date": record.match.match_date, "rating": round(after.after, 2), "won": won, "record_id": record.id}
             )
 
+    chemistry = pair_service.partner_chemistry(member.id, season)
+    for pid, entry in partners.items():
+        entry.chemistry = chemistry.get(pid)
     result.partners = sorted(partners.values(), key=_most_played)
     result.opponents = sorted(opponents.values(), key=_most_played)
     result.seasons = season_history(member)
