@@ -1,6 +1,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { Edit, Settings, Trophy } from '@vicons/carbon'
+import { Settings, Trophy } from '@vicons/carbon'
+import SoftTennisRacket from '@/components/icons/SoftTennisRacket.vue'
 import { usePermissions } from './usePermissions'
 
 /**
@@ -19,7 +20,7 @@ const ITEMS = [
     name: 'MatchManagement',
     code: '02',
     label: '記錄',
-    icon: Edit,
+    icon: SoftTennisRacket,
     staff: true,
     routes: ['MatchManagement', 'RecordMatch', 'BatchRecordMatch', 'ViewMatch', 'EditMatch', 'Events', 'EventDetail']
   },

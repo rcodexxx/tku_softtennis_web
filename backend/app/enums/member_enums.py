@@ -18,3 +18,21 @@ _GUEST_ROLE_LABELS = {
     GuestRoleEnum.OPPONENT: "對手",
     GuestRoleEnum.NEUTRAL: "訪客",
 }
+
+
+class MemberIdentityEnum(BaseEnum):
+    """校內球員的身分（和登入權限無關）"""
+
+    STUDENT = "student"
+    EXCHANGE = "exchange"
+    COACH = "coach"
+    ALUMNI = "alumni"
+    OTHER = "other"
+
+
+class StudyProgramEnum(BaseEnum):
+    """在校生的學制"""
+
+    BACHELOR = "bachelor"
+    MASTER = "master"
+    PHD = "phd"

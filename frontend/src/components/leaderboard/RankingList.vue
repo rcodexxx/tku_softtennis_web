@@ -30,7 +30,11 @@
               {{ player.name }}
               <span v-if="player.is_a_division" class="division">甲組</span>
             </span>
-            <span class="player-sub">{{ player.organization_name || (player.is_guest ? '訪客' : '隊員') }}</span>
+            <span class="player-sub">{{
+              [player.identity_label, player.organization_name || (player.is_guest ? '訪客' : null)]
+                .filter(Boolean)
+                .join(' · ') || '—'
+            }}</span>
           </span>
         </span>
         <span class="col-form"><RecentForm :form="player.recent_form" /></span>

@@ -62,7 +62,7 @@
   import { formatDate } from '@/utils/format'
   import { MATCH_CATEGORIES } from '@/utils/matchCategory'
 
-  /** 比賽分類（隊內／校外友誼／賽事）；選賽事時挑一個賽事，也可以直接新增。 */
+  /** 比賽分類（隊內／友誼賽／賽事）；選賽事時挑一個賽事，也可以直接新增。 */
   const category = defineModel('category', { type: String, default: 'internal' })
   const eventId = defineModel('eventId', { type: Number, default: null })
 

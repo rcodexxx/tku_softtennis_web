@@ -10,7 +10,6 @@
         <template #prefix><n-icon :component="Search" /></template>
       </n-input>
     </div>
-    <p class="note">畢業會轉到校友會；離隊的人還能記錄比賽、出現在綜合榜，只是不算校隊。</p>
 
     <n-empty v-if="!rows.length" description="校隊和校友會目前沒有隊員" class="empty" />
     <ul v-else class="roster">
@@ -86,11 +85,6 @@
   }
   .search {
     width: 200px;
-  }
-  .note {
-    margin: 10px 0 16px;
-    font-size: 15px;
-    color: var(--ink-3);
   }
   .roster {
     display: flex;

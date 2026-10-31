@@ -33,8 +33,6 @@
       </div>
     </div>
 
-    <p class="rule">{{ formatLabel }}：先贏 {{ toWin }} 局獲勝</p>
-
     <template v-if="mode === 'games'">
       <div class="serve-picker">
         <span>第一局發球</span>
@@ -82,7 +80,6 @@
           <span class="game-status">{{ game.statusLabel }}</span>
         </li>
       </ol>
-      <p class="hint">一般局先拿 4 分（3:3 後需領先 2 分），決勝局先拿 7 分（6:6 後需領先 2 分）。</p>
     </template>
   </div>
 </template>
@@ -91,7 +88,6 @@
   import { computed, ref } from 'vue'
   import { useMessage } from 'naive-ui'
   import { Add, Subtract } from '@vicons/carbon'
-  import { useOptions } from '@/composables/useOptions'
   import { emptyGameFields, gameField, gameScoresFromForm, hasGameScores } from '@/utils/matchForm'
   import {
     countGamesWon,
@@ -112,12 +108,10 @@
   const emit = defineEmits(['update:modelValue', 'completed'])
 
   const message = useMessage()
-  const { getMatchFormatDisplay } = useOptions()
   const mode = ref(hasGameScores(props.modelValue) ? 'games' : 'quick')
 
   const format = computed(() => props.modelValue.match_format)
   const toWin = computed(() => gamesToWin(format.value))
-  const formatLabel = computed(() => getMatchFormatDisplay(format.value))
   const winner = computed(() => {
     const { a_games: a = 0, b_games: b = 0 } = props.modelValue
     if (a >= toWin.value && a > b) return 'a'
@@ -265,12 +259,6 @@
     color: var(--accent-text);
     animation: stagger-in var(--duration-base) var(--ease-spring) both;
   }
-  .rule {
-    margin: 10px 0 20px;
-    text-align: center;
-    font-size: 15px;
-    color: var(--color-text-muted);
-  }
   .serve-picker {
     display: flex;
     align-items: center;
@@ -352,11 +340,6 @@
   }
   .invalid .game-status {
     color: var(--red-500);
-  }
-  .hint {
-    margin: 12px 0 0;
-    font-size: 14px;
-    color: var(--color-text-muted);
   }
   @media (max-width: 640px) {
     .game {

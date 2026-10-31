@@ -92,7 +92,7 @@
   })
 
   const subline = player =>
-    [organizationLabel(player), player.last_match_date ? `最後 ${player.last_match_date}` : null]
+    [player.identity_label, organizationLabel(player), player.last_match_date ? `最後 ${player.last_match_date}` : null]
       .filter(Boolean)
       .join(' · ') || '—'
 

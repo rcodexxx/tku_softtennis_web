@@ -130,6 +130,7 @@
     const m = member.value
     return [
       m.is_guest ? '訪客' : null,
+      m.identity_label,
       organizationLabel(m) || null,
       m.is_a_division ? '甲組' : null,
       m.has_left ? '已離隊' : null

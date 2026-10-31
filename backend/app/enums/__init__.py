@@ -10,7 +10,7 @@ from .match_enums import (
     MatchTimeSlotEnum,
     MatchTypeEnum,
 )
-from .member_enums import GuestRoleEnum
+from .member_enums import GuestRoleEnum, MemberIdentityEnum, StudyProgramEnum
 from .user_enums import UserRoleEnum
 
 __all__ = [
@@ -26,5 +26,7 @@ __all__ = [
     "MatchStartServeEnum",
     "MatchTimeSlotEnum",
     "MatchTypeEnum",
+    "MemberIdentityEnum",
+    "StudyProgramEnum",
     "UserRoleEnum",
 ]

@@ -4,8 +4,9 @@ from typing import TYPE_CHECKING
 from sqlalchemy import Float, ForeignKey, String, Text, exists, false, or_, select
 from sqlalchemy.orm import Mapped, aliased, mapped_column, relationship
 
+from ..domain.identity import identity_label
 from ..domain.rating import starting_rating
-from ..enums import BloodTypeEnum, GenderEnum, GuestRoleEnum, MatchPositionEnum
+from ..enums import BloodTypeEnum, GenderEnum, GuestRoleEnum, MatchPositionEnum, MemberIdentityEnum, StudyProgramEnum
 from ..extensions import db
 from .base import enum_column, utcnow
 from .user import User
@@ -51,6 +52,14 @@ class Member(db.Model):
     joined_date: Mapped[date | None] = mapped_column(comment="入隊日期")
     leaved_date: Mapped[date | None] = mapped_column(comment="離隊日期")
     is_a_division: Mapped[bool] = mapped_column(default=False, server_default=false(), comment="是否為甲組")
+    # 身分與年級：在校生用學制＋入學學年度算出現在幾年級，不用每年手動改
+    identity: Mapped[MemberIdentityEnum | None] = mapped_column(
+        enum_column(MemberIdentityEnum, "member_identity_enum"), comment="身分（student/exchange/coach/alumni/other）"
+    )
+    study_program: Mapped[StudyProgramEnum | None] = mapped_column(
+        enum_column(StudyProgramEnum, "study_program_enum"), comment="學制（bachelor/master/phd）"
+    )
+    enrolled_year: Mapped[int | None] = mapped_column(comment="入學學年度（民國）")
 
     # 由 rating_service 依比賽紀錄重算；沒打過比賽時為 None
     rating: Mapped[float | None] = mapped_column(Float, comment="分數（1–10）")
@@ -81,6 +90,11 @@ class Member(db.Model):
     def score(self) -> float:
         """目前分數；還沒打過比賽時用起始分數。"""
         return self.rating if self.rating is not None else starting_rating(self.gender, self.is_a_division)
+
+    @property
+    def identity_label(self) -> str | None:
+        """例如「大三」「碩一」「交換生」「教練」。"""
+        return identity_label(self.identity, self.study_program, self.enrolled_year)
 
     @property
     def has_left(self) -> bool:

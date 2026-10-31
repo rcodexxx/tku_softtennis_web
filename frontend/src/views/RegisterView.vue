@@ -1,5 +1,5 @@
 <template>
-  <AuthLayout title="加入淡江軟網" subtitle="輸入手機號碼就能建立帳號，之後可在個人主控台補上資料。">
+  <AuthLayout title="加入淡江軟網">
     <n-alert v-if="authStore.status.registerError" type="error" class="notice">
       {{ authStore.status.registerError }}
     </n-alert>

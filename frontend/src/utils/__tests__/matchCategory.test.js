@@ -4,7 +4,7 @@ import { categoryTag, eventDateLabel } from '../matchCategory'
 describe('categoryTag', () => {
   it('labels friendly and event matches only', () => {
     expect(categoryTag({ category: 'internal' })).toBeNull()
-    expect(categoryTag({ category: 'friendly' })).toBe('校外')
+    expect(categoryTag({ category: 'friendly' })).toBe('友誼賽')
     expect(categoryTag({ category: 'event', event: { id: 1, name: '淡江盃' } })).toBe('淡江盃')
     expect(categoryTag({ category: 'event', event: null })).toBe('賽事')
   })

@@ -20,7 +20,10 @@
             <h2 class="identity-name">{{ member.name }}</h2>
             <p class="identity-sub">點頭像可以換照片</p>
           </div>
-          <n-button v-if="kind === 'guest'" size="small" @click="promote">轉為校內球員</n-button>
+          <template v-if="kind === 'guest'">
+            <n-button size="small" @click="promote('team')">轉為校隊</n-button>
+            <n-button size="small" @click="promote('alumni')">轉為校友會</n-button>
+          </template>
         </section>
 
         <!-- 新增時先選身分 -->
@@ -35,7 +38,6 @@
               @click="setKind(option.value)"
             >
               <span class="segment-title">{{ option.label }}</span>
-              <span class="segment-text">{{ option.text }}</span>
             </button>
           </div>
         </section>
@@ -59,11 +61,7 @@
                 <template #unchecked>一般組</template>
               </n-switch>
             </n-form-item-gi>
-            <n-form-item-gi
-              span="2 m:1"
-              :label="kind === 'guest' ? '學校／組織（選填）' : '所屬組織'"
-              path="organization_id"
-            >
+            <n-form-item-gi v-if="kind === 'guest'" span="2 m:1" label="學校／組織（選填）" path="organization_id">
               <n-select
                 v-model:value="form.organization_id"
                 :options="organizationOptions"
@@ -72,10 +70,32 @@
                 filterable
               />
             </n-form-item-gi>
-            <template v-if="kind === 'player'">
-              <n-form-item-gi span="2 m:1" label="學號" path="student_id">
-                <n-input v-model:value="form.student_id" maxlength="20" />
+            <template v-if="kind !== 'guest'">
+              <n-form-item-gi span="2" label="身分">
+                <n-radio-group v-model:value="form.identity">
+                  <n-radio-button v-for="option in IDENTITIES_BY_KIND[kind]" :key="option.value" :value="option.value">
+                    {{ option.label }}
+                  </n-radio-button>
+                </n-radio-group>
               </n-form-item-gi>
+              <n-form-item-gi span="2 m:1" label="學號" path="student_id">
+                <n-input v-model:value="form.student_id" maxlength="20" @blur="fillFromStudentId" />
+              </n-form-item-gi>
+              <template v-if="form.identity === 'student'">
+                <n-form-item-gi span="1 m:1" label="學制">
+                  <n-select v-model:value="form.study_program" :options="PROGRAM_OPTIONS" clearable />
+                </n-form-item-gi>
+                <n-form-item-gi span="1 m:1" label="入學學年度">
+                  <n-input-number
+                    v-model:value="form.enrolled_year"
+                    :min="80"
+                    :max="200"
+                    clearable
+                    placeholder="例如 113"
+                    class="full"
+                  />
+                </n-form-item-gi>
+              </template>
               <n-form-item-gi span="2 m:1" label="擅長位置" path="position">
                 <n-radio-group v-model:value="form.position">
                   <n-radio-button v-for="option in positionOptions" :key="option.value" :value="option.value">
@@ -86,7 +106,7 @@
               <n-form-item-gi span="2 m:1" label="入隊日期" path="joined_date_ts">
                 <n-date-picker v-model:value="form.joined_date_ts" type="date" clearable class="full" />
               </n-form-item-gi>
-              <n-form-item-gi v-if="isEdit" span="2 m:1" label="離隊日期" path="leaved_date_ts">
+              <n-form-item-gi v-if="isEdit && kind === 'team'" span="2 m:1" label="離隊日期" path="leaved_date_ts">
                 <n-date-picker v-model:value="form.leaved_date_ts" type="date" clearable class="full" />
               </n-form-item-gi>
             </template>
@@ -97,7 +117,7 @@
         </section>
 
         <!-- 登入帳號：選填，只有要讓他自己登入時才需要 -->
-        <section v-if="kind === 'player'" class="card">
+        <section v-if="kind !== 'guest'" class="card">
           <div class="account-head">
             <h3 class="hud-label section-title">登入帳號</h3>
             <n-switch v-if="!isEdit" v-model:value="withAccount" size="small">
@@ -105,14 +125,7 @@
               <template #unchecked>不需要</template>
             </n-switch>
           </div>
-          <p v-if="!hasAccount" class="note">
-            {{
-              isEdit
-                ? '沒有登入帳號，一樣能記錄比賽、上排行榜。'
-                : '不建立帳號也能記錄比賽、上排行榜；要讓他自己登入時再開。'
-            }}
-          </p>
-          <n-grid v-else :cols="2" :x-gap="16" responsive="screen" item-responsive>
+          <n-grid v-if="hasAccount" :cols="2" :x-gap="16" responsive="screen" item-responsive>
             <n-form-item-gi span="2 m:1" label="手機號碼（帳號）" path="username">
               <n-input v-model:value="form.username" :disabled="isEdit" placeholder="09 開頭的 10 位數字" />
             </n-form-item-gi>
@@ -153,13 +166,16 @@
   import { useOptions } from '@/composables/useOptions'
   import { useAuthStore } from '@/stores/authStore'
   import { dateToTimestamp, formatDate } from '@/utils/format'
+  import { guessFromStudentId, IDENTITIES_BY_KIND, PROGRAM_OPTIONS } from '@/utils/identity'
 
   const KINDS = [
-    { value: 'player', label: '校內球員', text: '校隊、校友會的人' },
-    { value: 'guest', label: '對手', text: '其他學校或外面一起打的人' }
+    { value: 'team', label: '校隊' },
+    { value: 'alumni', label: '校友會' },
+    { value: 'guest', label: '對手' }
   ]
+  const DEFAULT_IDENTITY = { team: 'student', alumni: 'alumni' }
 
-  /** 新增或編輯球員：校內球員可以選擇建立登入帳號；對手（訪客）只需要基本資料。 */
+  /** 新增或編輯球員：校隊、校友會的人可以選擇建立登入帳號；對手（訪客）只需要基本資料。 */
   const props = defineProps({
     mode: { type: String, required: true, validator: value => ['add', 'edit'].includes(value) },
     memberId: { type: Number, default: null }
@@ -183,7 +199,7 @@
   const saving = ref(false)
   const formRef = ref(null)
   const member = ref(null)
-  const kind = ref('player')
+  const kind = ref('team')
   const promoting = ref(false)
   const withAccount = ref(false)
   const hasAccount = computed(() => (isEdit.value ? Boolean(member.value?.user) : withAccount.value))
@@ -198,6 +214,9 @@
     position: null,
     organization_id: null,
     is_a_division: false,
+    identity: 'student',
+    study_program: null,
+    enrolled_year: null,
     joined_date_ts: null,
     leaved_date_ts: null,
     notes: ''
@@ -223,15 +242,19 @@
     ]
   }))
 
+  // 校隊、校友會的組織是固定的
+  const organizationOf = value => organizationOptions.value.find(option => option.kind === value)?.value ?? null
+
   const setKind = value => {
     kind.value = value
     if (value === 'guest') withAccount.value = false
+    else form.identity = DEFAULT_IDENTITY[value]
   }
 
-  const promote = () => {
-    kind.value = 'player'
+  const promote = value => {
+    setKind(value)
     promoting.value = true
-    message.info('儲存後會變成校內球員，比賽紀錄都會保留')
+    message.info('儲存後比賽紀錄都會保留')
   }
 
   const basePayload = () => ({
@@ -242,8 +265,19 @@
     notes: form.notes || null
   })
 
+  // 學號打完後，學制與入學學年度還空著就從學號推測
+  const fillFromStudentId = () => {
+    const guess = guessFromStudentId(form.student_id)
+    if (!guess || form.study_program || form.enrolled_year) return
+    Object.assign(form, guess, { identity: form.identity ?? 'student' })
+  }
+
   const playerPayload = () => ({
     ...basePayload(),
+    organization_id: organizationOf(kind.value) ?? form.organization_id,
+    identity: form.identity ?? DEFAULT_IDENTITY[kind.value],
+    study_program: form.identity === 'student' ? form.study_program : null,
+    enrolled_year: form.identity === 'student' ? form.enrolled_year : null,
     student_id: form.student_id || null,
     position: form.position,
     joined_date: formatDate(form.joined_date_ts)
@@ -260,7 +294,7 @@
       let saved
       if (isEdit.value) {
         const data = kind.value === 'guest' ? basePayload() : playerPayload()
-        if (kind.value === 'player') data.leaved_date = formatDate(form.leaved_date_ts)
+        if (kind.value === 'team') data.leaved_date = formatDate(form.leaved_date_ts)
         if (promoting.value) data.is_guest = false
         if (member.value.user) Object.assign(data, { display_name: form.display_name || form.name, role: form.role })
         saved = await membersApi.update(props.memberId, data)
@@ -295,7 +329,7 @@
     try {
       member.value = await membersApi.get(props.memberId)
       const m = member.value
-      kind.value = m.is_guest ? 'guest' : 'player'
+      kind.value = { alumni: 'alumni', guest: 'guest', other: 'guest' }[m.roster_category] ?? 'team'
       Object.assign(form, {
         username: m.user?.username || '',
         display_name: m.user?.display_name || '',
@@ -306,6 +340,9 @@
         position: m.position,
         organization_id: m.organization_id,
         is_a_division: m.is_a_division ?? false,
+        identity: m.identity,
+        study_program: m.study_program,
+        enrolled_year: m.enrolled_year,
         joined_date_ts: dateToTimestamp(m.joined_date),
         leaved_date_ts: dateToTimestamp(m.leaved_date),
         notes: m.notes || m.guest_notes || ''
@@ -358,7 +395,7 @@
   }
   .segments {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 10px;
     padding-bottom: 14px;
   }
@@ -383,10 +420,6 @@
     font-size: 17px;
     font-weight: 700;
   }
-  .segment-text {
-    font-size: 14px;
-    opacity: 0.75;
-  }
   .section-title {
     margin: 0 0 14px;
   }
@@ -397,10 +430,6 @@
   }
   .account-head .section-title {
     margin: 0;
-  }
-  .note {
-    margin: 12px 0 16px;
-    color: var(--ink-3);
   }
   .full {
     width: 100%;

@@ -61,7 +61,8 @@ export function useOptions() {
     organizationLoading.value = true
     try {
       const organizations = await organizationsApi.list()
-      organizationOptions.value = organizations.map(org => ({ label: org.name, value: org.id }))
+      // kind：team（校隊）、alumni（校友會）或 null
+      organizationOptions.value = organizations.map(org => ({ label: org.name, value: org.id, kind: org.kind }))
     } catch {
       message.error('載入組織列表失敗')
     } finally {

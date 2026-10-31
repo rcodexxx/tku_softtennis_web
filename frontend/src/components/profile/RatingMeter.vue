@@ -37,8 +37,6 @@
         <span class="legend-item"><span class="legend-dot"></span>低於</span>
       </p>
     </figure>
-
-    <p v-if="!trendOnly" class="hint">分數看局數表現：打得比預期好就上升，輸給強隊但比分接近也會加分。</p>
   </div>
 </template>
 
@@ -207,11 +205,6 @@
   }
   .legend-dot.above {
     background: var(--green-500);
-  }
-  .hint {
-    margin: 14px 0 0;
-    font-size: 14px;
-    color: var(--color-text-muted);
   }
 
   @keyframes grow {

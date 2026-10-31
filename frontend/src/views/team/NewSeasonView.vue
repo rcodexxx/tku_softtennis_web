@@ -1,10 +1,6 @@
 <template>
   <div class="new-season">
-    <PageHeader
-      eyebrow="NEW SEASON"
-      title="開新賽季"
-      subtitle="封存目前的排行榜、整理名單，所有人的分數從起始分數重新開始。"
-    />
+    <PageHeader eyebrow="NEW SEASON" title="開新賽季" />
 
     <n-steps :current="step + 1" class="steps" size="small" @update:current="value => goTo(value - 1)">
       <n-step v-for="item in STEPS" :key="item" :title="item" />
@@ -40,7 +36,6 @@
                   />
                 </n-form-item>
               </n-form>
-              <p class="note">這天以後的比賽算新賽季；之前的比賽留在舊賽季，之後補記錄也會自動歸到對的賽季。</p>
             </template>
 
             <!-- 2. 整理名單 -->
@@ -64,11 +59,6 @@
                   </span>
                 </article>
               </div>
-              <ul class="effects">
-                <li v-if="currentSeason">{{ currentSeason.name }}的排行榜封存，可在排行榜切換查看。</li>
-                <li>所有人的分數回到起始分數（男 5.0、女 4.0，甲組加 1）。</li>
-                <li>離隊的人保留比賽紀錄，還能記錄比賽、出現在綜合榜。</li>
-              </ul>
             </template>
           </div>
         </transition>
@@ -210,11 +200,6 @@
   .full {
     width: 100%;
   }
-  .note {
-    margin: 4px 0 16px;
-    font-size: 15px;
-    color: var(--color-text-muted);
-  }
 
   .archive-card {
     display: flex;
@@ -303,12 +288,6 @@
   .outcome-moved {
     font-size: 14px;
     color: var(--gray-700);
-  }
-  .effects {
-    margin: 20px 0 0;
-    padding-left: 20px;
-    color: var(--gray-700);
-    line-height: 1.8;
   }
 
   .nav {

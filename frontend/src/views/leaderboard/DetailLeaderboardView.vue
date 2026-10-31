@@ -1,6 +1,6 @@
 <template>
   <div class="detail-page">
-    <PageHeader eyebrow="STATISTICS" title="詳細數據" subtitle="所有球員的分數、戰績與近況，點選球員可看完整分析。">
+    <PageHeader eyebrow="STATISTICS" title="詳細數據">
       <template #actions>
         <n-button secondary :disabled="!filteredPlayers.length" @click="exportCsv">
           <template #icon><n-icon :component="Download" /></template>
@@ -101,8 +101,6 @@
       :scroll-x="900"
       :bordered="false"
     />
-
-    <RatingGuide class="guide" />
   </div>
 </template>
 
@@ -114,7 +112,6 @@
   import PageHeader from '@/components/base/PageHeader.vue'
   import StatCard from '@/components/base/StatCard.vue'
   import { detailColumns } from '@/components/leaderboard/detailColumns'
-  import RatingGuide from '@/components/leaderboard/RatingGuide.vue'
   import { useSeasons } from '@/composables/useSeasons'
   import { organizationLabel } from '@/utils/player'
   import { formatRating } from '@/utils/rating'
@@ -308,9 +305,6 @@
     border: 1px solid var(--color-border);
     box-shadow: var(--shadow-sm);
     background: var(--color-surface);
-  }
-  .guide {
-    margin-top: 24px;
   }
 
   .detail-table :deep(.clickable-row) {

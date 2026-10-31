@@ -1,7 +1,6 @@
 <template>
   <div class="boards">
     <div class="toolbar">
-      <p class="intro">自訂榜單用同一套分數，只是名單由你挑，會出現在排行榜的分頁。</p>
       <n-button type="primary" @click="openForm()">
         <template #icon><n-icon :component="Add" /></template>
         新增榜單
@@ -151,10 +150,6 @@
     flex-wrap: wrap;
     gap: 12px;
     margin-bottom: 16px;
-  }
-  .intro {
-    margin: 0;
-    color: var(--ink-3);
   }
   .list {
     display: flex;

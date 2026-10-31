@@ -1,6 +1,14 @@
 from marshmallow import ValidationError, fields, validate, validates_schema
 
-from ..enums import BloodTypeEnum, GenderEnum, GuestRoleEnum, MatchPositionEnum, UserRoleEnum
+from ..enums import (
+    BloodTypeEnum,
+    GenderEnum,
+    GuestRoleEnum,
+    MatchPositionEnum,
+    MemberIdentityEnum,
+    StudyProgramEnum,
+    UserRoleEnum,
+)
 from .auth import PASSWORD_MIN_LENGTH
 from .common import PHONE_REGEX, BaseSchema, EnumField, InputSchema, OrganizationBriefSchema, UserBriefSchema
 
@@ -23,6 +31,7 @@ class PlayerBriefSchema(BaseSchema):
     avatar_url = fields.Function(_avatar_url)
     display_name = fields.Str()
     is_guest = fields.Bool()
+    identity_label = fields.Str(allow_none=True)
 
 
 class MemberSchema(BaseSchema):
@@ -41,6 +50,10 @@ class MemberSchema(BaseSchema):
     leaved_date = fields.Date(allow_none=True)
     has_left = fields.Bool()
     is_a_division = fields.Bool()
+    identity = EnumField(MemberIdentityEnum, allow_none=True)
+    study_program = EnumField(StudyProgramEnum, allow_none=True)
+    enrolled_year = fields.Int(allow_none=True)
+    identity_label = fields.Str(allow_none=True)
     # team／alumni／left／guest／other，球員名單分類用
     roster_category = fields.Function(_roster_category)
     notes = fields.Str(allow_none=True)
@@ -82,6 +95,9 @@ class _MemberFieldsSchema(InputSchema):
     joined_date = fields.Date(allow_none=True)
     leaved_date = fields.Date(allow_none=True)
     is_a_division = fields.Bool()
+    identity = EnumField(MemberIdentityEnum, allow_none=True)
+    study_program = EnumField(StudyProgramEnum, allow_none=True)
+    enrolled_year = fields.Int(allow_none=True, validate=validate.Range(min=80, max=200))
     notes = fields.Str(allow_none=True)
 
     @validates_schema

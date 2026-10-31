@@ -1,7 +1,6 @@
 <template>
   <div class="seasons">
     <div class="toolbar">
-      <p class="intro">每個賽季重新計分；比賽依日期自動歸到所屬的賽季。</p>
       <n-button v-if="canStartSeason" type="primary" @click="router.push({ name: 'NewSeason' })">
         <template #icon><n-icon :component="Flag" /></template>
         開新賽季
@@ -67,10 +66,6 @@
     flex-wrap: wrap;
     gap: 12px;
     margin-bottom: 20px;
-  }
-  .intro {
-    margin: 0;
-    color: var(--color-text-muted);
   }
   .timeline {
     display: flex;

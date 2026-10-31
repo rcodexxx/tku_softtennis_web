@@ -23,6 +23,9 @@ MEMBER_FIELDS = (
     "joined_date",
     "leaved_date",
     "is_a_division",
+    "identity",
+    "study_program",
+    "enrolled_year",
     "notes",
 )
 

@@ -1,5 +1,5 @@
 <template>
-  <AuthLayout title="歡迎回來" subtitle="登入後即可記錄比賽、查看個人數據。">
+  <AuthLayout title="登入">
     <n-alert v-if="notice" type="info" :show-icon="false" class="notice">{{ notice }}</n-alert>
     <n-alert v-if="authStore.status.loginError" type="error" class="notice">
       {{ authStore.status.loginError }}

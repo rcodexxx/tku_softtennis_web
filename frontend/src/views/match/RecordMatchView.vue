@@ -104,7 +104,7 @@
         <span class="colon">:</span>
         <span :class="{ won: winner === 'b' }">{{ form.b_games }}</span>
       </div>
-      <span class="status">{{ error || (isEdit ? '' : '送出後可以接著記下一場') }}</span>
+      <span class="status">{{ error }}</span>
       <n-button v-if="isEdit" size="large" @click="router.back()">取消</n-button>
       <n-button type="primary" size="large" :loading="submitting" @click="submit">
         {{ isEdit ? '儲存' : '送出' }}

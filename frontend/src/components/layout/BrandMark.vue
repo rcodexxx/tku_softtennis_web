@@ -3,14 +3,16 @@
     <span class="mark" aria-hidden="true">
       <span class="corner tl"></span>
       <span class="corner br"></span>
-      <span class="dot"></span>
+      <SoftTennisBall class="ball" />
     </span>
     <span class="title">TKU 軟網</span>
   </router-link>
 </template>
 
 <script setup>
-  /** 品牌標誌：一顆在準星框裡的球。 */
+  import SoftTennisBall from '@/components/icons/SoftTennisBall.vue'
+
+  /** 品牌標誌：準星框裡的一顆軟式網球。 */
   defineProps({ compact: { type: Boolean, default: false } })
 </script>
 
@@ -46,17 +48,15 @@
     border-right-width: 2px;
     border-bottom-width: 2px;
   }
-  .dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: var(--accent);
-    animation: pulse 2.4s var(--ease-out) infinite;
+  .ball {
+    width: 24px;
+    height: 24px;
+    color: var(--ink);
+    animation: bob 2.4s var(--ease-out) infinite;
   }
-  @keyframes pulse {
+  @keyframes bob {
     50% {
-      transform: scale(0.75);
-      opacity: 0.7;
+      transform: translateY(-2px) rotate(20deg);
     }
   }
   .title {
@@ -69,8 +69,8 @@
     width: 28px;
     height: 28px;
   }
-  .compact .dot {
-    width: 10px;
-    height: 10px;
+  .compact .ball {
+    width: 20px;
+    height: 20px;
   }
 </style>

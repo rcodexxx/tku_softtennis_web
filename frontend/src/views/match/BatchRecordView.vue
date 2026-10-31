@@ -1,10 +1,6 @@
 <template>
   <div class="batch-page">
-    <PageHeader
-      eyebrow="BATCH ENTRY"
-      title="批次記錄"
-      subtitle="事後補登多場比賽：一列一場，打字搜尋球員、比分輸入 4-2，按 Enter 新增下一列。"
-    >
+    <PageHeader eyebrow="BATCH ENTRY" title="批次記錄">
       <template #actions>
         <n-button quaternary @click="router.push({ name: 'RecordMatch' })">
           <template #icon><n-icon :component="Pedestrian" /></template>
@@ -54,7 +50,6 @@
         placeholder="時段"
         class="shared-field"
       />
-      <span class="shared-hint">日期、單雙打、賽制可以每列不同；新的一列會沿用上一列。</span>
     </section>
 
     <n-alert v-if="playersError" type="error" :title="playersError" class="block">
@@ -625,10 +620,6 @@
   }
   .shared-field {
     width: 140px;
-  }
-  .shared-hint {
-    font-size: 15px;
-    color: var(--color-text-muted);
   }
 
   /* 每一列 */

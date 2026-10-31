@@ -20,7 +20,6 @@
         <n-select v-model:value="draft.organization_id" :options="organizationOptions" clearable filterable />
       </n-form-item>
     </n-form>
-    <p class="hint">性別和組別決定起始分數，系統對這位對手的實力會猜得比較準。</p>
     <template #footer>
       <div class="modal-footer">
         <n-button @click="show = false">取消</n-button>
@@ -85,11 +84,6 @@
 </script>
 
 <style scoped>
-  .hint {
-    margin: 0;
-    font-size: 14px;
-    color: var(--ink-3);
-  }
   .modal-footer {
     display: flex;
     justify-content: flex-end;

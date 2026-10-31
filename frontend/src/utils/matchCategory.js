@@ -1,14 +1,14 @@
 /** 比賽分類，對應後端 MatchCategoryEnum。 */
 export const MATCH_CATEGORIES = [
   { value: 'internal', label: '隊內' },
-  { value: 'friendly', label: '校外友誼' },
+  { value: 'friendly', label: '友誼賽' },
   { value: 'event', label: '賽事' }
 ]
 
-/** 比賽卡片上的標籤：隊內不標，校外標「校外」，賽事標賽事名稱。 */
+/** 比賽卡片上的標籤：隊內不標，友誼賽標「友誼賽」，賽事標賽事名稱。 */
 export function categoryTag(record) {
   if (record.category === 'event') return record.event?.name ?? '賽事'
-  if (record.category === 'friendly') return '校外'
+  if (record.category === 'friendly') return '友誼賽'
   return null
 }
 

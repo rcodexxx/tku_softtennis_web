@@ -105,8 +105,6 @@
         <p v-else class="no-match">沒有符合的球員</p>
       </section>
     </div>
-
-    <RatingGuide class="guide" />
   </div>
 </template>
 
@@ -116,7 +114,6 @@
   import { Analytics, Archive, Search } from '@vicons/carbon'
   import { boardsApi, leaderboardApi } from '@/api'
   import RankingList from '@/components/leaderboard/RankingList.vue'
-  import RatingGuide from '@/components/leaderboard/RatingGuide.vue'
   import TopThree from '@/components/leaderboard/TopThree.vue'
   import { usePermissions } from '@/composables/usePermissions'
   import { useSeasons } from '@/composables/useSeasons'
@@ -423,9 +420,6 @@
     padding: 20px;
     color: var(--ink-3);
     text-align: center;
-  }
-  .guide {
-    margin-top: 32px;
   }
   .empty {
     padding: 64px 0;
