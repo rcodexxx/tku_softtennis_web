@@ -26,6 +26,16 @@ def status_of(member: Member) -> str:
     return ALUMNI if member.organization_id == organization_ids()[1] else TEAM
 
 
+def category_of(member: Member) -> str:
+    """球員名單的分類：team 校隊、alumni 校友會、left 已離隊、guest 對手（訪客）、other 其他。"""
+    team, alumni = organization_ids()
+    if member.is_guest:
+        return "guest"
+    if member.organization_id in (team, alumni):
+        return LEFT if member.has_left else (TEAM if member.organization_id == team else ALUMNI)
+    return "other"
+
+
 def candidates() -> list[Member]:
     """要整理的名單：校隊與校友會的正式隊員（包含已離隊的）。"""
     team, alumni = organization_ids()

@@ -16,7 +16,6 @@
         <span class="action-title">
           <n-icon :component="action.icon" size="20" />
           {{ action.title }}
-          <span v-if="action.beta" class="beta">Beta</span>
         </span>
       </router-link>
     </nav>
@@ -81,7 +80,7 @@
   import { onMounted, onUnmounted, ref, watch } from 'vue'
   import { useRouter } from 'vue-router'
   import { useDialog, useMessage } from 'naive-ui'
-  import { Add, Layers, Timer, Trophy } from '@vicons/carbon'
+  import { Add, Layers, Trophy } from '@vicons/carbon'
   import { matchesApi, membersApi } from '@/api'
   import PageHeader from '@/components/base/PageHeader.vue'
   import MatchCard from '@/components/match/MatchCard.vue'
@@ -108,13 +107,6 @@
       code: 'C // Events',
       title: '賽事',
       icon: Trophy
-    },
-    {
-      name: 'RefereeMode',
-      code: 'D // Referee',
-      title: '裁判模式',
-      icon: Timer,
-      beta: true
     }
   ]
   const emptyFilters = () => ({
@@ -241,7 +233,7 @@
 <style scoped>
   .actions-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
     margin-bottom: 28px;
   }
@@ -291,14 +283,6 @@
     font-weight: 700;
     letter-spacing: 0.04em;
   }
-  .beta {
-    padding: 0 6px;
-    border: 1px solid var(--accent-soft);
-    color: var(--accent-text);
-    font-family: var(--font-mono);
-    font-size: 13px;
-    font-weight: 500;
-  }
   .section-head {
     display: flex;
     align-items: center;
@@ -320,8 +304,7 @@
       align-items: center;
       padding: 12px 6px;
     }
-    .action .hud-label,
-    .beta {
+    .action .hud-label {
       display: none;
     }
     .action-title {

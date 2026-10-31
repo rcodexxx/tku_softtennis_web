@@ -3,13 +3,12 @@ import uuid
 from sqlalchemy import or_, select
 from sqlalchemy.orm import joinedload
 
-from ..core.auth import ADMIN_ROLES
 from ..core.db import get_or_404
-from ..core.errors import ConflictError, NotFoundError, PermissionDeniedError
+from ..core.errors import ConflictError, NotFoundError
 from ..enums import GuestRoleEnum
 from ..extensions import db
 from ..models import Member, Organization, User
-from . import avatar_service
+from . import avatar_service, rating_service
 from ._queries import has_match_records
 
 # API 欄位 -> Member 欄位
@@ -19,6 +18,9 @@ _FIELD_MAP = {
     "guest_role": "guest_role",
     "organization_id": "organization_id",
     "notes": "guest_notes",
+    # 性別與甲組決定起始分數，讓系統對校外對手的實力猜得比較準
+    "gender": "gender",
+    "is_a_division": "is_a_division",
 }
 
 
@@ -30,7 +32,7 @@ def search_guests(user: User, params: dict) -> list[Member]:
     stmt = (
         select(Member)
         .options(joinedload(Member.organization))
-        .where(Member.is_guest.is_(True), Member.created_by_user_id == user.id)
+        .where(Member.is_guest.is_(True))
         .order_by(Member.usage_count.desc(), Member.last_used_at.desc(), Member.id.desc())
         .limit(params["limit"])
     )
@@ -45,13 +47,9 @@ def search_guests(user: User, params: dict) -> list[Member]:
 
 
 def create_guest(user: User, data: dict) -> Member:
-    existing = db.session.scalar(
-        select(Member).where(
-            Member.is_guest.is_(True), Member.created_by_user_id == user.id, Member.name == data["name"]
-        )
-    )
+    existing = db.session.scalar(select(Member).where(Member.is_guest.is_(True), Member.name == data["name"]))
     if existing:
-        raise ConflictError(f"您已經建立過名為「{data['name']}」的訪客。", details={"existing_guest_id": existing.id})
+        raise ConflictError(f"已經有名為「{data['name']}」的訪客。", details={"existing_guest_id": existing.id})
     _ensure_organization(data)
 
     guest = Member(
@@ -72,6 +70,8 @@ def update_guest(user: User, guest_id: int, data: dict) -> Member:
     for field, column in _FIELD_MAP.items():
         if field in data:
             setattr(guest, column, data[field])
+    if "gender" in data or "is_a_division" in data:
+        rating_service.recalculate_all()
     db.session.commit()
     return guest
 
@@ -86,11 +86,10 @@ def delete_guest(user: User, guest_id: int) -> None:
 
 
 def _get_owned_guest(user: User, guest_id: int) -> Member:
+    """訪客是所有幹部共用的，誰建立的都可以修改。"""
     guest = get_or_404(Member, guest_id, "找不到指定的訪客。")
     if not guest.is_guest:
         raise NotFoundError("找不到指定的訪客。")
-    if guest.created_by_user_id != user.id and user.role not in ADMIN_ROLES:
-        raise PermissionDeniedError("只有建立者或管理員可以修改此訪客。")
     return guest
 
 

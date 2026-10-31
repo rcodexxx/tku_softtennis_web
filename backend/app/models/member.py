@@ -88,17 +88,15 @@ class Member(db.Model):
 
     @property
     def is_active(self) -> bool:
-        """能不能被選來記錄比賽；只有帳號停用才算不活躍（離隊不算）。"""
-        if self.is_guest:
-            return True
-        return bool(self.user and self.user.is_active)
+        """能不能被選來記錄比賽；只有帳號被停用才算不活躍（離隊、沒有帳號都不算）。"""
+        return self.user is None or self.user.is_active
 
     @classmethod
     def active_clause(cls):
         """SQL 版的 is_active。"""
         account = aliased(User)
         active_user = exists(select(account.id).where(account.id == cls.user_id, account.is_active.is_(True)))
-        return or_(cls.is_guest.is_(True), active_user)
+        return or_(cls.user_id.is_(None), active_user)
 
     @property
     def display_name(self) -> str:

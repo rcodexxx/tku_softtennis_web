@@ -3,9 +3,18 @@ from flask import Blueprint, request
 from ..core.auth import admin_required, get_current_user, login_required, staff_required
 from ..core.requests import load_args, load_json
 from ..core.responses import created, ok
-from ..schemas.member import MemberCreateSchema, MemberQuerySchema, MemberSchema, MemberUpdateSchema
+from ..schemas.insight import InsightsSchema
+from ..schemas.leaderboard import SeasonQuerySchema
+from ..schemas.member import MemberCreateSchema, MemberQuerySchema, MemberSchema, MemberUpdateSchema, MergeSchema
 from ..schemas.roster import RosterCandidateSchema, RosterUpdateSchema
-from ..services import avatar_service, leaderboard_service, member_service, roster_service, season_service
+from ..services import (
+    avatar_service,
+    insight_service,
+    leaderboard_service,
+    member_service,
+    roster_service,
+    season_service,
+)
 
 bp = Blueprint("members", __name__, url_prefix="/members")
 
@@ -55,6 +64,21 @@ def get_member(member_id: int):
 def get_member_stats(member_id: int):
     member, stats = leaderboard_service.member_stats(member_id)
     return ok({"member": member_schema.dump(member), **stats.to_dict()})
+
+
+@bp.get("/<int:member_id>/insights")
+def get_member_insights(member_id: int):
+    """球員頁：某個賽季（預設目前賽季）的分數走勢、搭檔、對手，以及歷屆賽季。"""
+    season_id = load_args(SeasonQuerySchema()).get("season_id")
+    return ok(InsightsSchema().dump(insight_service.insights(member_id, season_id)))
+
+
+@bp.post("/<int:member_id>/merge")
+@staff_required
+def merge_member(member_id: int):
+    """把這位球員（通常是重複建立的訪客）的比賽併到 into_id，然後刪掉他。"""
+    target = member_service.merge_members(member_id, load_json(MergeSchema())["into_id"])
+    return ok(member_schema.dump(target), message=f"已合併到「{target.name}」。")
 
 
 @bp.post("")

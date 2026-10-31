@@ -96,34 +96,26 @@
       :data="filteredPlayers"
       :loading="loading"
       :row-key="row => row.id"
-      :row-props="row => ({ class: 'clickable-row', onClick: () => (selected = row) })"
+      :row-props="row => ({ class: 'clickable-row', onClick: () => openPlayer(row) })"
       :pagination="{ pageSize: 20 }"
       :scroll-x="900"
       :bordered="false"
     />
 
     <RatingGuide class="guide" />
-
-    <!-- 比較用的是目前賽季的分數，看舊賽季時不提供 -->
-    <PlayerDetailModal
-      :player="selected"
-      :my-member-id="viewingPast ? null : (authStore.user?.member_id ?? null)"
-      @close="selected = null"
-    />
   </div>
 </template>
 
 <script setup>
   import { computed, onMounted, ref } from 'vue'
+  import { useRouter } from 'vue-router'
   import { ChartPie, Download, Flash, Renew, Search, UserMultiple } from '@vicons/carbon'
   import { leaderboardApi } from '@/api'
   import PageHeader from '@/components/base/PageHeader.vue'
   import StatCard from '@/components/base/StatCard.vue'
   import { detailColumns } from '@/components/leaderboard/detailColumns'
-  import PlayerDetailModal from '@/components/leaderboard/PlayerDetailModal.vue'
   import RatingGuide from '@/components/leaderboard/RatingGuide.vue'
   import { useSeasons } from '@/composables/useSeasons'
-  import { useAuthStore } from '@/stores/authStore'
   import { organizationLabel } from '@/utils/player'
   import { formatRating } from '@/utils/rating'
 
@@ -145,7 +137,7 @@
     { label: '7 以上', max: Infinity, color: 'var(--accent)' }
   ]
 
-  const authStore = useAuthStore()
+  const router = useRouter()
   const { seasons, options: seasonSelectOptions, byId: seasonById, load: loadSeasons } = useSeasons()
 
   const loading = ref(true)
@@ -158,11 +150,10 @@
   const gender = ref(null)
   const minMatches = ref(1)
   const keyword = ref('')
-  const selected = ref(null)
+  const openPlayer = player => router.push({ name: 'Player', params: { id: player.id } })
   const columns = detailColumns()
 
   const selectedSeason = computed(() => seasonById(seasonId.value))
-  const viewingPast = computed(() => Boolean(selectedSeason.value && !selectedSeason.value.is_current))
 
   const filteredPlayers = computed(() => {
     const term = keyword.value.trim().toLowerCase()

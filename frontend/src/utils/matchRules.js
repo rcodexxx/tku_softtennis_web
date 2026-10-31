@@ -79,3 +79,13 @@ export function tiebreakScore(record) {
   if (!game || (!game.a_score && !game.b_score)) return null
   return { aScore: game.a_score, bScore: game.b_score, gameNumber }
 }
+
+/** 常見比分的快速選項：A 勝 4:0…4:3，再來 B 勝 0:4…3:4（依賽制）。 */
+export function quickResults(format) {
+  const toWin = gamesToWin(format)
+  const losing = Array.from({ length: toWin }, (_, games) => games)
+  return {
+    a: losing.map(games => ({ a: toWin, b: games })),
+    b: losing.map(games => ({ a: games, b: toWin }))
+  }
+}

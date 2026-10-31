@@ -9,7 +9,6 @@ const STAFF = ['admin', 'coach', 'cadre']
  * - roles：只有這些角色能進入（隱含 requiresAuth）
  * - guestOnly：已登入時導回首頁
  * - fullscreen：不顯示側邊欄與底部分頁列
- * - beta：開發中的功能
  */
 const routes = [
   {
@@ -22,6 +21,12 @@ const routes = [
     name: 'DetailLeaderboard',
     component: () => import('@/views/leaderboard/DetailLeaderboardView.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/players/:id',
+    name: 'Player',
+    component: () => import('@/views/PlayerView.vue'),
+    props: true
   },
   {
     path: '/login',
@@ -44,7 +49,7 @@ const routes = [
   {
     path: '/match-records/create',
     name: 'RecordMatch',
-    component: () => import('@/views/match/MatchWizardView.vue'),
+    component: () => import('@/views/match/RecordMatchView.vue'),
     props: { mode: 'add' },
     meta: { roles: STAFF }
   },
@@ -64,15 +69,9 @@ const routes = [
   {
     path: '/match-records/edit/:id',
     name: 'EditMatch',
-    component: () => import('@/views/match/MatchWizardView.vue'),
+    component: () => import('@/views/match/RecordMatchView.vue'),
     props: route => ({ mode: 'edit', matchId: route.params.id }),
     meta: { roles: STAFF }
-  },
-  {
-    path: '/referee',
-    name: 'RefereeMode',
-    component: () => import('@/views/match/RefereeModeView.vue'),
-    meta: { roles: STAFF, fullscreen: true, beta: true }
   },
   {
     path: '/events',

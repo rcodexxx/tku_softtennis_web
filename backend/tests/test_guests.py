@@ -33,21 +33,21 @@ def test_regular_member_cannot_create_guest(client, member_headers):
     error(client.post("/api/guests", headers=member_headers, json={"name": "王小明"}), 403)
 
 
-def test_search_my_guests(client, admin_headers, coach_headers):
+def test_guests_are_shared_between_staff(client, admin_headers, coach_headers):
     create_guest(client, admin_headers)
     create_guest(client, admin_headers, name="李大華")
     create_guest(client, coach_headers, name="王小明的朋友")
     guests = data(client.get("/api/guests", headers=admin_headers, query_string={"q": "小明"}))
-    assert [g["name"] for g in guests] == ["王小明"]
+    assert {g["name"] for g in guests} == {"王小明", "王小明的朋友"}
 
 
-def test_only_creator_or_admin_can_modify_guest(client, db, coach_headers, admin_headers):
+def test_any_staff_can_modify_guest(client, db, coach_headers, admin_headers, member_headers):
     guest_id = create_guest(client, coach_headers)["id"]
     make_user("0950000001", "other-password", role=UserRoleEnum.CADRE)
     other = auth_header(login(client, "0950000001", "other-password")["access_token"])
 
-    error(client.put(f"/api/guests/{guest_id}", headers=other, json={"name": "改名"}), 403)
-    error(client.delete(f"/api/guests/{guest_id}", headers=other), 403)
+    assert data(client.put(f"/api/guests/{guest_id}", headers=other, json={"name": "改名"}))["name"] == "改名"
+    error(client.put(f"/api/guests/{guest_id}", headers=member_headers, json={"name": "不行"}), 403)
 
     assert (
         data(client.put(f"/api/guests/{guest_id}", headers=coach_headers, json={"notes": "備註"}))["guest_notes"]
@@ -80,3 +80,15 @@ def test_match_participation_updates_guest_usage(client, db, admin_headers, play
 def test_guest_role_options(client):
     options = data(client.get("/api/guests/role-options"))
     assert {o["value"]: o["label"] for o in options} == {"teammate": "隊友", "opponent": "對手", "neutral": "訪客"}
+
+
+def test_guest_gender_and_division_set_starting_rating(client, admin_headers):
+    guest = data(
+        client.post(
+            "/api/guests", headers=admin_headers, json={"name": "校外強者", "gender": "male", "is_a_division": True}
+        ),
+        201,
+    )
+    assert (guest["gender"], guest["is_a_division"], guest["rating"]) == ("male", True, 6.0)
+    updated = data(client.put(f"/api/guests/{guest['id']}", headers=admin_headers, json={"is_a_division": False}))
+    assert updated["rating"] == 5.0

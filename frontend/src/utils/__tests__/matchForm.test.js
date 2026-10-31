@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { gameField, matchFormFromRecord, matchPayloadFromForm, newMatchForm } from '../matchForm'
+import { gameField, matchFormFromRecord, matchPayloadFromForm, newMatchForm, recordFormError } from '../matchForm'
 
 const record = {
   id: 65,
@@ -71,5 +71,30 @@ describe('比賽紀錄 ↔ 表單', () => {
       player2_id: 2,
       player4_id: 4
     })
+  })
+})
+
+describe('recordFormError', () => {
+  const ready = {
+    ...newMatchForm(),
+    player1_id: 1,
+    player2_id: 2,
+    player3_id: 3,
+    player4_id: 4,
+    a_games: 4,
+    b_games: 2
+  }
+
+  it('accepts a complete doubles match', () => {
+    expect(recordFormError(ready)).toBe('')
+    expect(recordFormError({ ...ready, match_type: 'singles', player2_id: null, player4_id: null })).toBe('')
+  })
+
+  it('explains what is missing', () => {
+    expect(recordFormError({ ...ready, player4_id: null })).toBe('請選齊兩隊的球員')
+    expect(recordFormError({ ...ready, player4_id: 1 })).toBe('同一位球員不能出現兩次')
+    expect(recordFormError({ ...ready, a_games: 0, b_games: 0 })).toBe('請輸入比分')
+    expect(recordFormError({ ...ready, b_games: 4 })).toBe('比賽不能平手')
+    expect(recordFormError({ ...ready, category: 'event', event_id: null })).toBe('請選擇賽事')
   })
 })

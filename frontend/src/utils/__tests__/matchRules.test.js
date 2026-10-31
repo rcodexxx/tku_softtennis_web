@@ -4,6 +4,7 @@ import {
   gamesToWin,
   isTiebreakGame,
   maxGames,
+  quickResults,
   serveSideForGame,
   tiebreakScore,
   validateGameScore
@@ -103,5 +104,19 @@ describe('列表的決勝局比分', () => {
   it('沒有打到決勝局或沒有每局比分時回傳 null', () => {
     expect(tiebreakScore({ match_format: 'games_7', a_games: 4, b_games: 1, games })).toBeNull()
     expect(tiebreakScore({ match_format: 'games_7', a_games: 3, b_games: 4, games: [] })).toBeNull()
+  })
+})
+
+describe('quickResults', () => {
+  it('lists every winning score for the format', () => {
+    const { a, b } = quickResults('games_7')
+    expect(a).toEqual([
+      { a: 4, b: 0 },
+      { a: 4, b: 1 },
+      { a: 4, b: 2 },
+      { a: 4, b: 3 }
+    ])
+    expect(b.at(-1)).toEqual({ a: 3, b: 4 })
+    expect(quickResults('games_5').a).toHaveLength(3)
   })
 })

@@ -81,7 +81,7 @@
         v-if="board.ranked.length"
         :players="board.ranked.slice(0, 3)"
         :highlight-id="myId"
-        @select="selected = $event"
+        @select="openPlayer"
       />
       <div v-else class="awaiting hud-frame">
         <span class="corner tl"></span>
@@ -101,15 +101,12 @@
             <template #prefix><n-icon :component="Search" /></template>
           </n-input>
         </div>
-        <RankingList v-if="restRanked.length" :players="restRanked" :highlight-id="myId" @select="selected = $event" />
+        <RankingList v-if="restRanked.length" :players="restRanked" :highlight-id="myId" @select="openPlayer" />
         <p v-else class="no-match">沒有符合的球員</p>
       </section>
     </div>
 
     <RatingGuide class="guide" />
-
-    <!-- 比較用的是目前賽季的分數，看舊賽季時不提供 -->
-    <PlayerDetailModal :player="selected" :my-member-id="viewingPast ? null : myId" @close="selected = null" />
   </div>
 </template>
 
@@ -118,7 +115,6 @@
   import { useRoute, useRouter } from 'vue-router'
   import { Analytics, Archive, Search } from '@vicons/carbon'
   import { boardsApi, leaderboardApi } from '@/api'
-  import PlayerDetailModal from '@/components/leaderboard/PlayerDetailModal.vue'
   import RankingList from '@/components/leaderboard/RankingList.vue'
   import RatingGuide from '@/components/leaderboard/RatingGuide.vue'
   import TopThree from '@/components/leaderboard/TopThree.vue'
@@ -154,7 +150,7 @@
   const error = ref(null)
   const players = ref([])
   const keyword = ref('')
-  const selected = ref(null)
+  const openPlayer = player => router.push({ name: 'Player', params: { id: player.id } })
   const myId = computed(() => authStore.user?.member_id ?? null)
 
   // 目前的排行榜存在網址上，方便分享

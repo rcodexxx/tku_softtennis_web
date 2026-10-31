@@ -29,7 +29,7 @@
             <template #icon><n-icon :component="Add" /></template>
           </n-button>
         </div>
-        <span v-if="winner === side.key" class="winner-tag">🏆 獲勝</span>
+        <span v-if="winner === side.key" class="winner-tag">勝</span>
       </div>
     </div>
 

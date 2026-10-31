@@ -112,3 +112,17 @@ export function matchPayloadFromForm(form) {
     Object.entries(payload).filter(([key, value]) => keepNull.has(key) || (value !== null && value !== ''))
   )
 }
+
+const PLAYER_FIELDS = ['player1_id', 'player2_id', 'player3_id', 'player4_id']
+
+/** 一頁式記錄送出前的檢查，回傳錯誤訊息或空字串。 */
+export function recordFormError(form) {
+  if (!form.match_date_ts) return '請選擇比賽日期'
+  if (form.category === 'event' && !form.event_id) return '請選擇賽事'
+  const fields = form.match_type === 'singles' ? ['player1_id', 'player3_id'] : PLAYER_FIELDS
+  const chosen = fields.map(field => form[field])
+  if (!chosen.every(Boolean)) return '請選齊兩隊的球員'
+  if (new Set(chosen).size !== chosen.length) return '同一位球員不能出現兩次'
+  if (!form.a_games && !form.b_games) return '請輸入比分'
+  return form.a_games === form.b_games ? '比賽不能平手' : ''
+}

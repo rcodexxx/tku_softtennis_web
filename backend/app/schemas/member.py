@@ -5,6 +5,12 @@ from .auth import PASSWORD_MIN_LENGTH
 from .common import PHONE_REGEX, BaseSchema, EnumField, InputSchema, OrganizationBriefSchema, UserBriefSchema
 
 
+def _roster_category(member) -> str:
+    from ..services.roster_service import category_of
+
+    return category_of(member)
+
+
 def _avatar_url(member) -> str | None:
     from ..services.avatar_service import avatar_url
 
@@ -35,6 +41,8 @@ class MemberSchema(BaseSchema):
     leaved_date = fields.Date(allow_none=True)
     has_left = fields.Bool()
     is_a_division = fields.Bool()
+    # team／alumni／left／guest／other，球員名單分類用
+    roster_category = fields.Function(_roster_category)
     notes = fields.Str(allow_none=True)
     created_at = fields.DateTime(allow_none=True)
 
@@ -84,14 +92,18 @@ class _MemberFieldsSchema(InputSchema):
 
 
 class MemberCreateSchema(_MemberFieldsSchema):
-    username = fields.Str(required=True, validate=validate.Regexp(PHONE_REGEX, error="手機號碼格式無效。"))
+    """username（手機號碼）選填：有填才建立登入帳號，沒有帳號的球員一樣能記錄比賽、上排行榜。"""
+
+    username = fields.Str(allow_none=True, validate=validate.Regexp(PHONE_REGEX, error="手機號碼格式無效。"))
     password = fields.Str(allow_none=True, validate=validate.Length(min=PASSWORD_MIN_LENGTH))
     name = fields.Str(required=True, validate=validate.Length(min=1, max=80))
     role = EnumField(UserRoleEnum, load_default=UserRoleEnum.MEMBER)
 
 
 class MemberUpdateSchema(_MemberFieldsSchema):
-    """帳號（username）不能透過編輯成員修改。"""
+    """帳號（username）不能透過編輯成員修改。is_guest 只能改成 false（對手轉成校內球員）。"""
+
+    is_guest = fields.Bool(validate=validate.Equal(False, error="只能把對手轉成校內球員。"))
 
 
 class MemberQuerySchema(InputSchema):
@@ -99,7 +111,10 @@ class MemberQuerySchema(InputSchema):
     include_guests = fields.Bool(load_default=False)
     include_inactive = fields.Bool(load_default=False)
     organization_id = fields.Int()
-    sort_by = fields.Str(load_default="name", validate=validate.OneOf(["name", "rating", "joined_date", "created_at"]))
+    # roster：校隊、校友會、離隊、其他學校、訪客依序排，同一類再依姓名
+    sort_by = fields.Str(
+        load_default="name", validate=validate.OneOf(["name", "rating", "joined_date", "created_at", "roster"])
+    )
     sort_order = fields.Str(load_default="asc", validate=validate.OneOf(["asc", "desc"]))
     limit = fields.Int(validate=validate.Range(min=1, max=500))
 
@@ -112,6 +127,8 @@ class GuestInputSchema(InputSchema):
     guest_role = EnumField(GuestRoleEnum, load_default=GuestRoleEnum.NEUTRAL)
     organization_id = fields.Int(allow_none=True)
     notes = fields.Str(allow_none=True, validate=validate.Length(max=200))
+    gender = EnumField(GenderEnum, allow_none=True)
+    is_a_division = fields.Bool()
 
 
 class GuestQuerySchema(InputSchema):
@@ -119,3 +136,7 @@ class GuestQuerySchema(InputSchema):
     guest_role = EnumField(GuestRoleEnum)
     organization_id = fields.Int()
     limit = fields.Int(load_default=10, validate=validate.Range(min=1, max=50))
+
+
+class MergeSchema(InputSchema):
+    into_id = fields.Int(required=True, validate=validate.Range(min=1))

@@ -83,6 +83,8 @@
               :filter="filterPlayer"
               :loading="playersLoading"
               filterable
+              tag
+              :on-create="toCreateOption"
               clearable
               :consistent-menu-width="false"
               show-on-focus
@@ -101,6 +103,8 @@
               :filter="filterPlayer"
               :loading="playersLoading"
               filterable
+              tag
+              :on-create="toCreateOption"
               clearable
               :consistent-menu-width="false"
               show-on-focus
@@ -225,11 +229,19 @@
         </div>
       </template>
     </n-modal>
+    <QuickGuestModal
+      :show="Boolean(pendingGuest)"
+      :name="pendingGuest?.name ?? ''"
+      :organizations="organizations"
+      @update:show="open => !open && (pendingGuest = null)"
+      @created="onGuestCreated"
+    />
   </div>
 </template>
 
 <script setup>
   import MatchCategoryPicker from '@/components/match/MatchCategoryPicker.vue'
+  import QuickGuestModal from '@/components/match/QuickGuestModal.vue'
   import { computed, h, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import { useDialog, useMessage } from 'naive-ui'
@@ -245,7 +257,7 @@
     TrashCan,
     WarningAlt
   } from '@vicons/carbon'
-  import { matchesApi, membersApi } from '@/api'
+  import { matchesApi, membersApi, organizationsApi } from '@/api'
   import CountUp from '@/components/base/CountUp.vue'
   import PageHeader from '@/components/base/PageHeader.vue'
   import PlayerAvatar from '@/components/base/PlayerAvatar.vue'
@@ -330,9 +342,23 @@
     return playerOptions.value.map(option => (taken.has(option.value) ? { ...option, disabled: true } : option))
   }
 
+  // 打了名單裡沒有的名字時，多一個「新增對手」選項
+  const NEW_PLAYER = 'new:'
+  const toCreateOption = label => ({ label: `＋ 新增對手「${label}」`, value: `${NEW_PLAYER}${label}` })
+  const pendingGuest = ref(null)
+  const organizations = ref([])
+
+  const onGuestCreated = async id => {
+    const { rowKey, field } = pendingGuest.value
+    await loadPlayers()
+    const row = rows.value.find(item => item.key === rowKey)
+    if (row) setField(row, field, id)
+  }
+
   const filterPlayer = (pattern, option) => {
     const term = pattern.trim().toLowerCase()
     const { member } = option
+    if (!member) return true
     return [member.name, member.organization?.name, member.organization?.short_name]
       .filter(Boolean)
       .some(text => text.toLowerCase().includes(term))
@@ -340,6 +366,7 @@
 
   const renderPlayer = option => {
     const { member } = option
+    if (typeof option.value === 'string') return h('span', { class: 'batch-player-option create' }, option.label)
     // 球員名單還沒載入（例如剛還原草稿）時，選單只拿得到 id
     if (!member) return playersLoading.value ? '載入中…' : `#${option.value}`
     return h('span', { class: 'batch-player-option' }, [
@@ -359,7 +386,7 @@
     playersLoading.value = true
     playersError.value = ''
     try {
-      players.value = await membersApi.list({ include_guests: true, sort_by: 'name', sort_order: 'asc' })
+      players.value = await membersApi.list({ include_guests: true, sort_by: 'roster' })
     } catch (err) {
       playersError.value = err.response?.data?.message || '無法載入球員名單'
     } finally {
@@ -375,6 +402,10 @@
   }
 
   const setField = (row, field, value) => {
+    if (typeof value === 'string' && value.startsWith(NEW_PLAYER)) {
+      pendingGuest.value = { rowKey: row.key, field, name: value.slice(NEW_PLAYER.length).trim() }
+      return
+    }
     const changes = { [field]: value }
     if (field === 'match_type' && value === 'singles') Object.assign(changes, { player2_id: null, player4_id: null })
     replaceRow(row.key, { ...row, ...changes })
@@ -522,6 +553,10 @@
     // 從賽事頁進來時，整批預設歸到那個賽事
     if (Number(route.query.event)) Object.assign(shared, { category: 'event', event_id: Number(route.query.event) })
     loadPlayers()
+    organizationsApi
+      .list()
+      .then(list => (organizations.value = list))
+      .catch(() => {})
     window.addEventListener('keydown', onKeydown)
     focusRow(rows.value[0].key)
   })
@@ -960,6 +995,10 @@
 
 <style>
   /* 下拉選單會被移到 body 底下，scoped 樣式套不到 */
+  .batch-player-option.create {
+    color: var(--accent-text);
+    font-weight: 600;
+  }
   .batch-player-option {
     display: inline-flex;
     align-items: center;

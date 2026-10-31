@@ -21,16 +21,7 @@ const ITEMS = [
     label: '記錄',
     icon: Edit,
     staff: true,
-    routes: [
-      'MatchManagement',
-      'RecordMatch',
-      'BatchRecordMatch',
-      'ViewMatch',
-      'EditMatch',
-      'RefereeMode',
-      'Events',
-      'EventDetail'
-    ]
+    routes: ['MatchManagement', 'RecordMatch', 'BatchRecordMatch', 'ViewMatch', 'EditMatch', 'Events', 'EventDetail']
   },
   {
     name: 'ManagementCenter',

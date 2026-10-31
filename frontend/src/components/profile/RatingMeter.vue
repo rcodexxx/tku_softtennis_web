@@ -1,17 +1,19 @@
 <template>
   <div class="meter">
-    <div class="meter-head">
-      <span class="value num">{{ formatRating(rating) }}</span>
-      <span class="status num">本季 {{ totalMatches ?? 0 }} 場</span>
-    </div>
+    <template v-if="!trendOnly">
+      <div class="meter-head">
+        <span class="value num">{{ formatRating(rating) }}</span>
+        <span class="status num">本季 {{ totalMatches ?? 0 }} 場</span>
+      </div>
 
-    <div class="track" aria-hidden="true">
-      <span class="fill" :style="{ width: `${ratingPercent(rating)}%` }"></span>
-      <span class="marker" :style="{ left: `${ratingPercent(rating)}%` }"></span>
-    </div>
-    <div class="ticks num" aria-hidden="true">
-      <span v-for="tick in TICKS" :key="tick">{{ tick }}</span>
-    </div>
+      <div class="track" aria-hidden="true">
+        <span class="fill" :style="{ width: `${ratingPercent(rating)}%` }"></span>
+        <span class="marker" :style="{ left: `${ratingPercent(rating)}%` }"></span>
+      </div>
+      <div class="ticks num" aria-hidden="true">
+        <span v-for="tick in TICKS" :key="tick">{{ tick }}</span>
+      </div>
+    </template>
 
     <figure v-if="points.length > 1" class="trend">
       <figcaption>最近 {{ points.length }} 場表現</figcaption>
@@ -36,7 +38,7 @@
       </p>
     </figure>
 
-    <p class="hint">分數看局數表現：打得比預期好就上升，輸給強隊但比分接近也會加分。</p>
+    <p v-if="!trendOnly" class="hint">分數看局數表現：打得比預期好就上升，輸給強隊但比分接近也會加分。</p>
   </div>
 </template>
 
@@ -53,7 +55,9 @@
   const props = defineProps({
     rating: { type: Number, default: null },
     totalMatches: { type: Number, default: 0 },
-    performances: { type: Array, default: () => [] }
+    performances: { type: Array, default: () => [] },
+    // 只畫走勢圖（球員頁上方已經有分數）
+    trendOnly: { type: Boolean, default: false }
   })
 
   const range = computed(() => {
@@ -115,7 +119,7 @@
     display: block;
     height: 100%;
     border-radius: inherit;
-    background: linear-gradient(90deg, var(--blue-400), var(--blue-700));
+    background: var(--ink);
     transform-origin: left;
     animation: grow 1s var(--ease-out) both 0.2s;
   }

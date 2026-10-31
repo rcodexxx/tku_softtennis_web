@@ -99,7 +99,7 @@
     if (members.value.length) return
     membersLoading.value = true
     try {
-      members.value = await membersApi.list({ include_guests: true, sort_by: 'name', sort_order: 'asc' })
+      members.value = await membersApi.list({ include_guests: true, sort_by: 'roster' })
     } finally {
       membersLoading.value = false
     }
